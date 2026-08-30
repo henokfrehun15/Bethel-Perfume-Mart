@@ -4,6 +4,8 @@ import helmet from "helmet";
 import morgan from "morgan";
 import dotenv from "dotenv";
 import testRoutes from "./routes/testRoutes";
+import categoryRoutes from "./routes/categoryRoutes";
+
 dotenv.config();
 
 const app = express();
@@ -31,6 +33,7 @@ app.get("/api/health", (_req, res) => {
   });
 });
 app.use("/api/test", testRoutes);
+app.use("/api/categories", categoryRoutes);
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
