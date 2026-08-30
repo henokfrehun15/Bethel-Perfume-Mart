@@ -3,7 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import dotenv from "dotenv";
-
+import testRoutes from "./routes/testRoutes";
 dotenv.config();
 
 const app = express();
@@ -30,7 +30,7 @@ app.get("/api/health", (_req, res) => {
     message: "Bethel Perfume API is running",
   });
 });
-
+app.use("/api/test", testRoutes);
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
