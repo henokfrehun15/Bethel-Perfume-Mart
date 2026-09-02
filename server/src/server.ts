@@ -5,6 +5,7 @@ import morgan from "morgan";
 import dotenv from "dotenv";
 import testRoutes from "./routes/testRoutes";
 import categoryRoutes from "./routes/categoryRoutes";
+import productRoutes from "./routes/productRoutes";
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ app.get("/api/health", (_req, res) => {
 });
 app.use("/api/test", testRoutes);
 app.use("/api/categories", categoryRoutes);
+app.use("/api/products", productRoutes);
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
