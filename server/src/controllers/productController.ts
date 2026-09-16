@@ -22,7 +22,6 @@ export const getProducts = async (
     const conditions: string[] = [];
     const values: unknown[] = [];
 
-    // Search by product name or brand
     if (search) {
       values.push(`%${String(search)}%`);
 
@@ -34,34 +33,30 @@ export const getProducts = async (
       `);
     }
 
-    // Filter by category slug
     if (category) {
       values.push(String(category));
 
-      conditions.push(`
-        c.slug = $${values.length}
-      `);
+      conditions.push(
+        `c.slug = $${values.length}`
+      );
     }
 
-    // Filter by stock
     if (inStock === "true") {
-      conditions.push(`
-        p.stock_status != 'OUT_OF_STOCK'
-      `);
+      conditions.push(
+        `p.stock_status != 'OUT_OF_STOCK'`
+      );
     }
 
-    // Featured products
     if (featured === "true") {
-      conditions.push(`
-        p.is_featured = TRUE
-      `);
+      conditions.push(
+        `p.is_featured = TRUE`
+      );
     }
 
-    // Promotional products
     if (promotion === "true") {
-      conditions.push(`
-        p.is_promotion = TRUE
-      `);
+      conditions.push(
+        `p.is_promotion = TRUE`
+      );
     }
 
     const whereClause =
@@ -79,11 +74,42 @@ export const getProducts = async (
       0
     );
 
+    /*
+     * First get the total number of products
+     * matching the filters.
+     */
+    const countValues = [...values];
+
+    const countQuery = `
+      SELECT COUNT(*)::int AS total
+
+      FROM products p
+
+      INNER JOIN categories c
+        ON c.id = p.category_id
+
+      ${whereClause}
+    `;
+
+    const countResult = await pool.query(
+      countQuery,
+      countValues
+    );
+
+    const total = countResult.rows[0].total;
+
+    /*
+     * Add pagination values for the product query.
+     */
     values.push(parsedLimit);
-    const limitParameter = `$${values.length}`;
+
+    const limitParameter =
+      `$${values.length}`;
 
     values.push(parsedOffset);
-    const offsetParameter = `$${values.length}`;
+
+    const offsetParameter =
+      `$${values.length}`;
 
     const query = `
       SELECT
@@ -127,17 +153,29 @@ export const getProducts = async (
       OFFSET ${offsetParameter}
     `;
 
-    const result = await pool.query(query, values);
+    const result = await pool.query(
+      query,
+      values
+    );
 
     res.status(200).json({
       success: true,
+
       count: result.rows.length,
+
+      total,
+
       limit: parsedLimit,
+
       offset: parsedOffset,
+
       data: result.rows,
     });
   } catch (error) {
-    console.error("Get products error:", error);
+    console.error(
+      "Get products error:",
+      error
+    );
 
     res.status(500).json({
       success: false,
@@ -145,7 +183,6 @@ export const getProducts = async (
     });
   }
 };
-
 
 // GET /api/products/:slug
 export const getProductBySlug = async (

@@ -6,6 +6,7 @@ import { apiRequest } from "@/lib/api";
 interface ProductsResponse {
   success: boolean;
   count: number;
+  total: number;
   data: unknown[];
 }
 
@@ -40,7 +41,7 @@ export default function AdminDashboard() {
           ),
         ]);
 
-        setProducts(productsResponse.count);
+        setProducts(productsResponse.total);
         setCategories(
           categoriesResponse.count
         );
