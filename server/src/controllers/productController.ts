@@ -457,41 +457,120 @@ export const updateProduct = async (
       UPDATE products
 
       SET
-        name = COALESCE($1, name),
-        slug = COALESCE($2, slug),
-        description = COALESCE($3, description),
-        price = COALESCE($4, price),
-        currency = COALESCE($5, currency),
-        brand = COALESCE($6, brand),
-        size = COALESCE($7, size),
-        stock_status = COALESCE($8, stock_status),
-        stock_qty = COALESCE($9, stock_qty),
-        is_featured = COALESCE($10, is_featured),
-        is_promotion = COALESCE($11, is_promotion),
-        promotion_price = COALESCE($12, promotion_price),
-        promotion_text = COALESCE($13, promotion_text),
-        category_id = COALESCE($14, category_id),
+        name = CASE
+          WHEN $1::text IS NULL THEN name
+          ELSE $1
+        END,
+
+        slug = CASE
+          WHEN $2::text IS NULL THEN slug
+          ELSE $2
+        END,
+
+        description = CASE
+          WHEN $3::boolean THEN $4
+          ELSE description
+        END,
+
+        price = CASE
+          WHEN $5::boolean THEN $6
+          ELSE price
+        END,
+
+        currency = CASE
+          WHEN $7::text IS NULL THEN currency
+          ELSE $7
+        END,
+
+        brand = CASE
+          WHEN $8::boolean THEN $9
+          ELSE brand
+        END,
+
+        size = CASE
+          WHEN $10::boolean THEN $11
+          ELSE size
+        END,
+
+        stock_status = CASE
+          WHEN $12::text IS NULL THEN stock_status
+          ELSE $12
+        END,
+
+        stock_qty = CASE
+          WHEN $13::boolean THEN $14
+          ELSE stock_qty
+        END,
+
+        is_featured = CASE
+          WHEN $15::boolean THEN $16
+          ELSE is_featured
+        END,
+
+        is_promotion = CASE
+          WHEN $17::boolean THEN $18
+          ELSE is_promotion
+        END,
+
+        promotion_price = CASE
+          WHEN $19::boolean THEN $20
+          ELSE promotion_price
+        END,
+
+        promotion_text = CASE
+          WHEN $21::boolean THEN $22
+          ELSE promotion_text
+        END,
+
+        category_id = CASE
+          WHEN $23::boolean THEN $24
+          ELSE category_id
+        END,
+
         updated_at = CURRENT_TIMESTAMP
 
-      WHERE id = $15
+      WHERE id = $25
 
       RETURNING *
       `,
       [
-        name,
-        slug,
-        description,
-        price,
-        currency,
-        brand,
-        size,
-        stock_status,
-        stock_qty,
-        is_featured,
-        is_promotion,
-        promotion_price,
-        promotion_text,
-        category_id,
+        name ?? null,
+        slug ?? null,
+
+        description !== undefined,
+        description ?? null,
+
+        price !== undefined,
+        price ?? null,
+
+        currency ?? null,
+
+        brand !== undefined,
+        brand ?? null,
+
+        size !== undefined,
+        size ?? null,
+
+        stock_status ?? null,
+
+        stock_qty !== undefined,
+        stock_qty ?? null,
+
+        is_featured !== undefined,
+        is_featured ?? null,
+
+        is_promotion !== undefined,
+        is_promotion ?? null,
+
+        promotion_price !== undefined,
+        promotion_price ?? null,
+
+        promotion_text !== undefined,
+        promotion_text ?? null,
+
+        category_id !== undefined,
+        category_id ?? null,
+
         id,
       ]
     );
@@ -505,7 +584,6 @@ export const updateProduct = async (
       });
     }
 
-    // If images are supplied, replace the current image list.
     if (Array.isArray(images)) {
       await client.query(
         `
@@ -515,7 +593,11 @@ export const updateProduct = async (
         [id]
       );
 
-      for (let index = 0; index < images.length; index++) {
+      for (
+        let index = 0;
+        index < images.length;
+        index++
+      ) {
         const image = images[index];
 
         if (!image?.url) {
@@ -536,7 +618,7 @@ export const updateProduct = async (
           [
             id,
             image.url,
-            image.alt_text || null,
+            image.alt_text ?? null,
             index,
           ]
         );
@@ -553,7 +635,10 @@ export const updateProduct = async (
   } catch (error: any) {
     await client.query("ROLLBACK");
 
-    console.error("Update product error:", error);
+    console.error(
+      "Update product error:",
+      error
+    );
 
     if (error.code === "23505") {
       return res.status(409).json({
@@ -577,7 +662,6 @@ export const updateProduct = async (
     client.release();
   }
 };
-
 
 // DELETE /api/products/:id
 export const deleteProduct = async (
@@ -613,6 +697,80 @@ export const deleteProduct = async (
     res.status(500).json({
       success: false,
       message: "Failed to delete product",
+    });
+  }
+};
+export const getProductById = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(
+      `
+      SELECT
+        p.id,
+        p.name,
+        p.slug,
+        p.description,
+        p.price,
+        p.currency,
+        p.brand,
+        p.size,
+        p.stock_status,
+        p.stock_qty,
+        p.is_featured,
+        p.is_promotion,
+        p.promotion_price,
+        p.promotion_text,
+
+        c.id AS category_id,
+        c.name AS category_name,
+        c.slug AS category_slug
+
+      FROM products p
+      INNER JOIN categories c
+        ON c.id = p.category_id
+      WHERE p.id = $1
+      `,
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    const imagesResult = await pool.query(
+      `
+      SELECT
+        id,
+        url,
+        alt_text,
+        sort_order
+      FROM product_images
+      WHERE product_id = $1
+      ORDER BY sort_order ASC, id ASC
+      `,
+      [id]
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        ...result.rows[0],
+        images: imagesResult.rows,
+      },
+    });
+  } catch (error) {
+    console.error("Get product by ID error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch product",
     });
   }
 };

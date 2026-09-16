@@ -3,6 +3,7 @@ import { requireAdmin } from "../middleware/authMiddleware";
 import {
   getProducts,
   getProductBySlug,
+  getProductById,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -19,6 +20,7 @@ const router = Router();
 
 // Public
 router.get("/", getProducts);
+router.get("/id/:id", getProductById);
 router.get("/:slug", getProductBySlug);
 
 // Admin

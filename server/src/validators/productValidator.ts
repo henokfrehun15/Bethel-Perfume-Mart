@@ -5,8 +5,18 @@ const imageSchema = z.object({
   alt_text: z.string().max(255).optional(),
 });
 
+const numberFromInput = z.coerce.number();
+
+const integerFromInput =
+  z.coerce.number().int();
+
 export const createProductSchema = z.object({
-  name: z.string().trim().min(1).max(255),
+  name: z
+    .string()
+    .trim()
+    .min(1)
+    .max(255),
+
   slug: z
     .string()
     .trim()
@@ -17,48 +27,65 @@ export const createProductSchema = z.object({
       "Slug must contain lowercase letters, numbers and hyphens only"
     ),
 
-  description: z.string().trim().optional(),
+  description: z
+    .string()
+    .trim()
+    .optional()
+    .nullable(),
 
-  price: z.number().nonnegative(),
+  price: numberFromInput.nonnegative(),
 
   currency: z
     .string()
     .length(3)
     .default("ETB"),
 
-  brand: z.string().trim().max(100).optional(),
+  brand: z
+    .string()
+    .trim()
+    .max(100)
+    .optional()
+    .nullable(),
 
-  size: z.string().trim().max(50).optional(),
+  size: z
+    .string()
+    .trim()
+    .max(50)
+    .optional()
+    .nullable(),
 
   stock_status: z
-    .enum(["IN_STOCK", "LOW_STOCK", "OUT_OF_STOCK"])
+    .enum([
+      "IN_STOCK",
+      "LOW_STOCK",
+      "OUT_OF_STOCK",
+    ])
     .default("IN_STOCK"),
 
-  stock_qty: z
-    .number()
-    .int()
+  stock_qty: integerFromInput
     .nonnegative()
     .default(0),
 
-  is_featured: z.boolean().default(false),
+  is_featured: z.coerce.boolean().default(false),
 
-  is_promotion: z.boolean().default(false),
+  is_promotion: z
+    .coerce
+    .boolean()
+    .default(false),
 
-  promotion_price: z
-    .number()
+  promotion_price: numberFromInput
     .nonnegative()
-    .optional(),
+    .optional()
+    .nullable(),
 
   promotion_text: z
     .string()
     .trim()
     .max(255)
-    .optional(),
+    .optional()
+    .nullable(),
 
-  category_id: z
-    .number()
-    .int()
-    .positive(),
+  category_id: integerFromInput.positive(),
 
   images: z
     .array(imageSchema)
