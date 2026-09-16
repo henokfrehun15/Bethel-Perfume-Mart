@@ -7,6 +7,7 @@ import testRoutes from "./routes/testRoutes";
 import categoryRoutes from "./routes/categoryRoutes";
 import productRoutes from "./routes/productRoutes";
 import authRoutes from "./routes/authRoutes"; 
+import settingsRoutes from "./routes/settingsRoutes"; 
 
 dotenv.config();
 
@@ -38,6 +39,7 @@ app.use("/api/test", testRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/settings", settingsRoutes);
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });

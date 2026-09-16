@@ -121,6 +121,12 @@ export default function AdminLayout({
           >
             Categories
           </a>
+          <a
+            href="/admin/settings"
+            className="py-3 text-sm font-medium hover:text-gray-600"
+            >
+            Settings
+            </a>
         </div>
       </nav>
 
