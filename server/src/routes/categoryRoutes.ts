@@ -1,5 +1,5 @@
 import { Router } from "express";
-
+import { requireAdmin } from "../middleware/authMiddleware";
 import {
 getCategories,
 getCategoryBySlug,
@@ -15,8 +15,18 @@ router.get("/", getCategories);
 router.get("/:slug", getCategoryBySlug);
 
 // Admin routes
-router.post("/", createCategory);
-router.put("/:id", updateCategory);
-router.delete("/:id", deleteCategory);
+router.post("/", 
+    requireAdmin, 
+    createCategory
+);
+router.put("/:id",
+    requireAdmin,
+    updateCategory
+);
+
+router.delete("/:id", 
+    requireAdmin,
+    deleteCategory
+);
 
 export default router;

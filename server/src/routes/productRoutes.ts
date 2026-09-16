@@ -1,5 +1,5 @@
 import { Router } from "express";
-
+import { requireAdmin } from "../middleware/authMiddleware";
 import {
   getProducts,
   getProductBySlug,
@@ -24,16 +24,20 @@ router.get("/:slug", getProductBySlug);
 // Admin
 router.post(
   "/",
+  requireAdmin,
   validate(createProductSchema),
   createProduct
 );
 
 router.put(
   "/:id",
+  requireAdmin,
   validate(updateProductSchema),
   updateProduct
 );
 
-router.delete("/:id", deleteProduct);
+router.delete("/:id",
+  requireAdmin,
+  deleteProduct);
 
 export default router;
