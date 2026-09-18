@@ -15,7 +15,6 @@ export default function AdminLayout({
 
   const isLoginPage = pathname === "/admin/login";
 
-  // Initialize checkingAuth directly using the current route state
   const [checkingAuth, setCheckingAuth] = useState(!isLoginPage);
   const [username, setUsername] = useState("");
 
@@ -24,7 +23,6 @@ export default function AdminLayout({
       return;
     }
 
-    // Wrap in a microtask to prevent synchronous setState inside the effect body
     queueMicrotask(() => {
       const token = localStorage.getItem("admin_token");
       const storedUser = localStorage.getItem("admin_user");
@@ -56,10 +54,14 @@ export default function AdminLayout({
 
   if (checkingAuth && !isLoginPage) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-gray-500">
-          Checking authentication...
-        </p>
+      <div className="flex min-h-screen items-center justify-center bg-[#fffcfa]">
+        <div className="text-center">
+          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-[#f7e5e9] border-t-[#c96a82]" />
+
+          <p className="text-sm text-[#756b6e]">
+            Checking authentication...
+          </p>
+        </div>
       </div>
     );
   }
@@ -68,30 +70,74 @@ export default function AdminLayout({
     return <>{children}</>;
   }
 
-  return (
-    <div className="min-h-screen bg-gray-100">
-      <header className="border-b bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
-          <div>
-            <h1 className="text-xl font-bold">
-              Bethel Perfume
-            </h1>
+  const navItems = [
+    {
+      label: "Dashboard",
+      href: "/admin",
+    },
+    {
+      label: "Products",
+      href: "/admin/products",
+    },
+    {
+      label: "Categories",
+      href: "/admin/categories",
+    },
+    {
+      label: "Settings",
+      href: "/admin/settings",
+    },
+  ];
 
-            <p className="text-sm text-gray-500">
-              Admin Dashboard
-            </p>
+  return (
+    <div className="min-h-screen bg-[#fffcfa] text-[#30272a]">
+      {/* Header */}
+      <header className="sticky top-0 z-40 border-b border-[#eadcdf] bg-white/95 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
+          {/* Brand */}
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#f7e5e9]">
+              <span className="text-xl text-[#c96a82]">
+                ✿
+              </span>
+            </div>
+
+            <div>
+              <h1 className="text-lg font-semibold tracking-tight text-[#30272a] sm:text-xl">
+                Bethel <span className="text-[#c96a82]">Perfume</span>
+              </h1>
+
+              <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[#756b6e]">
+                Administration
+              </p>
+            </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          {/* User */}
+          <div className="flex items-center gap-3">
             {username && (
-              <span className="text-sm text-gray-600">
-                {username}
-              </span>
+              <div className="hidden items-center gap-3 sm:flex">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f7e5e9]">
+                  <span className="text-sm font-semibold text-[#9e405a]">
+                    {username.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+
+                <div className="leading-tight">
+                  <p className="text-xs text-[#756b6e]">
+                    Signed in as
+                  </p>
+
+                  <p className="text-sm font-medium text-[#30272a]">
+                    {username}
+                  </p>
+                </div>
+              </div>
             )}
 
             <button
               onClick={handleLogout}
-              className="rounded-lg border px-4 py-2 text-sm font-medium hover:bg-gray-50"
+              className="rounded-xl border border-[#eadcdf] bg-white px-3 py-2 text-sm font-medium text-[#756b6e] transition hover:border-[#d8aab6] hover:bg-[#fdf3f5] hover:text-[#9e405a]"
             >
               Logout
             </button>
@@ -99,38 +145,38 @@ export default function AdminLayout({
         </div>
       </header>
 
-      <nav className="border-b bg-white">
-        <div className="mx-auto flex max-w-7xl gap-6 px-4">
-          <a
-            href="/admin"
-            className="py-3 text-sm font-medium hover:text-gray-600"
-          >
-            Dashboard
-          </a>
+      {/* Navigation */}
+      <nav className="border-b border-[#eadcdf] bg-white">
+        <div className="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-4 sm:px-6">
+          {navItems.map((item) => {
+            const isActive =
+              item.href === "/admin"
+                ? pathname === "/admin"
+                : pathname.startsWith(item.href);
 
-          <a
-            href="/admin/products"
-            className="py-3 text-sm font-medium hover:text-gray-600"
-          >
-            Products
-          </a>
+            return (
+              <a
+                key={item.href}
+                href={item.href}
+                className={`relative whitespace-nowrap px-4 py-4 text-sm font-medium transition ${
+                  isActive
+                    ? "text-[#9e405a]"
+                    : "text-[#756b6e] hover:text-[#9e405a]"
+                }`}
+              >
+                {item.label}
 
-          <a
-            href="/admin/categories"
-            className="py-3 text-sm font-medium hover:text-gray-600"
-          >
-            Categories
-          </a>
-          <a
-            href="/admin/settings"
-            className="py-3 text-sm font-medium hover:text-gray-600"
-            >
-            Settings
-            </a>
+                {isActive && (
+                  <span className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-[#c96a82]" />
+                )}
+              </a>
+            );
+          })}
         </div>
       </nav>
 
-      <main className="mx-auto max-w-7xl px-4 py-8">
+      {/* Main Content */}
+      <main className="mx-auto min-h-[calc(100vh-130px)] max-w-7xl px-4 py-8 sm:px-6 lg:py-10">
         {children}
       </main>
     </div>

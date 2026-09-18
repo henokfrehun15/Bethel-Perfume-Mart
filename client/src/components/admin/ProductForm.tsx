@@ -33,10 +33,7 @@ interface Product {
   stock_qty: number;
   is_featured: boolean;
   is_promotion: boolean;
-  promotion_price:
-    | string
-    | number
-    | null;
+  promotion_price: string | number | null;
   promotion_text: string | null;
   category_id: number;
   images?: ProductImage[];
@@ -63,91 +60,64 @@ export default function ProductForm({
 
   const isEditing = Boolean(product);
 
-  const [categories, setCategories] =
-    useState<Category[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
 
-  const [name, setName] = useState(
-    product?.name || ""
+  const [name, setName] = useState(product?.name || "");
+  const [slug, setSlug] = useState(product?.slug || "");
+  const [description, setDescription] = useState(
+    product?.description || ""
   );
-
-  const [slug, setSlug] = useState(
-    product?.slug || ""
-  );
-
-  const [description, setDescription] =
-    useState(product?.description || "");
-
   const [price, setPrice] = useState(
     String(product?.price ?? "")
   );
-
   const [currency, setCurrency] = useState(
     product?.currency || "ETB"
   );
-
-  const [brand, setBrand] = useState(
-    product?.brand || ""
-  );
-
-  const [size, setSize] = useState(
-    product?.size || ""
-  );
+  const [brand, setBrand] = useState(product?.brand || "");
+  const [size, setSize] = useState(product?.size || "");
 
   const [stockStatus, setStockStatus] =
     useState<Product["stock_status"]>(
       product?.stock_status || "IN_STOCK"
     );
 
-  const [stockQty, setStockQty] =
-    useState(
-      String(product?.stock_qty ?? 0)
-    );
+  const [stockQty, setStockQty] = useState(
+    String(product?.stock_qty ?? 0)
+  );
 
-  const [featured, setFeatured] =
-    useState(
-      product?.is_featured || false
-    );
+  const [featured, setFeatured] = useState(
+    product?.is_featured || false
+  );
 
-  const [promotion, setPromotion] =
-    useState(
-      product?.is_promotion || false
-    );
+  const [promotion, setPromotion] = useState(
+    product?.is_promotion || false
+  );
 
-  const [promotionPrice, setPromotionPrice] =
-    useState(
-      String(product?.promotion_price ?? "")
-    );
+  const [promotionPrice, setPromotionPrice] = useState(
+    String(product?.promotion_price ?? "")
+  );
 
-  const [promotionText, setPromotionText] =
-    useState(
-      product?.promotion_text || ""
-    );
+  const [promotionText, setPromotionText] = useState(
+    product?.promotion_text || ""
+  );
 
-  const [categoryId, setCategoryId] =
-    useState(
-      String(product?.category_id || "")
-    );
+  const [categoryId, setCategoryId] = useState(
+    String(product?.category_id || "")
+  );
 
-  const [images, setImages] = useState<
-    string[]
-  >(
+  const [images, setImages] = useState<string[]>(
     product?.images
       ?.sort(
         (a, b) =>
-          (a.sort_order ?? 0) -
-          (b.sort_order ?? 0)
+          (a.sort_order ?? 0) - (b.sort_order ?? 0)
       )
       .map((image) => image.url) || [""]
   );
 
-  const [loading, setLoading] =
-    useState(false);
-
+  const [loading, setLoading] = useState(false);
   const [loadingCategories, setLoadingCategories] =
     useState(true);
-
-  const [error, setError] =
-    useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -183,17 +153,13 @@ export default function ProductForm({
   };
 
   const addImage = () => {
-    setImages((current) => [
-      ...current,
-      "",
-    ]);
+    setImages((current) => [...current, ""]);
   };
 
   const removeImage = (index: number) => {
     setImages((current) =>
       current.filter(
-        (_, imageIndex) =>
-          imageIndex !== index
+        (_, imageIndex) => imageIndex !== index
       )
     );
   };
@@ -203,11 +169,8 @@ export default function ProductForm({
     value: string
   ) => {
     setImages((current) =>
-      current.map(
-        (image, imageIndex) =>
-          imageIndex === index
-            ? value
-            : image
+      current.map((image, imageIndex) =>
+        imageIndex === index ? value : image
       )
     );
   };
@@ -231,8 +194,7 @@ export default function ProductForm({
       const body = {
         name: name.trim(),
         slug: slug.trim(),
-        description:
-          description.trim() || null,
+        description: description.trim() || null,
         price: Number(price),
         currency: currency.trim().toUpperCase(),
         brand: brand.trim() || null,
@@ -241,12 +203,10 @@ export default function ProductForm({
         stock_qty: Number(stockQty),
         is_featured: featured,
         is_promotion: promotion,
-        promotion_price:
-          promotionPrice.trim()
-            ? Number(promotionPrice)
-            : null,
-        promotion_text:
-          promotionText.trim() || null,
+        promotion_price: promotionPrice.trim()
+          ? Number(promotionPrice)
+          : null,
+        promotion_text: promotionText.trim() || null,
         category_id: Number(categoryId),
         images: cleanImages,
       };
@@ -255,9 +215,7 @@ export default function ProductForm({
         ? `/products/${product?.id}`
         : "/products";
 
-      const method = isEditing
-        ? "PUT"
-        : "POST";
+      const method = isEditing ? "PUT" : "POST";
 
       await apiRequest<ProductResponse>(
         endpoint,
@@ -279,26 +237,83 @@ export default function ProductForm({
     }
   };
 
+  const inputClass =
+    "w-full rounded-2xl border border-[#ead7dc] bg-[#fffdfc] px-4 py-3.5 text-sm text-[#30272A] outline-none transition placeholder:text-[#a69a9e] focus:border-[#C96A82] focus:ring-4 focus:ring-[#C96A82]/10";
+
+  const selectClass =
+    "w-full rounded-2xl border border-[#ead7dc] bg-[#fffdfc] px-4 py-3.5 text-sm text-[#30272A] outline-none transition focus:border-[#C96A82] focus:ring-4 focus:ring-[#C96A82]/10";
+
+  const labelClass =
+    "mb-2 block text-[13px] font-semibold tracking-wide text-[#594d51]";
+
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-8"
+      className="space-y-6 pb-10"
     >
+      {/* Header */}
+      <div className="relative overflow-hidden rounded-[28px] border border-[#f0dce1] bg-gradient-to-br from-[#fffdfc] via-[#fff8fa] to-[#f9e9ed] p-6 sm:p-8">
+        <div className="pointer-events-none absolute -right-8 -top-12 text-[130px] leading-none text-[#C96A82]/10">
+          ❀
+        </div>
+
+        <div className="relative">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-[#f7e5e9] px-3 py-1.5 text-xs font-semibold text-[#9E405A]">
+            <span>✦</span>
+            {isEditing
+              ? "Product Collection"
+              : "New Collection"}
+          </div>
+
+          <h2 className="font-serif text-3xl font-semibold tracking-tight text-[#30272A] sm:text-4xl">
+            {isEditing
+              ? "Refine your fragrance"
+              : "Add a new fragrance"}
+          </h2>
+
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-[#756B6E]">
+            {isEditing
+              ? `Update the details for ${product?.name}.`
+              : "Create a beautifully presented product for the Bethel Perfume collection."}
+          </p>
+        </div>
+      </div>
+
+      {/* Error */}
       {error && (
-        <div className="rounded-lg bg-red-50 p-4 text-sm text-red-600">
-          {error}
+        <div className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <span className="mt-0.5">!</span>
+          <div>
+            <p className="font-semibold">
+              Something went wrong
+            </p>
+            <p className="mt-1">{error}</p>
+          </div>
         </div>
       )}
 
-      {/* Basic information */}
-      <section className="rounded-xl bg-white p-6 shadow-sm">
-        <h3 className="mb-6 text-lg font-semibold">
-          Basic Information
-        </h3>
+      {/* Basic Information */}
+      <section className="overflow-hidden rounded-[24px] border border-[#eee1e4] bg-white shadow-[0_10px_35px_rgba(92,52,61,0.05)]">
+        <div className="border-b border-[#f2e7e9] px-5 py-5 sm:px-7">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f7e5e9] text-[#C96A82]">
+              ✿
+            </div>
 
-        <div className="grid gap-5 md:grid-cols-2">
+            <div>
+              <h3 className="font-serif text-xl font-semibold text-[#30272A]">
+                Basic Information
+              </h3>
+              <p className="mt-0.5 text-xs text-[#8b7e82]">
+                The essential details customers will see.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-5 p-5 sm:p-7 md:grid-cols-2">
           <div>
-            <label className="mb-2 block text-sm font-medium">
+            <label className={labelClass}>
               Product name *
             </label>
 
@@ -308,13 +323,13 @@ export default function ProductForm({
                 setName(event.target.value)
               }
               required
-              className="w-full rounded-lg border px-4 py-3 outline-none focus:ring-2"
+              className={inputClass}
               placeholder="Rose Perfume"
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium">
+            <label className={labelClass}>
               Slug *
             </label>
 
@@ -325,14 +340,14 @@ export default function ProductForm({
                   setSlug(event.target.value)
                 }
                 required
-                className="min-w-0 flex-1 rounded-lg border px-4 py-3 outline-none focus:ring-2"
+                className={`min-w-0 flex-1 ${inputClass}`}
                 placeholder="rose-perfume"
               />
 
               <button
                 type="button"
                 onClick={generateSlug}
-                className="rounded-lg border px-3 text-sm hover:bg-gray-50"
+                className="shrink-0 rounded-2xl border border-[#e7c8d0] bg-[#fff8fa] px-4 text-xs font-semibold text-[#9E405A] transition hover:bg-[#f7e5e9]"
               >
                 Generate
               </button>
@@ -340,25 +355,23 @@ export default function ProductForm({
           </div>
 
           <div className="md:col-span-2">
-            <label className="mb-2 block text-sm font-medium">
+            <label className={labelClass}>
               Description
             </label>
 
             <textarea
               value={description}
               onChange={(event) =>
-                setDescription(
-                  event.target.value
-                )
+                setDescription(event.target.value)
               }
-              rows={4}
-              className="w-full rounded-lg border px-4 py-3 outline-none focus:ring-2"
-              placeholder="Describe the product..."
+              rows={5}
+              className={inputClass}
+              placeholder="Describe the fragrance, its character, notes, and inspiration..."
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium">
+            <label className={labelClass}>
               Brand
             </label>
 
@@ -367,13 +380,13 @@ export default function ProductForm({
               onChange={(event) =>
                 setBrand(event.target.value)
               }
-              className="w-full rounded-lg border px-4 py-3 outline-none focus:ring-2"
+              className={inputClass}
               placeholder="Brand name"
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium">
+            <label className={labelClass}>
               Size
             </label>
 
@@ -382,7 +395,7 @@ export default function ProductForm({
               onChange={(event) =>
                 setSize(event.target.value)
               }
-              className="w-full rounded-lg border px-4 py-3 outline-none focus:ring-2"
+              className={inputClass}
               placeholder="100ml"
             />
           </div>
@@ -390,32 +403,51 @@ export default function ProductForm({
       </section>
 
       {/* Pricing */}
-      <section className="rounded-xl bg-white p-6 shadow-sm">
-        <h3 className="mb-6 text-lg font-semibold">
-          Pricing
-        </h3>
+      <section className="overflow-hidden rounded-[24px] border border-[#eee1e4] bg-white shadow-[0_10px_35px_rgba(92,52,61,0.05)]">
+        <div className="border-b border-[#f2e7e9] px-5 py-5 sm:px-7">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f7e5e9] text-[#C96A82]">
+              ◇
+            </div>
 
-        <div className="grid gap-5 md:grid-cols-2">
+            <div>
+              <h3 className="font-serif text-xl font-semibold text-[#30272A]">
+                Pricing
+              </h3>
+              <p className="mt-0.5 text-xs text-[#8b7e82]">
+                Set the standard selling price and currency.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-5 p-5 sm:p-7 md:grid-cols-[1fr_180px]">
           <div>
-            <label className="mb-2 block text-sm font-medium">
+            <label className={labelClass}>
               Price *
             </label>
 
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={price}
-              onChange={(event) =>
-                setPrice(event.target.value)
-              }
-              required
-              className="w-full rounded-lg border px-4 py-3 outline-none focus:ring-2"
-            />
+            <div className="relative">
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={price}
+                onChange={(event) =>
+                  setPrice(event.target.value)
+                }
+                required
+                className={`${inputClass} pr-16`}
+              />
+
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#9E405A]">
+                {currency || "ETB"}
+              </span>
+            </div>
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium">
+            <label className={labelClass}>
               Currency
             </label>
 
@@ -425,37 +457,50 @@ export default function ProductForm({
                 setCurrency(event.target.value)
               }
               maxLength={3}
-              className="w-full rounded-lg border px-4 py-3 uppercase outline-none focus:ring-2"
+              className={`${inputClass} uppercase`}
             />
           </div>
         </div>
       </section>
 
-      {/* Category and stock */}
-      <section className="rounded-xl bg-white p-6 shadow-sm">
-        <h3 className="mb-6 text-lg font-semibold">
-          Category & Stock
-        </h3>
+      {/* Category & Stock */}
+      <section className="overflow-hidden rounded-[24px] border border-[#eee1e4] bg-white shadow-[0_10px_35px_rgba(92,52,61,0.05)]">
+        <div className="border-b border-[#f2e7e9] px-5 py-5 sm:px-7">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f7e5e9] text-[#C96A82]">
+              ♢
+            </div>
 
-        <div className="grid gap-5 md:grid-cols-3">
+            <div>
+              <h3 className="font-serif text-xl font-semibold text-[#30272A]">
+                Category & Stock
+              </h3>
+              <p className="mt-0.5 text-xs text-[#8b7e82]">
+                Organize the product and manage availability.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-5 p-5 sm:p-7 md:grid-cols-3">
           <div>
-            <label className="mb-2 block text-sm font-medium">
+            <label className={labelClass}>
               Category *
             </label>
 
             <select
               value={categoryId}
               onChange={(event) =>
-                setCategoryId(
-                  event.target.value
-                )
+                setCategoryId(event.target.value)
               }
               required
               disabled={loadingCategories}
-              className="w-full rounded-lg border px-4 py-3 outline-none"
+              className={selectClass}
             >
               <option value="">
-                Select category
+                {loadingCategories
+                  ? "Loading categories..."
+                  : "Select category"}
               </option>
 
               {categories.map((category) => (
@@ -470,7 +515,7 @@ export default function ProductForm({
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium">
+            <label className={labelClass}>
               Stock status
             </label>
 
@@ -482,16 +527,14 @@ export default function ProductForm({
                     .value as Product["stock_status"]
                 )
               }
-              className="w-full rounded-lg border px-4 py-3 outline-none"
+              className={selectClass}
             >
               <option value="IN_STOCK">
                 In stock
               </option>
-
               <option value="LOW_STOCK">
                 Low stock
               </option>
-
               <option value="OUT_OF_STOCK">
                 Out of stock
               </option>
@@ -499,7 +542,7 @@ export default function ProductForm({
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium">
+            <label className={labelClass}>
               Stock quantity
             </label>
 
@@ -509,129 +552,179 @@ export default function ProductForm({
               step="1"
               value={stockQty}
               onChange={(event) =>
-                setStockQty(
-                  event.target.value
-                )
+                setStockQty(event.target.value)
               }
-              className="w-full rounded-lg border px-4 py-3 outline-none focus:ring-2"
+              className={inputClass}
             />
           </div>
         </div>
       </section>
 
       {/* Promotion */}
-      <section className="rounded-xl bg-white p-6 shadow-sm">
-        <h3 className="mb-6 text-lg font-semibold">
-          Promotion
-        </h3>
-
-        <label className="mb-5 flex items-center gap-3">
-          <input
-            type="checkbox"
-            checked={promotion}
-            onChange={(event) =>
-              setPromotion(
-                event.target.checked
-              )
-            }
-            className="h-4 w-4"
-          />
-
-          <span className="text-sm font-medium">
-            This product is on promotion
-          </span>
-        </label>
-
-        {promotion && (
-          <div className="grid gap-5 md:grid-cols-2">
-            <div>
-              <label className="mb-2 block text-sm font-medium">
-                Promotion price
-              </label>
-
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={promotionPrice}
-                onChange={(event) =>
-                  setPromotionPrice(
-                    event.target.value
-                  )
-                }
-                className="w-full rounded-lg border px-4 py-3 outline-none focus:ring-2"
-              />
+      <section className="overflow-hidden rounded-[24px] border border-[#eee1e4] bg-white shadow-[0_10px_35px_rgba(92,52,61,0.05)]">
+        <div className="border-b border-[#f2e7e9] px-5 py-5 sm:px-7">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f7e5e9] text-[#C96A82]">
+              ♡
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium">
-                Promotion text
-              </label>
-
-              <input
-                value={promotionText}
-                onChange={(event) =>
-                  setPromotionText(
-                    event.target.value
-                  )
-                }
-                className="w-full rounded-lg border px-4 py-3 outline-none focus:ring-2"
-                placeholder="Special offer"
-              />
+              <h3 className="font-serif text-xl font-semibold text-[#30272A]">
+                Promotion
+              </h3>
+              <p className="mt-0.5 text-xs text-[#8b7e82]">
+                Highlight a special price or offer.
+              </p>
             </div>
           </div>
-        )}
+        </div>
+
+        <div className="p-5 sm:p-7">
+          <label className="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-[#ead7dc] bg-[#fff9fa] p-4 transition hover:border-[#dca7b5]">
+            <div>
+              <p className="text-sm font-semibold text-[#30272A]">
+                This product is on promotion
+              </p>
+              <p className="mt-1 text-xs text-[#817478]">
+                Enable promotional pricing for this product.
+              </p>
+            </div>
+
+            <div className="relative shrink-0">
+              <input
+                type="checkbox"
+                checked={promotion}
+                onChange={(event) =>
+                  setPromotion(event.target.checked)
+                }
+                className="peer sr-only"
+              />
+
+              <div className="h-7 w-12 rounded-full bg-[#ddcdd1] transition peer-checked:bg-[#C96A82]" />
+
+              <div className="absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow-sm transition peer-checked:translate-x-5" />
+            </div>
+          </label>
+
+          {promotion && (
+            <div className="mt-5 grid gap-5 rounded-2xl bg-[#fff9fa] p-4 sm:p-5 md:grid-cols-2">
+              <div>
+                <label className={labelClass}>
+                  Promotion price
+                </label>
+
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={promotionPrice}
+                  onChange={(event) =>
+                    setPromotionPrice(
+                      event.target.value
+                    )
+                  }
+                  className={inputClass}
+                  placeholder="Special price"
+                />
+              </div>
+
+              <div>
+                <label className={labelClass}>
+                  Promotion text
+                </label>
+
+                <input
+                  value={promotionText}
+                  onChange={(event) =>
+                    setPromotionText(
+                      event.target.value
+                    )
+                  }
+                  className={inputClass}
+                  placeholder="Special offer"
+                />
+              </div>
+            </div>
+          )}
+        </div>
       </section>
 
       {/* Featured */}
-      <section className="rounded-xl bg-white p-6 shadow-sm">
-        <label className="flex items-center gap-3">
-          <input
-            type="checkbox"
-            checked={featured}
-            onChange={(event) =>
-              setFeatured(
-                event.target.checked
-              )
-            }
-            className="h-4 w-4"
-          />
+      <section className="overflow-hidden rounded-[24px] border border-[#eee1e4] bg-white shadow-[0_10px_35px_rgba(92,52,61,0.05)]">
+        <div className="p-5 sm:p-7">
+          <label className="flex cursor-pointer items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#f7e5e9] text-lg text-[#C96A82]">
+                ★
+              </div>
 
-          <span className="text-sm font-medium">
-            Show this product as featured
-          </span>
-        </label>
+              <div>
+                <p className="text-sm font-semibold text-[#30272A]">
+                  Featured product
+                </p>
+                <p className="mt-1 text-xs text-[#817478]">
+                  Show this fragrance in featured areas of the store.
+                </p>
+              </div>
+            </div>
+
+            <div className="relative shrink-0">
+              <input
+                type="checkbox"
+                checked={featured}
+                onChange={(event) =>
+                  setFeatured(event.target.checked)
+                }
+                className="peer sr-only"
+              />
+
+              <div className="h-7 w-12 rounded-full bg-[#ddcdd1] transition peer-checked:bg-[#C96A82]" />
+
+              <div className="absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow-sm transition peer-checked:translate-x-5" />
+            </div>
+          </label>
+        </div>
       </section>
 
       {/* Images */}
-      <section className="rounded-xl bg-white p-6 shadow-sm">
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold">
-              Product Images
-            </h3>
+      <section className="overflow-hidden rounded-[24px] border border-[#eee1e4] bg-white shadow-[0_10px_35px_rgba(92,52,61,0.05)]">
+        <div className="border-b border-[#f2e7e9] px-5 py-5 sm:px-7">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f7e5e9] text-[#C96A82]">
+                ◌
+              </div>
 
-            <p className="mt-1 text-sm text-gray-500">
-              Add image URLs for now. File uploading
-              will be added later.
-            </p>
+              <div>
+                <h3 className="font-serif text-xl font-semibold text-[#30272A]">
+                  Product Images
+                </h3>
+                <p className="mt-0.5 text-xs text-[#8b7e82]">
+                  Add image URLs for your fragrance.
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={addImage}
+              className="rounded-2xl bg-[#fff3f6] px-4 py-2.5 text-xs font-semibold text-[#9E405A] transition hover:bg-[#f7e5e9]"
+            >
+              + Add image
+            </button>
           </div>
-
-          <button
-            type="button"
-            onClick={addImage}
-            className="rounded-lg border px-4 py-2 text-sm font-medium hover:bg-gray-50"
-          >
-            + Add image
-          </button>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-3 p-5 sm:p-7">
           {images.map((image, index) => (
             <div
               key={index}
-              className="flex gap-2"
+              className="group flex flex-col gap-2 rounded-2xl border border-[#eadfe2] bg-[#fffdfc] p-3 sm:flex-row sm:items-center"
             >
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#f7e5e9] text-sm text-[#C96A82]">
+                {index + 1}
+              </div>
+
               <input
                 type="url"
                 value={image}
@@ -642,7 +735,7 @@ export default function ProductForm({
                   )
                 }
                 placeholder="https://example.com/image.jpg"
-                className="min-w-0 flex-1 rounded-lg border px-4 py-3 outline-none focus:ring-2"
+                className={`min-w-0 flex-1 border-0 bg-transparent px-2 py-2.5 text-sm text-[#30272A] outline-none placeholder:text-[#aaa0a3] focus:ring-0`}
               />
 
               {images.length > 1 && (
@@ -651,7 +744,7 @@ export default function ProductForm({
                   onClick={() =>
                     removeImage(index)
                   }
-                  className="rounded-lg border border-red-200 px-4 text-sm text-red-600 hover:bg-red-50"
+                  className="rounded-xl border border-red-100 px-3 py-2 text-xs font-semibold text-red-500 transition hover:bg-red-50"
                 >
                   Remove
                 </button>
@@ -662,13 +755,13 @@ export default function ProductForm({
       </section>
 
       {/* Actions */}
-      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+      <div className="sticky bottom-4 z-10 flex flex-col-reverse gap-3 rounded-[24px] border border-[#eadfe2] bg-white/95 p-3 shadow-[0_12px_40px_rgba(70,40,48,0.12)] backdrop-blur sm:flex-row sm:justify-end">
         <button
           type="button"
           onClick={() =>
             router.push("/admin/products")
           }
-          className="rounded-lg border px-6 py-3 text-sm font-medium hover:bg-gray-50"
+          className="rounded-2xl border border-[#e3d4d8] bg-white px-6 py-3.5 text-sm font-semibold text-[#5d5155] transition hover:border-[#cdbbc0] hover:bg-[#fffafa]"
         >
           Cancel
         </button>
@@ -676,7 +769,7 @@ export default function ProductForm({
         <button
           type="submit"
           disabled={loading}
-          className="rounded-lg bg-black px-6 py-3 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-2xl bg-[#C96A82] px-7 py-3.5 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(201,106,130,0.25)] transition hover:bg-[#b95770] hover:shadow-[0_10px_24px_rgba(201,106,130,0.32)] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading
             ? "Saving..."

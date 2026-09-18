@@ -53,15 +53,10 @@ export default function AdminProductsPage() {
 
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
-
-  const [stockFilter, setStockFilter] =
-    useState("");
-
-  const [promotionFilter, setPromotionFilter] =
-    useState("");
+  const [stockFilter, setStockFilter] = useState("");
+  const [promotionFilter, setPromotionFilter] = useState("");
 
   const [page, setPage] = useState(1);
-
   const [total, setTotal] = useState(0);
 
   const [loading, setLoading] = useState(true);
@@ -208,345 +203,526 @@ export default function AdminProductsPage() {
     setPage(1);
   };
 
+  const getStockClasses = (
+    status: Product["stock_status"]
+  ) => {
+    if (status === "IN_STOCK") {
+      return "bg-[#edf5ee] text-[#687565] border-[#dce9de]";
+    }
+
+    if (status === "LOW_STOCK") {
+      return "bg-[#fbf4e7] text-[#9a7538] border-[#eee0bf]";
+    }
+
+    return "bg-[#fbecef] text-[#a4475e] border-[#efd0d8]";
+  };
+
   return (
-    <div>
-      {/* Header */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">
-            Products
-          </h2>
+    <div className="bethel-page">
+      {/* Decorative background */}
+      <div className="pointer-events-none absolute right-0 top-0 -z-0 h-72 w-72 rounded-full bg-[#f7e5e9] opacity-60 blur-3xl" />
 
-          <p className="mt-1 text-sm text-gray-500">
-            Manage your store products.
-          </p>
-        </div>
-
-        <Link
-          href="/admin/products/new"
-          className="rounded-lg bg-black px-5 py-3 text-center text-sm font-medium text-white hover:bg-gray-800"
-        >
-          + Add Product
-        </Link>
-      </div>
-
-      {/* Filters */}
-      <div className="mb-6 rounded-xl bg-white p-4 shadow-sm">
-        <form
-          onSubmit={handleSearch}
-          className="grid gap-3 md:grid-cols-2 lg:grid-cols-5"
-        >
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={search}
-            onChange={(event) =>
-              setSearch(event.target.value)
-            }
-            className="rounded-lg border px-4 py-3 text-sm outline-none focus:ring-2"
-          />
-
-          <select
-            value={category}
-            onChange={(event) => {
-              setCategory(event.target.value);
-              setPage(1);
-            }}
-            className="rounded-lg border px-4 py-3 text-sm outline-none"
-          >
-            <option value="">
-              All categories
-            </option>
-
-            {categories.map((item) => (
-              <option
-                key={item.id}
-                value={item.slug}
-              >
-                {item.name}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={stockFilter}
-            onChange={(event) => {
-              setStockFilter(event.target.value);
-              setPage(1);
-            }}
-            className="rounded-lg border px-4 py-3 text-sm outline-none"
-          >
-            <option value="">
-              All stock
-            </option>
-
-            <option value="in-stock">
-              In stock
-            </option>
-          </select>
-
-          <select
-            value={promotionFilter}
-            onChange={(event) => {
-              setPromotionFilter(
-                event.target.value
-              );
-              setPage(1);
-            }}
-            className="rounded-lg border px-4 py-3 text-sm outline-none"
-          >
-            <option value="">
-              All products
-            </option>
-
-            <option value="promotion">
-              Promotions
-            </option>
-          </select>
-
-          <div className="flex gap-2">
-            <button
-              type="submit"
-              className="flex-1 rounded-lg bg-gray-900 px-4 py-3 text-sm font-medium text-white hover:bg-gray-700"
-            >
-              Search
-            </button>
-
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="rounded-lg border px-4 py-3 text-sm font-medium hover:bg-gray-50"
-            >
-              Clear
-            </button>
+      <div className="relative z-10">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="bethel-label mb-3 flex items-center gap-2">
+            <span className="h-px w-8 bg-[#c96a82]" />
+            Fragrance Catalog
           </div>
-        </form>
-      </div>
 
-      {/* Error */}
-      {error && (
-        <div className="mb-6 rounded-lg bg-red-50 p-4 text-sm text-red-600">
-          {error}
-        </div>
-      )}
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="bethel-title text-3xl sm:text-4xl">
+                Products
+              </h2>
 
-      {/* Product table */}
-      <div className="overflow-hidden rounded-xl bg-white shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[800px] text-left text-sm">
-            <thead className="border-b bg-gray-50">
-              <tr>
-                <th className="px-4 py-4 font-semibold">
-                  Product
-                </th>
+              <p className="bethel-muted mt-2 max-w-xl">
+                Manage your fragrances, pricing, stock,
+                promotions, and featured products.
+              </p>
+            </div>
 
-                <th className="px-4 py-4 font-semibold">
-                  Category
-                </th>
-
-                <th className="px-4 py-4 font-semibold">
-                  Price
-                </th>
-
-                <th className="px-4 py-4 font-semibold">
-                  Stock
-                </th>
-
-                <th className="px-4 py-4 font-semibold">
-                  Status
-                </th>
-
-                <th className="px-4 py-4 font-semibold">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-4 py-12 text-center text-gray-500"
-                  >
-                    Loading products...
-                  </td>
-                </tr>
-              ) : products.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-4 py-12 text-center text-gray-500"
-                  >
-                    No products found.
-                  </td>
-                </tr>
-              ) : (
-                products.map((product) => (
-                  <tr
-                    key={product.id}
-                    className="border-b last:border-b-0"
-                  >
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-3">
-                        {product.image ? (
-                          /* eslint-disable-next-line @next/next/no-img-element */
-                          <img
-                            src={product.image}
-                            alt={product.name}
-                            className="h-12 w-12 rounded-lg object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-100 text-xs text-gray-400">
-                            No image
-                          </div>
-                        )}
-
-                        <div>
-                          <p className="font-medium">
-                            {product.name}
-                          </p>
-
-                          {product.brand && (
-                            <p className="text-xs text-gray-500">
-                              {product.brand}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-
-                    <td className="px-4 py-4 text-gray-600">
-                      {product.category_name}
-                    </td>
-
-                    <td className="px-4 py-4">
-                      <div>
-                        <span className="font-medium">
-                          {product.price}{" "}
-                          {product.currency}
-                        </span>
-
-                        {product.is_promotion &&
-                          product.promotion_price && (
-                            <p className="text-xs text-green-600">
-                              Promo:{" "}
-                              {
-                                product.promotion_price
-                              }{" "}
-                              {
-                                product.currency
-                              }
-                            </p>
-                          )}
-                      </div>
-                    </td>
-
-                    <td className="px-4 py-4">
-                      {product.stock_qty}
-                    </td>
-
-                    <td className="px-4 py-4">
-                      <span
-                        className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                          product.stock_status ===
-                          "IN_STOCK"
-                            ? "bg-green-100 text-green-700"
-                            : product.stock_status ===
-                                "LOW_STOCK"
-                              ? "bg-yellow-100 text-yellow-700"
-                              : "bg-red-100 text-red-700"
-                        }`}
-                      >
-                        {product.stock_status.replace(
-                          "_",
-                          " "
-                        )}
-                      </span>
-
-                      {product.is_featured && (
-                        <span className="ml-2 rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-700">
-                          Featured
-                        </span>
-                      )}
-                    </td>
-
-                    <td className="px-4 py-4">
-                      <div className="flex gap-2">
-                        <Link
-                          href={`/admin/products/${product.id}/edit`}
-                          className="rounded-lg border px-3 py-2 text-xs font-medium hover:bg-gray-50"
-                        >
-                          Edit
-                        </Link>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleDelete(product)
-                          }
-                          className="rounded-lg border border-red-200 px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+            <Link
+              href="/admin/products/new"
+              className="bethel-button bethel-button-primary inline-flex w-full items-center justify-center gap-2 sm:w-auto"
+            >
+              <span className="text-lg leading-none">
+                +
+              </span>
+              Add Product
+            </Link>
+          </div>
         </div>
 
-        {/* Pagination */}
-        {!loading && total > 0 && (
-          <div className="flex items-center justify-between border-t px-4 py-4">
-            <p className="text-sm text-gray-500">
-              Showing{" "}
-              {(page - 1) * limit + 1}–
-              {Math.min(
-                page * limit,
-                total
-              )}{" "}
-              of {total}
+        {/* Filters */}
+        <div className="bethel-card mb-6 p-5 sm:p-6">
+          <div className="mb-4">
+            <p className="bethel-label">
+              Catalog Filters
             </p>
 
+            <h3 className="mt-1 text-lg font-semibold text-[#30272a]">
+              Find a fragrance
+            </h3>
+          </div>
+
+          <form
+            onSubmit={handleSearch}
+            className="grid gap-3 md:grid-cols-2 lg:grid-cols-5"
+          >
+            {/* Search */}
+            <div className="relative lg:col-span-1">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#a99da0]"
+                stroke="currentColor"
+                strokeWidth="1.8"
+              >
+                <circle
+                  cx="11"
+                  cy="11"
+                  r="6.5"
+                />
+                <path
+                  strokeLinecap="round"
+                  d="m16 16 4 4"
+                />
+              </svg>
+
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={search}
+                onChange={(event) =>
+                  setSearch(event.target.value)
+                }
+                className="bethel-input pl-10"
+              />
+            </div>
+
+            {/* Category */}
+            <select
+              value={category}
+              onChange={(event) => {
+                setCategory(event.target.value);
+                setPage(1);
+              }}
+              className="bethel-input"
+            >
+              <option value="">
+                All categories
+              </option>
+
+              {categories.map((item) => (
+                <option
+                  key={item.id}
+                  value={item.slug}
+                >
+                  {item.name}
+                </option>
+              ))}
+            </select>
+
+            {/* Stock */}
+            <select
+              value={stockFilter}
+              onChange={(event) => {
+                setStockFilter(event.target.value);
+                setPage(1);
+              }}
+              className="bethel-input"
+            >
+              <option value="">
+                All stock
+              </option>
+
+              <option value="in-stock">
+                In stock
+              </option>
+            </select>
+
+            {/* Promotion */}
+            <select
+              value={promotionFilter}
+              onChange={(event) => {
+                setPromotionFilter(
+                  event.target.value
+                );
+                setPage(1);
+              }}
+              className="bethel-input"
+            >
+              <option value="">
+                All products
+              </option>
+
+              <option value="promotion">
+                Promotions
+              </option>
+            </select>
+
+            {/* Buttons */}
             <div className="flex gap-2">
               <button
-                type="button"
-                disabled={page === 1}
-                onClick={() =>
-                  setPage((current) =>
-                    Math.max(current - 1, 1)
-                  )
-                }
-                className="rounded-lg border px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-40"
+                type="submit"
+                className="bethel-button bethel-button-primary flex-1"
               >
-                Previous
+                Search
               </button>
-
-              <span className="flex items-center px-2 text-sm text-gray-500">
-                Page {page} of {totalPages}
-              </span>
 
               <button
                 type="button"
-                disabled={page >= totalPages}
-                onClick={() =>
-                  setPage((current) =>
-                    Math.min(
-                      current + 1,
-                      totalPages
-                    )
-                  )
-                }
-                className="rounded-lg border px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-40"
+                onClick={clearFilters}
+                className="bethel-button bethel-button-secondary"
               >
-                Next
+                Clear
               </button>
+            </div>
+          </form>
+        </div>
+
+        {/* Error */}
+        {error && (
+          <div className="bethel-alert bethel-alert-error mb-6">
+            <div className="flex items-start gap-3">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                className="mt-0.5 h-5 w-5 shrink-0"
+                stroke="currentColor"
+                strokeWidth="1.8"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v4m0 4h.01M10.3 3.9 2.9 17a2 2 0 0 0 1.7 3h14.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"
+                />
+              </svg>
+
+              <div>
+                <p className="font-medium">
+                  Unable to load products
+                </p>
+
+                <p className="mt-1 text-sm">
+                  {error}
+                </p>
+              </div>
             </div>
           </div>
         )}
+
+        {/* Product count */}
+        {!loading && total > 0 && (
+          <div className="mb-3 flex items-center justify-between px-1">
+            <p className="text-sm text-[#756b6e]">
+              <span className="font-semibold text-[#30272a]">
+                {total}
+              </span>{" "}
+              {total === 1
+                ? "product"
+                : "products"}{" "}
+              in catalog
+            </p>
+          </div>
+        )}
+
+        {/* Product table */}
+        <div className="bethel-card overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[900px] text-left text-sm">
+              <thead className="border-b border-[#eadfe2] bg-[#fdf8f9]">
+                <tr>
+                  <th className="px-5 py-4 font-semibold text-[#574b4f]">
+                    Product
+                  </th>
+
+                  <th className="px-5 py-4 font-semibold text-[#574b4f]">
+                    Category
+                  </th>
+
+                  <th className="px-5 py-4 font-semibold text-[#574b4f]">
+                    Price
+                  </th>
+
+                  <th className="px-5 py-4 font-semibold text-[#574b4f]">
+                    Stock
+                  </th>
+
+                  <th className="px-5 py-4 font-semibold text-[#574b4f]">
+                    Status
+                  </th>
+
+                  <th className="px-5 py-4 font-semibold text-[#574b4f]">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      className="px-5 py-16 text-center"
+                    >
+                      <div className="flex flex-col items-center justify-center">
+                        <div className="mb-3 h-8 w-8 animate-spin rounded-full border-2 border-[#f0d7de] border-t-[#c96a82]" />
+
+                        <p className="text-sm text-[#756b6e]">
+                          Loading your fragrances...
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : products.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      className="px-5 py-16 text-center"
+                    >
+                      <div className="mx-auto flex max-w-sm flex-col items-center">
+                        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#f7e5e9] text-[#c96a82]">
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            className="h-7 w-7"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M7 7h10l2 3v9H5v-9l2-3Z"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M9 7a3 3 0 0 1 6 0"
+                            />
+                          </svg>
+                        </div>
+
+                        <h3 className="text-lg font-semibold text-[#30272a]">
+                          No products found
+                        </h3>
+
+                        <p className="mt-1 text-sm text-[#756b6e]">
+                          Try changing your filters or add
+                          your first fragrance.
+                        </p>
+
+                        <Link
+                          href="/admin/products/new"
+                          className="bethel-button bethel-button-primary mt-5"
+                        >
+                          Add Product
+                        </Link>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  products.map((product) => (
+                    <tr
+                      key={product.id}
+                      className="border-b border-[#f0e7e9] transition-colors last:border-b-0 hover:bg-[#fffbfc]"
+                    >
+                      {/* Product */}
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-3">
+                          {product.image ? (
+                            /* eslint-disable-next-line @next/next/no-img-element */
+                            <img
+                              src={product.image}
+                              alt={product.name}
+                              className="h-14 w-14 shrink-0 rounded-xl border border-[#eadfe2] object-cover shadow-sm"
+                            />
+                          ) : (
+                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-[#eadfe2] bg-[#fdf5f7] text-[#c96a82]">
+                              <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                className="h-6 w-6"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M7 7h10l2 3v9H5v-9l2-3Z"
+                                />
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M9 7a3 3 0 0 1 6 0"
+                                />
+                              </svg>
+                            </div>
+                          )}
+
+                          <div className="min-w-0">
+                            <p className="truncate font-semibold text-[#30272a]">
+                              {product.name}
+                            </p>
+
+                            {product.brand && (
+                              <p className="mt-0.5 text-xs text-[#756b6e]">
+                                {product.brand}
+                                {product.size
+                                  ? ` · ${product.size}`
+                                  : ""}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Category */}
+                      <td className="px-5 py-4">
+                        <span className="inline-flex rounded-full border border-[#eadfe2] bg-[#fffcfa] px-3 py-1 text-xs font-medium text-[#756b6e]">
+                          {product.category_name}
+                        </span>
+                      </td>
+
+                      {/* Price */}
+                      <td className="px-5 py-4">
+                        <div>
+                          <span className="font-semibold text-[#30272a]">
+                            {product.price}{" "}
+                            {product.currency}
+                          </span>
+
+                          {product.is_promotion &&
+                            product.promotion_price && (
+                              <p className="mt-1 text-xs font-medium text-[#687565]">
+                                Promo:{" "}
+                                {product.promotion_price}{" "}
+                                {product.currency}
+                              </p>
+                            )}
+                        </div>
+                      </td>
+
+                      {/* Stock */}
+                      <td className="px-5 py-4">
+                        <span className="font-medium text-[#30272a]">
+                          {product.stock_qty}
+                        </span>
+
+                        <span className="ml-1 text-xs text-[#756b6e]">
+                          units
+                        </span>
+                      </td>
+
+                      {/* Status */}
+                      <td className="px-5 py-4">
+                        <div className="flex flex-wrap gap-2">
+                          <span
+                            className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-medium ${getStockClasses(
+                              product.stock_status
+                            )}`}
+                          >
+                            {product.stock_status.replace(
+                              "_",
+                              " "
+                            )}
+                          </span>
+
+                          {product.is_featured && (
+                            <span className="inline-flex rounded-full border border-[#e8c2cc] bg-[#f7e5e9] px-2.5 py-1 text-xs font-medium text-[#9e405a]">
+                              Featured
+                            </span>
+                          )}
+
+                          {product.is_promotion && (
+                            <span className="inline-flex rounded-full border border-[#dce9de] bg-[#edf5ee] px-2.5 py-1 text-xs font-medium text-[#687565]">
+                              Promotion
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Actions */}
+                      <td className="px-5 py-4">
+                        <div className="flex gap-2">
+                          <Link
+                            href={`/admin/products/${product.id}/edit`}
+                            className="inline-flex items-center rounded-lg border border-[#e5dadd] bg-white px-3 py-2 text-xs font-semibold text-[#574b4f] transition-colors hover:border-[#d7a7b3] hover:bg-[#fdf5f7] hover:text-[#9e405a]"
+                          >
+                            Edit
+                          </Link>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleDelete(product)
+                            }
+                            className="inline-flex items-center rounded-lg border border-[#efd0d8] bg-white px-3 py-2 text-xs font-semibold text-[#a4475e] transition-colors hover:bg-[#fbecef]"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          {!loading && total > 0 && (
+            <div className="flex flex-col gap-4 border-t border-[#eadfe2] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-[#756b6e]">
+                Showing{" "}
+                <span className="font-medium text-[#30272a]">
+                  {(page - 1) * limit + 1}–
+                  {Math.min(page * limit, total)}
+                </span>{" "}
+                of{" "}
+                <span className="font-medium text-[#30272a]">
+                  {total}
+                </span>
+              </p>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={page === 1}
+                  onClick={() =>
+                    setPage((current) =>
+                      Math.max(current - 1, 1)
+                    )
+                  }
+                  className="bethel-button bethel-button-secondary px-4 py-2 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  ← Previous
+                </button>
+
+                <span className="rounded-lg bg-[#f7e5e9] px-3 py-2 text-xs font-semibold text-[#9e405a]">
+                  {page} / {totalPages}
+                </span>
+
+                <button
+                  type="button"
+                  disabled={page >= totalPages}
+                  onClick={() =>
+                    setPage((current) =>
+                      Math.min(
+                        current + 1,
+                        totalPages
+                      )
+                    )
+                  }
+                  className="bethel-button bethel-button-secondary px-4 py-2 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Next →
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

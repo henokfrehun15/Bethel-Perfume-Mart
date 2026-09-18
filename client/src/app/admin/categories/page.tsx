@@ -191,200 +191,305 @@ export default function CategoriesPage() {
   };
 
   return (
-    <div>
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold">
-          Categories
-        </h2>
+    <div className="relative min-h-screen overflow-hidden">
+      {/* Decorative background */}
+      <div className="pointer-events-none absolute -right-32 -top-32 h-80 w-80 rounded-full bg-[#f7e5e9] opacity-60 blur-3xl" />
+      <div className="pointer-events-none absolute -left-40 top-96 h-72 w-72 rounded-full bg-[#fdf3f5] blur-3xl" />
 
-        <p className="mt-1 text-gray-500">
-          Create and manage product categories.
-        </p>
-      </div>
+      <div className="relative">
+        {/* Page Header */}
+        <div className="mb-8">
+          <div className="mb-3 flex items-center gap-2">
+            <span className="text-lg text-[#c96a82]">✿</span>
 
-      {error && (
-        <div className="mb-6 rounded-lg bg-red-50 p-4 text-sm text-red-600">
-          {error}
-        </div>
-      )}
-
-      {success && (
-        <div className="mb-6 rounded-lg bg-green-50 p-4 text-sm text-green-700">
-          {success}
-        </div>
-      )}
-
-      {/* Category form */}
-      <section className="mb-8 rounded-xl bg-white p-6 shadow-sm">
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold">
-              {editingId
-                ? "Edit category"
-                : "Create category"}
-            </h3>
-
-            <p className="mt-1 text-sm text-gray-500">
-              {editingId
-                ? "Update the selected category."
-                : "Add a new category to your store."}
-            </p>
+            <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#c96a82]">
+              Fragrance Collections
+            </span>
           </div>
 
-          {editingId && (
-            <button
-              type="button"
-              onClick={resetForm}
-              className="rounded-lg border px-4 py-2 text-sm font-medium hover:bg-gray-50"
-            >
-              Cancel edit
-            </button>
-          )}
-        </div>
-
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-5"
-        >
-          <div className="grid gap-5 md:grid-cols-2">
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
             <div>
-              <label className="mb-2 block text-sm font-medium">
-                Category name *
-              </label>
+              <h2 className="text-3xl font-semibold tracking-tight text-[#30272a] sm:text-4xl">
+                Categories
+              </h2>
 
-              <input
-                value={name}
-                onChange={(event) =>
-                  setName(event.target.value)
-                }
-                required
-                className="w-full rounded-lg border px-4 py-3 outline-none focus:ring-2"
-                placeholder="Men's Perfume"
-              />
+              <p className="mt-2 max-w-xl text-sm leading-6 text-[#756b6e]">
+                Create and organize the fragrance collections
+                available throughout your store.
+              </p>
             </div>
 
-            <div>
-              <label className="mb-2 block text-sm font-medium">
-                Slug *
-              </label>
-
-              <div className="flex gap-2">
-                <input
-                  value={slug}
-                  onChange={(event) =>
-                    setSlug(event.target.value)
-                  }
-                  required
-                  className="w-full rounded-lg border px-4 py-3 outline-none focus:ring-2"
-                  placeholder="mens-perfume"
-                />
-
-                <button
-                  type="button"
-                  onClick={generateSlug}
-                  className="whitespace-nowrap rounded-lg border px-4 py-2 text-sm font-medium hover:bg-gray-50"
-                >
-                  Generate
-                </button>
-              </div>
+            <div className="flex h-10 items-center rounded-full bg-[#f7e5e9] px-4 text-sm font-medium text-[#9e405a]">
+              {categories.length}{" "}
+              {categories.length === 1
+                ? "category"
+                : "categories"}
             </div>
           </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-medium">
-              Description
-            </label>
-
-            <textarea
-              value={description}
-              onChange={(event) =>
-                setDescription(event.target.value)
-              }
-              rows={4}
-              className="w-full rounded-lg border px-4 py-3 outline-none focus:ring-2"
-              placeholder="Describe this category..."
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={saving}
-            className="rounded-lg bg-black px-5 py-3 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {saving
-              ? "Saving..."
-              : editingId
-                ? "Update category"
-                : "Create category"}
-          </button>
-        </form>
-      </section>
-
-      {/* Categories list */}
-      <section className="rounded-xl bg-white shadow-sm">
-        <div className="border-b px-6 py-5">
-          <h3 className="text-lg font-semibold">
-            All categories
-          </h3>
         </div>
 
-        {loading ? (
-          <div className="p-6 text-sm text-gray-500">
-            Loading categories...
-          </div>
-        ) : categories.length === 0 ? (
-          <div className="p-6 text-sm text-gray-500">
-            No categories found.
-          </div>
-        ) : (
-          <div className="divide-y">
-            {categories.map((category) => (
-              <div
-                key={category.id}
-                className="flex flex-col gap-4 px-6 py-5 md:flex-row md:items-center md:justify-between"
-              >
-                <div>
-                  <h4 className="font-semibold">
-                    {category.name}
-                  </h4>
-
-                  <p className="mt-1 text-sm text-gray-500">
-                    /{category.slug}
-                  </p>
-
-                  {category.description && (
-                    <p className="mt-2 text-sm text-gray-600">
-                      {category.description}
-                    </p>
-                  )}
-                </div>
-
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleEdit(category)
-                    }
-                    className="rounded-lg border px-4 py-2 text-sm font-medium hover:bg-gray-50"
-                  >
-                    Edit
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleDelete(category.id)
-                    }
-                    className="rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            ))}
+        {/* Alerts */}
+        {error && (
+          <div className="bethel-alert bethel-alert-error mb-6 flex items-start gap-3">
+            <span className="mt-0.5">!</span>
+            <span>{error}</span>
           </div>
         )}
-      </section>
+
+        {success && (
+          <div className="bethel-alert bethel-alert-success mb-6 flex items-start gap-3">
+            <span className="mt-0.5">✓</span>
+            <span>{success}</span>
+          </div>
+        )}
+
+        {/* Form Card */}
+        <section className="bethel-card bethel-floral mb-8 overflow-hidden">
+          <div className="border-b border-[#eadcdf] px-6 py-6 sm:px-8">
+            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+              <div>
+                <div className="flex items-center gap-2">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f7e5e9]">
+                    <span className="text-[#c96a82]">
+                      {editingId ? "✎" : "+"}
+                    </span>
+                  </div>
+
+                  <h3 className="text-lg font-semibold text-[#30272a]">
+                    {editingId
+                      ? "Edit category"
+                      : "Create category"}
+                  </h3>
+                </div>
+
+                <p className="mt-2 text-sm text-[#756b6e]">
+                  {editingId
+                    ? "Update the selected fragrance collection."
+                    : "Add a new fragrance collection to your store."}
+                </p>
+              </div>
+
+              {editingId && (
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="bethel-button bethel-button-secondary"
+                >
+                  Cancel edit
+                </button>
+              )}
+            </div>
+          </div>
+
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-6 px-6 py-6 sm:px-8"
+          >
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* Name */}
+              <div>
+                <label className="bethel-label">
+                  Category name *
+                </label>
+
+                <input
+                  value={name}
+                  onChange={(event) =>
+                    setName(event.target.value)
+                  }
+                  required
+                  className="bethel-input"
+                  placeholder="Men's Perfume"
+                />
+
+                <p className="mt-2 text-xs text-[#9a8f92]">
+                  The name customers will see.
+                </p>
+              </div>
+
+              {/* Slug */}
+              <div>
+                <label className="bethel-label">
+                  Slug *
+                </label>
+
+                <div className="flex gap-2">
+                  <input
+                    value={slug}
+                    onChange={(event) =>
+                      setSlug(event.target.value)
+                    }
+                    required
+                    className="bethel-input"
+                    placeholder="mens-perfume"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={generateSlug}
+                    className="bethel-button bethel-button-secondary shrink-0"
+                  >
+                    Generate
+                  </button>
+                </div>
+
+                <p className="mt-2 text-xs text-[#9a8f92]">
+                  Used in the category URL.
+                </p>
+              </div>
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="bethel-label">
+                Description
+              </label>
+
+              <textarea
+                value={description}
+                onChange={(event) =>
+                  setDescription(event.target.value)
+                }
+                rows={4}
+                className="bethel-input resize-none"
+                placeholder="Describe this fragrance collection..."
+              />
+
+              <p className="mt-2 text-xs text-[#9a8f92]">
+                Optional description for this collection.
+              </p>
+            </div>
+
+            {/* Submit */}
+            <div className="flex flex-col-reverse gap-3 border-t border-[#f0e3e6] pt-5 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-xs text-[#9a8f92]">
+                Fields marked with * are required.
+              </p>
+
+              <button
+                type="submit"
+                disabled={saving}
+                className="bethel-button bethel-button-primary min-w-[160px] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {saving
+                  ? "Saving..."
+                  : editingId
+                    ? "Update category"
+                    : "Create category"}
+              </button>
+            </div>
+          </form>
+        </section>
+
+        {/* Categories List */}
+        <section className="bethel-card overflow-hidden">
+          <div className="flex flex-col justify-between gap-3 border-b border-[#eadcdf] px-6 py-6 sm:flex-row sm:items-center sm:px-8">
+            <div>
+              <h3 className="text-lg font-semibold text-[#30272a]">
+                All categories
+              </h3>
+
+              <p className="mt-1 text-sm text-[#756b6e]">
+                Your current fragrance collections.
+              </p>
+            </div>
+
+            <span className="bethel-badge bethel-badge-pink">
+              {categories.length} total
+            </span>
+          </div>
+
+          {loading ? (
+            <div className="flex items-center justify-center px-6 py-16">
+              <div className="text-center">
+                <div className="mx-auto mb-4 h-9 w-9 animate-spin rounded-full border-2 border-[#f7e5e9] border-t-[#c96a82]" />
+
+                <p className="text-sm text-[#756b6e]">
+                  Loading categories...
+                </p>
+              </div>
+            </div>
+          ) : categories.length === 0 ? (
+            <div className="px-6 py-16 text-center sm:px-8">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#fdf3f5]">
+                <span className="text-2xl text-[#c96a82]">
+                  ✿
+                </span>
+              </div>
+
+              <h4 className="text-base font-semibold text-[#30272a]">
+                No categories yet
+              </h4>
+
+              <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-[#756b6e]">
+                Create your first fragrance collection using
+                the form above.
+              </p>
+            </div>
+          ) : (
+            <div className="divide-y divide-[#f0e3e6]">
+              {categories.map((category, index) => (
+                <div
+                  key={category.id}
+                  className="group flex flex-col gap-5 px-6 py-6 transition hover:bg-[#fdf9fa] sm:px-8 md:flex-row md:items-center md:justify-between"
+                >
+                  <div className="flex min-w-0 items-start gap-4">
+                    {/* Number */}
+                    <div className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#fdf3f5] text-sm font-semibold text-[#c96a82] sm:flex">
+                      {String(index + 1).padStart(2, "0")}
+                    </div>
+
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h4 className="font-semibold text-[#30272a]">
+                          {category.name}
+                        </h4>
+
+                        <span className="bethel-badge bethel-badge-pink">
+                          Active
+                        </span>
+                      </div>
+
+                      <p className="mt-1 text-sm text-[#c96a82]">
+                        /{category.slug}
+                      </p>
+
+                      {category.description && (
+                        <p className="mt-2 max-w-2xl text-sm leading-6 text-[#756b6e]">
+                          {category.description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex shrink-0 gap-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleEdit(category)
+                      }
+                      className="bethel-button bethel-button-secondary"
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleDelete(category.id)
+                      }
+                      className="bethel-button border border-[#edcbd1] bg-white text-[#b94a5c] hover:bg-[#fdf0f2]"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   );
 }
