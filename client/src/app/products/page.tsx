@@ -1,10 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
+
 import ProductCard, {
   StorefrontProduct,
 } from "@/components/storefront/ProductCard";
+import StorefrontHeader from "@/components/storefront/StorefrontHeader";
+import BotanicalBackground from "@/components/BotanicalBackground";
 import { apiRequest } from "@/lib/api";
 
 interface ProductsResponse {
@@ -29,13 +31,8 @@ interface CategoriesResponse {
 }
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState<
-    StorefrontProduct[]
-  >([]);
-
-  const [categories, setCategories] = useState<Category[]>(
-    []
-  );
+  const [products, setProducts] = useState<StorefrontProduct[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
@@ -55,10 +52,9 @@ export default function ProductsPage() {
   useEffect(() => {
     const loadCategories = async () => {
       try {
-        const response =
-          await apiRequest<CategoriesResponse>(
-            "/categories"
-          );
+        const response = await apiRequest<CategoriesResponse>(
+          "/categories"
+        );
 
         setCategories(response.data || []);
       } catch {
@@ -151,26 +147,15 @@ export default function ProductsPage() {
 
   return (
     <main className="bethel-page min-h-screen">
-      <div className="relative z-10">
-        <header className="border-b border-[#eadfe2] bg-white/80 backdrop-blur-md">
-          <div className="bethel-container flex min-h-20 items-center justify-between gap-6">
-            <Link
-              href="/"
-              className="font-serif text-2xl text-[#9e405a]"
-            >
-              Bethel Perfume
-            </Link>
+      {/* Botanical background */}
+      <BotanicalBackground />
 
-            <Link
-              href="/"
-              className="text-sm font-medium text-[#756b6e] transition hover:text-[#9e405a]"
-            >
-              Home
-            </Link>
-          </div>
-        </header>
+      <div className="relative z-10">
+        {/* Shared storefront header with live cart count */}
+        <StorefrontHeader />
 
         <section className="bethel-container py-12 md:py-16">
+          {/* Page introduction */}
           <div className="max-w-2xl">
             <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-[#c96a82]">
               The collection
@@ -186,7 +171,8 @@ export default function ProductsPage() {
             </p>
           </div>
 
-          <div className="mt-10 rounded-3xl border border-[#eadfe2] bg-white/90 p-4 shadow-[0_12px_40px_rgba(120,70,85,0.06)] md:p-5">
+          {/* Filters */}
+          <div className="mt-10 rounded-3xl border border-[#eadfe2] bg-white/90 p-4 shadow-[0_12px_40px_rgba(120,70,85,0.06)] backdrop-blur-sm md:p-5">
             <form
               onSubmit={handleSearch}
               className="flex flex-col gap-3 md:flex-row"
@@ -242,6 +228,7 @@ export default function ProductsPage() {
                   }}
                   className="h-4 w-4 accent-[#c96a82]"
                 />
+
                 In stock only
               </label>
 
@@ -255,6 +242,7 @@ export default function ProductsPage() {
                   }}
                   className="h-4 w-4 accent-[#c96a82]"
                 />
+
                 Promotions
               </label>
 
@@ -272,11 +260,14 @@ export default function ProductsPage() {
             </div>
           </div>
 
+          {/* Results summary */}
           <div className="mt-10 flex items-center justify-between gap-4">
             <p className="text-sm text-[#756b6e]">
               {loading
                 ? "Loading fragrances..."
-                : `${total} fragrance${total === 1 ? "" : "s"} found`}
+                : `${total} fragrance${
+                    total === 1 ? "" : "s"
+                  } found`}
             </p>
 
             {total > 0 && (
@@ -286,12 +277,14 @@ export default function ProductsPage() {
             )}
           </div>
 
+          {/* Error */}
           {error && (
             <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
               {error}
             </div>
           )}
 
+          {/* Product content */}
           {loading ? (
             <div className="grid gap-6 pt-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {Array.from({ length: 8 }).map(
@@ -301,6 +294,7 @@ export default function ProductsPage() {
                     className="overflow-hidden rounded-3xl border border-[#eadfe2] bg-white"
                   >
                     <div className="aspect-[4/5] animate-pulse bg-[#f7e5e9]" />
+
                     <div className="space-y-3 p-5">
                       <div className="h-3 w-20 animate-pulse rounded bg-[#f7e5e9]" />
                       <div className="h-6 w-3/4 animate-pulse rounded bg-[#f7e5e9]" />
@@ -333,13 +327,14 @@ export default function ProductsPage() {
               <button
                 type="button"
                 onClick={clearFilters}
-                className="mt-6 rounded-2xl bg-[#c96a82] px-6 py-3 text-sm font-semibold text-white hover:bg-[#9e405a]"
+                className="mt-6 rounded-2xl bg-[#c96a82] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#9e405a]"
               >
                 View all fragrances
               </button>
             </div>
           )}
 
+          {/* Pagination */}
           {!loading && totalPages > 1 && (
             <div className="mt-12 flex items-center justify-center gap-3">
               <button

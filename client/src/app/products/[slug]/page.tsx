@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+
 import { apiRequest } from "@/lib/api";
+import { addToCart } from "@/lib/cart";
+import StorefrontHeader from "@/components/storefront/StorefrontHeader";
 
 interface ProductImage {
   id: number;
@@ -28,7 +31,10 @@ interface Product {
   stock_qty: number;
   is_featured: boolean;
   is_promotion: boolean;
-  promotion_price: string | number | null;
+  promotion_price:
+    | string
+    | number
+    | null;
   promotion_text: string | null;
   category_id: number;
   images: ProductImage[];
@@ -64,6 +70,7 @@ export default function ProductDetailPage() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [added, setAdded] = useState(false);
 
   useEffect(() => {
     const loadProduct = async () => {
@@ -94,15 +101,20 @@ export default function ProductDetailPage() {
   if (loading) {
     return (
       <main className="bethel-page min-h-screen">
-        <div className="bethel-container py-20">
-          <div className="mx-auto max-w-5xl animate-pulse">
-            <div className="grid gap-10 md:grid-cols-2">
-              <div className="aspect-[4/5] rounded-3xl bg-[#f7e5e9]" />
-              <div className="space-y-5 pt-8">
-                <div className="h-4 w-24 rounded bg-[#f7e5e9]" />
-                <div className="h-12 w-3/4 rounded bg-[#f7e5e9]" />
-                <div className="h-5 w-1/3 rounded bg-[#f7e5e9]" />
-                <div className="h-24 w-full rounded bg-[#f7e5e9]" />
+        <div className="relative z-10">
+          <StorefrontHeader />
+
+          <div className="bethel-container py-20">
+            <div className="mx-auto max-w-5xl animate-pulse">
+              <div className="grid gap-10 md:grid-cols-2">
+                <div className="aspect-[4/5] rounded-3xl bg-[#f7e5e9]" />
+
+                <div className="space-y-5 pt-8">
+                  <div className="h-4 w-24 rounded bg-[#f7e5e9]" />
+                  <div className="h-12 w-3/4 rounded bg-[#f7e5e9]" />
+                  <div className="h-5 w-1/3 rounded bg-[#f7e5e9]" />
+                  <div className="h-24 w-full rounded bg-[#f7e5e9]" />
+                </div>
               </div>
             </div>
           </div>
@@ -114,27 +126,31 @@ export default function ProductDetailPage() {
   if (error || !product) {
     return (
       <main className="bethel-page min-h-screen">
-        <div className="bethel-container flex min-h-[70vh] items-center justify-center">
-          <div className="max-w-md text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#c96a82]">
-              Bethel Perfume
-            </p>
+        <div className="relative z-10">
+          <StorefrontHeader />
 
-            <h1 className="mt-3 font-serif text-4xl text-[#30272a]">
-              Product not found
-            </h1>
+          <div className="bethel-container flex min-h-[70vh] items-center justify-center">
+            <div className="max-w-md text-center">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#c96a82]">
+                Bethel Perfume
+              </p>
 
-            <p className="mt-3 text-sm leading-6 text-[#756b6e]">
-              {error ||
-                "We couldn't find the fragrance you're looking for."}
-            </p>
+              <h1 className="mt-3 font-serif text-4xl text-[#30272a]">
+                Product not found
+              </h1>
 
-            <Link
-              href="/products"
-              className="mt-7 inline-flex rounded-2xl bg-[#c96a82] px-6 py-3 text-sm font-semibold text-white hover:bg-[#9e405a]"
-            >
-              Back to collection
-            </Link>
+              <p className="mt-3 text-sm leading-6 text-[#756b6e]">
+                {error ||
+                  "We couldn't find the fragrance you're looking for."}
+              </p>
+
+              <Link
+                href="/products"
+                className="mt-7 inline-flex rounded-2xl bg-[#c96a82] px-6 py-3 text-sm font-semibold text-white hover:bg-[#9e405a]"
+              >
+                Back to collection
+              </Link>
+            </div>
           </div>
         </div>
       </main>
@@ -164,26 +180,38 @@ export default function ProductDetailPage() {
         ? "Low stock"
         : "Out of stock";
 
+  const cartPrice = hasPromotion
+    ? Number(product.promotion_price)
+    : Number(product.price);
+
+  const handleAddToCart = () => {
+    if (isOutOfStock) {
+      return;
+    }
+
+    addToCart({
+      productId: product.id,
+      name: product.name,
+      slug: product.slug,
+      price: cartPrice,
+      currency: product.currency,
+      image: images[0]?.url || null,
+      size: product.size,
+      quantity: 1,
+      stockQty: product.stock_qty,
+    });
+
+    setAdded(true);
+
+    window.setTimeout(() => {
+      setAdded(false);
+    }, 2500);
+  };
+
   return (
     <main className="bethel-page min-h-screen">
       <div className="relative z-10">
-        <header className="border-b border-[#eadfe2] bg-white/80 backdrop-blur-md">
-          <div className="bethel-container flex min-h-20 items-center justify-between gap-6">
-            <Link
-              href="/"
-              className="font-serif text-2xl text-[#9e405a]"
-            >
-              Bethel Perfume
-            </Link>
-
-            <Link
-              href="/products"
-              className="text-sm font-medium text-[#756b6e] transition hover:text-[#9e405a]"
-            >
-              Collection
-            </Link>
-          </div>
-        </header>
+        <StorefrontHeader />
 
         <section className="bethel-container py-10 md:py-16">
           <Link
@@ -194,6 +222,7 @@ export default function ProductDetailPage() {
           </Link>
 
           <div className="mt-8 grid gap-10 lg:grid-cols-2 lg:gap-16">
+            {/* Product images */}
             <div>
               <div className="overflow-hidden rounded-[2rem] border border-[#eadfe2] bg-[#f9f0f2] shadow-[0_16px_50px_rgba(120,70,85,0.08)]">
                 {currentImage ? (
@@ -243,13 +272,11 @@ export default function ProductDetailPage() {
               )}
             </div>
 
+            {/* Product information */}
             <div className="flex flex-col justify-center">
-              {product.category_id && (
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#c96a82]">
-                  {product.brand ||
-                    "Bethel Perfume"}
-                </p>
-              )}
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#c96a82]">
+                {product.brand || "Bethel Perfume"}
+              </p>
 
               <h1 className="mt-3 font-serif text-4xl leading-tight text-[#30272a] md:text-5xl">
                 {product.name}
@@ -261,6 +288,7 @@ export default function ProductDetailPage() {
                 </p>
               )}
 
+              {/* Price */}
               <div className="mt-7">
                 {hasPromotion ? (
                   <div>
@@ -288,6 +316,7 @@ export default function ProductDetailPage() {
                 )}
               </div>
 
+              {/* Promotion */}
               {hasPromotion &&
                 product.promotion_text && (
                   <div className="mt-5 rounded-2xl bg-[#f7e5e9] px-4 py-3 text-sm font-medium text-[#9e405a]">
@@ -295,6 +324,7 @@ export default function ProductDetailPage() {
                   </div>
                 )}
 
+              {/* Description */}
               {product.description && (
                 <div className="mt-8 border-t border-[#eadfe2] pt-7">
                   <h2 className="font-serif text-2xl text-[#30272a]">
@@ -307,12 +337,14 @@ export default function ProductDetailPage() {
                 </div>
               )}
 
+              {/* Details */}
               <div className="mt-8 grid gap-3 border-t border-[#eadfe2] pt-7 sm:grid-cols-2">
                 {product.size && (
                   <div className="rounded-2xl bg-[#fffcfa] p-4">
                     <p className="text-xs uppercase tracking-wider text-[#9b9093]">
                       Size
                     </p>
+
                     <p className="mt-1 font-medium text-[#30272a]">
                       {product.size}
                     </p>
@@ -323,6 +355,7 @@ export default function ProductDetailPage() {
                   <p className="text-xs uppercase tracking-wider text-[#9b9093]">
                     Availability
                   </p>
+
                   <p
                     className={`mt-1 font-medium ${
                       isOutOfStock
@@ -335,21 +368,33 @@ export default function ProductDetailPage() {
                 </div>
               </div>
 
+              {/* Cart action */}
               <div className="mt-8">
                 <button
                   type="button"
                   disabled={isOutOfStock}
+                  onClick={handleAddToCart}
                   className="w-full rounded-2xl bg-[#c96a82] px-6 py-4 text-sm font-semibold text-white transition hover:bg-[#9e405a] disabled:cursor-not-allowed disabled:bg-[#cfc4c7]"
                 >
                   {isOutOfStock
                     ? "Currently unavailable"
-                    : "Add to cart"}
+                    : added
+                      ? "Added to cart ✓"
+                      : "Add to cart"}
                 </button>
 
-                <p className="mt-3 text-center text-xs text-[#9b9093]">
-                  Cart and checkout will be connected in
-                  the next storefront step.
-                </p>
+                <div className="mt-3 flex items-center justify-between gap-4">
+                  <Link
+                    href="/cart"
+                    className="text-sm font-medium text-[#9e405a] hover:underline"
+                  >
+                    View cart
+                  </Link>
+
+                  <p className="text-right text-xs text-[#9b9093]">
+                    Your selection is saved in your cart.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
