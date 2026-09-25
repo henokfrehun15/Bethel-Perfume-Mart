@@ -1,7 +1,9 @@
 "use client";
 
 import { ReactNode, useEffect, useState } from "react";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { clearAdminSession, getAdminToken } from "@/lib/api";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -24,7 +26,7 @@ export default function AdminLayout({
     }
 
     queueMicrotask(() => {
-      const token = localStorage.getItem("admin_token");
+      const token = getAdminToken();
       const storedUser = localStorage.getItem("admin_user");
 
       if (!token) {
@@ -46,8 +48,7 @@ export default function AdminLayout({
   }, [isLoginPage, router]);
 
   const handleLogout = () => {
-    localStorage.removeItem("admin_token");
-    localStorage.removeItem("admin_user");
+    clearAdminSession();
 
     router.replace("/admin/login");
   };
@@ -74,6 +75,10 @@ export default function AdminLayout({
     {
       label: "Dashboard",
       href: "/admin",
+    },
+    {
+      label: "Orders",
+      href: "/admin/orders",
     },
     {
       label: "Products",
@@ -155,7 +160,7 @@ export default function AdminLayout({
                 : pathname.startsWith(item.href);
 
             return (
-              <a
+              <Link
                 key={item.href}
                 href={item.href}
                 className={`relative whitespace-nowrap px-4 py-4 text-sm font-medium transition ${
@@ -169,7 +174,7 @@ export default function AdminLayout({
                 {isActive && (
                   <span className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-[#c96a82]" />
                 )}
-              </a>
+              </Link>
             );
           })}
         </div>

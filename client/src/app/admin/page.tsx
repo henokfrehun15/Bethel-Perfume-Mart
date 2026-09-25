@@ -244,6 +244,25 @@ export default function AdminDashboard() {
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <a
+              href="/admin/orders"
+              className="group rounded-xl border border-[#eadfe2] bg-[#fffcfa] p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#e8c2cc] hover:bg-[#fdf5f7]"
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-[#30272a]">
+                  Orders
+                </span>
+
+                <span className="text-[#c96a82] transition-transform group-hover:translate-x-1">
+                  →
+                </span>
+              </div>
+
+              <p className="mt-1 text-sm text-[#756b6e]">
+                Review and manage customer orders
+              </p>
+            </a>
+
+            <a
               href="/admin/products"
               className="group rounded-xl border border-[#eadfe2] bg-[#fffcfa] p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#e8c2cc] hover:bg-[#fdf5f7]"
             >
