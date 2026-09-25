@@ -7,6 +7,7 @@ const DEFAULT_SETTINGS = {
   description: "",
   contact_email: "",
   contact_address: "",
+  delivery_fee: "0",
 };
 
 const SETTING_KEYS = Object.keys(
@@ -73,6 +74,7 @@ export const updateSettings = async (
       description,
       contact_email,
       contact_address,
+      delivery_fee,
     } = req.body;
 
     const values = {
@@ -81,6 +83,7 @@ export const updateSettings = async (
       description,
       contact_email,
       contact_address,
+      delivery_fee,
     };
 
     if (
@@ -145,6 +148,23 @@ export const updateSettings = async (
         success: false,
         message: "Store name cannot be empty",
       });
+    }
+
+    // The delivery fee is stored as text but must be a non-negative number.
+    if (typeof delivery_fee !== "undefined") {
+      const parsedFee = Number.parseFloat(delivery_fee);
+
+      if (
+        typeof delivery_fee !== "string" ||
+        !Number.isFinite(parsedFee) ||
+        parsedFee < 0
+      ) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "delivery_fee must be a non-negative number",
+        });
+      }
     }
 
     for (const key of SETTING_KEYS) {

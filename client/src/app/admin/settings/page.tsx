@@ -14,6 +14,7 @@ interface StoreSettings {
   description: string;
   contact_email: string;
   contact_address: string;
+  delivery_fee: string;
 }
 
 interface SettingsResponse {
@@ -29,6 +30,7 @@ export default function SettingsPage() {
       description: "",
       contact_email: "",
       contact_address: "",
+      delivery_fee: "0",
     });
 
   const [loading, setLoading] =
@@ -115,6 +117,9 @@ export default function SettingsPage() {
 
               contact_address:
                 settings.contact_address.trim(),
+
+              delivery_fee:
+                settings.delivery_fee.trim(),
             }),
           }
         );
@@ -201,6 +206,32 @@ export default function SettingsPage() {
                 className="w-full rounded-lg border px-4 py-3 outline-none focus:ring-2"
                 placeholder="Bethel Perfume"
               />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium">
+                Delivery fee (ETB)
+              </label>
+
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={settings.delivery_fee}
+                onChange={(event) =>
+                  updateField(
+                    "delivery_fee",
+                    event.target.value
+                  )
+                }
+                className="w-full rounded-lg border px-4 py-3 outline-none focus:ring-2"
+                placeholder="0"
+              />
+
+              <p className="mt-2 text-xs text-gray-500">
+                Added to every order at checkout. Use 0
+                for free delivery.
+              </p>
             </div>
 
             <div>
