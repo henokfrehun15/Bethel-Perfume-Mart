@@ -260,7 +260,17 @@ export const createProduct = async (
   req: Request,
   res: Response
 ) => {
-  const client = await pool.connect();
+  const client = await pool
+    .connect()
+    .catch(() => null);
+
+  if (!client) {
+    return res.status(503).json({
+      success: false,
+      message:
+        "The service is temporarily unavailable. Please try again.",
+    });
+  }
 
   try {
     const {
@@ -427,10 +437,27 @@ export const updateProduct = async (
   req: Request,
   res: Response
 ) => {
-  const client = await pool.connect();
+  const client = await pool
+    .connect()
+    .catch(() => null);
+
+  if (!client) {
+    return res.status(503).json({
+      success: false,
+      message:
+        "The service is temporarily unavailable. Please try again.",
+    });
+  }
 
   try {
-    const { id } = req.params;
+    const id = Number(req.params.id);
+
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "A valid product id is required",
+      });
+    }
 
     const {
       name,
@@ -669,7 +696,14 @@ export const deleteProduct = async (
   res: Response
 ) => {
   try {
-    const { id } = req.params;
+    const id = Number(req.params.id);
+
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "A valid product id is required",
+      });
+    }
 
     const result = await pool.query(
       `
@@ -691,10 +725,18 @@ export const deleteProduct = async (
       success: true,
       message: "Product deleted successfully",
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Delete product error:", error);
 
-    res.status(500).json({
+    if (error.code === "23503") {
+      return res.status(409).json({
+        success: false,
+        message:
+          "This product is part of existing orders, so it cannot be deleted. Mark it OUT_OF_STOCK instead.",
+      });
+    }
+
+    return res.status(500).json({
       success: false,
       message: "Failed to delete product",
     });
@@ -705,7 +747,14 @@ export const getProductById = async (
   res: Response
 ) => {
   try {
-    const { id } = req.params;
+    const id = Number(req.params.id);
+
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "A valid product id is required",
+      });
+    }
 
     const result = await pool.query(
       `

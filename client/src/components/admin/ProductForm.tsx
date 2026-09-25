@@ -107,11 +107,13 @@ export default function ProductForm({
 
   const [images, setImages] = useState<string[]>(
     product?.images
-      ?.sort(
-        (a, b) =>
-          (a.sort_order ?? 0) - (b.sort_order ?? 0)
-      )
-      .map((image) => image.url) || [""]
+      ? [...product.images]
+          .sort(
+            (a, b) =>
+              (a.sort_order ?? 0) - (b.sort_order ?? 0)
+          )
+          .map((image) => image.url)
+      : [""]
   );
 
   const [loading, setLoading] = useState(false);
