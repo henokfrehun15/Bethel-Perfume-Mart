@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Bethel Perfume — Client
 
-## Getting Started
+Next.js 16 (App Router) storefront and admin dashboard for Bethel Perfume &
+Mart. The API lives in `../server`.
 
-First, run the development server:
+## Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local   # set NEXT_PUBLIC_API_URL / NEXT_PUBLIC_SITE_URL
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Scripts
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Script              | Description                       |
+| ------------------- | --------------------------------- |
+| `npm run dev`       | Start the dev server              |
+| `npm run build`     | Production build                  |
+| `npm run start`     | Serve the production build        |
+| `npm run lint`      | ESLint (Next.js core-web-vitals)  |
+| `npm run typecheck` | `tsc --noEmit`                    |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Routes
 
-## Learn More
+- `/` – homepage: hero, categories, featured products, promotions
+- `/products` – catalogue with search, category/stock/promotion filters and pagination
+- `/products/[slug]` – product detail with image gallery and add-to-cart
+- `/cart`, `/checkout`, `/order/success/[orderNumber]` – cart and guest checkout flow
+- `/admin/login`, `/admin`, `/admin/products`, `/admin/categories`, `/admin/orders`, `/admin/settings` – JWT-protected dashboard
 
-To learn more about Next.js, take a look at the following resources:
+## Layout
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+src/app        # routes (App Router)
+src/components # storefront + admin components
+src/lib        # api client (src/lib/api.ts), cart storage, site constants
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Cart state is kept in `localStorage` (`src/lib/cart.ts`) and broadcast through
+the `bethel-cart-updated` window event. Admin authentication stores the JWT in
+`localStorage` under `admin_token`; `apiRequest` attaches it to every call and
+clears the session when the API answers 401.
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

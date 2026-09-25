@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment files (keep the committed examples)
+.env
+.env.*
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example
+
+# Build output
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Local tooling / agent scratch directories
+.freebuff/
+.agents/
+.claude/
+.cursor/
+.devin/
+
+# Local audit scratch files
+audit-*.txt

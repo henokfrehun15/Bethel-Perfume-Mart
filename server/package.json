@@ -7,7 +7,9 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "postinstall": "prisma skills sync || exit 0",
+    "typecheck": "tsc --noEmit",
+    "db:setup": "tsx src/scripts/setupDatabase.ts",
+    "db:seed": "tsx src/scripts/setupDatabase.ts --seed",
     "create-admin": "tsx src/scripts/createAdmin.ts"
   },
   "keywords": [],
