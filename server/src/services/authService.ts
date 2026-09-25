@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import jwt, { SignOptions } from "jsonwebtoken";
 import { pool } from "../config/database";
+import { env } from "../config/env";
 
 interface AdminPayload {
   id: number;
@@ -15,12 +16,9 @@ interface LoginResult {
   };
 }
 
-const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1d";
+const JWT_SECRET = env.jwtSecret;
+const JWT_EXPIRES_IN = env.jwtExpiresIn;
 
-if (!JWT_SECRET) {
-  throw new Error("JWT_SECRET is not defined");
-}
 
 export const loginAdmin = async (
   username: string,

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import { env } from "../config/env";
 
 interface AdminPayload {
   id: number;
@@ -11,11 +12,8 @@ export interface AuthenticatedRequest
   admin?: AdminPayload;
 }
 
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = env.jwtSecret;
 
-if (!JWT_SECRET) {
-  throw new Error("JWT_SECRET is not defined");
-}
 
 export const requireAdmin = (
   req: AuthenticatedRequest,

@@ -1,8 +1,5 @@
-import dotenv from "dotenv";
 import bcrypt from "bcrypt";
 import { pool } from "../config/database";
-
-dotenv.config();
 
 const username = process.argv[2];
 const password = process.argv[3];
