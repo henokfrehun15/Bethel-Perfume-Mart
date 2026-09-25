@@ -1,62 +1,50 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, startTransition } from "react";
+import { useEffect, useState } from "react";
+
 import StorefrontHeader from "@/components/storefront/StorefrontHeader";
 import {
   CartItem,
   getCart,
+  getCartSubtotal,
   removeFromCart,
   updateCartQuantity,
 } from "@/lib/cart";
 
-function formatPrice(price: number, currency: string) {
-  return `${currency} ${price.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
-}
-
 export default function CartPage() {
   const [items, setItems] = useState<CartItem[]>([]);
-  const [isMounted, setIsMounted] = useState(false);
+  const [subtotal, setSubtotal] = useState(0);
+
+  const loadCart = () => {
+    const cart = getCart();
+
+    setItems(cart);
+    setSubtotal(getCartSubtotal());
+  };
 
   useEffect(() => {
-    startTransition(() => {
-      setItems(getCart());
-      setIsMounted(true);
+    // Schedule initial load to avoid synchronous setState during effect execution
+    queueMicrotask(() => {
+      loadCart();
     });
+
+    window.addEventListener("bethel-cart-updated", loadCart);
+
+    return () => {
+      window.removeEventListener("bethel-cart-updated", loadCart);
+    };
   }, []);
 
-  const subtotal = items.reduce(
-    (total, item) => total + item.price * item.quantity,
-    0
-  );
-
-  const currency = items[0]?.currency || "ETB";
-
-  const handleQuantityChange = (productId: number, quantity: number) => {
-    const updated = updateCartQuantity(productId, quantity);
-    setItems(updated);
+  const changeQuantity = (productId: number, quantity: number) => {
+    updateCartQuantity(productId, quantity);
+    loadCart();
   };
 
-  const handleRemove = (productId: number) => {
-    const updated = removeFromCart(productId);
-    setItems(updated);
+  const removeItem = (productId: number) => {
+    removeFromCart(productId);
+    loadCart();
   };
-
-  if (!isMounted) {
-    return (
-      <main className="bethel-page min-h-screen">
-        <div className="relative z-10">
-          <StorefrontHeader />
-          <section className="bethel-container py-12 md:py-16">
-            <div className="h-10 w-48 animate-pulse rounded-lg bg-black/5" />
-          </section>
-        </div>
-      </main>
-    );
-  }
 
   return (
     <main className="bethel-page min-h-screen">
@@ -64,166 +52,186 @@ export default function CartPage() {
         <StorefrontHeader />
 
         <section className="bethel-container py-12 md:py-16">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#c96a82]">
+          <div className="max-w-2xl">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-[#c96a82]">
               Your selection
             </p>
 
-            <h1 className="mt-2 font-serif text-4xl text-[#30272a] md:text-5xl">
-              Shopping cart
+            <h1 className="font-serif text-4xl leading-tight text-[#30272a] md:text-5xl">
+              Your fragrance bag
             </h1>
+
+            <p className="mt-4 text-base leading-7 text-[#756b6e]">
+              Review your selected fragrances before continuing to checkout.
+            </p>
           </div>
 
           {items.length === 0 ? (
-            <div className="mt-12 rounded-[2rem] border border-dashed border-[#d9c4ca] bg-white/80 px-6 py-20 text-center">
-              <p className="font-serif text-3xl text-[#30272a]">
-                Your cart is empty.
+            <div className="mt-10 rounded-3xl border border-dashed border-[#d9c4ca] bg-white/80 px-6 py-16 text-center shadow-[0_12px_40px_rgba(120,70,85,0.05)]">
+              <p className="font-serif text-2xl text-[#30272a]">
+                Your cart is empty
               </p>
 
-              <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[#756b6e]">
-                Discover a fragrance you love and add it to your collection.
+              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#756b6e]">
+                Discover a fragrance from our collection and add it to your
+                bag.
               </p>
 
               <Link
                 href="/products"
-                className="mt-7 inline-flex rounded-2xl bg-[#c96a82] px-7 py-3.5 text-sm font-semibold text-white transition hover:bg-[#9e405a]"
+                className="mt-6 inline-flex rounded-2xl bg-[#c96a82] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#9e405a]"
               >
                 Explore fragrances
               </Link>
             </div>
           ) : (
             <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_360px]">
+              {/* Cart items */}
               <div className="space-y-4">
-                {items.map((item) => (
-                  <article
-                    key={item.productId}
-                    className="flex flex-col gap-5 rounded-3xl border border-[#eadfe2] bg-white/90 p-4 shadow-[0_10px_35px_rgba(120,70,85,0.05)] sm:flex-row sm:items-center"
-                  >
-                    <Link
-                      href={`/products/${item.slug}`}
-                      className="shrink-0 overflow-hidden rounded-2xl bg-[#f9f0f2] sm:w-32"
+                {items.map((item) => {
+                  const itemTotal = item.price * item.quantity;
+
+                  return (
+                    <article
+                      key={item.productId}
+                      className="rounded-3xl border border-[#eadfe2] bg-white/90 p-4 shadow-[0_12px_40px_rgba(120,70,85,0.05)] sm:p-5"
                     >
-                      {item.image ? (
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="aspect-square w-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex aspect-square items-center justify-center px-4 text-center">
-                          <span className="font-serif text-lg text-[#c96a82]">
-                            Bethel
-                          </span>
-                        </div>
-                      )}
-                    </Link>
-
-                    <div className="min-w-0 flex-1">
-                      <Link
-                        href={`/products/${item.slug}`}
-                        className="font-serif text-xl text-[#30272a] hover:text-[#9e405a]"
-                      >
-                        {item.name}
-                      </Link>
-
-                      {item.size && (
-                        <p className="mt-1 text-sm text-[#756b6e]">
-                          {item.size}
-                        </p>
-                      )}
-
-                      <p className="mt-3 text-sm font-semibold text-[#30272a]">
-                        {formatPrice(item.price, item.currency)}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center justify-between gap-4 sm:flex-col sm:items-end">
-                      <div className="flex items-center rounded-2xl border border-[#dfd3d7]">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleQuantityChange(
-                              item.productId,
-                              item.quantity - 1
-                            )
-                          }
-                          className="px-3 py-2 text-[#756b6e] hover:text-[#9e405a]"
+                      <div className="flex gap-4">
+                        <Link
+                          href={`/products/${item.slug}`}
+                          className="h-28 w-24 shrink-0 overflow-hidden rounded-2xl bg-[#f7e5e9] sm:h-32 sm:w-28"
                         >
-                          −
-                        </button>
-
-                        <span className="min-w-8 text-center text-sm font-medium text-[#30272a]">
-                          {item.quantity}
-                        </span>
-
-                        <button
-                          type="button"
-                          disabled={item.quantity >= item.stockQty}
-                          onClick={() =>
-                            handleQuantityChange(
-                              item.productId,
-                              item.quantity + 1
-                            )
-                          }
-                          className="px-3 py-2 text-[#756b6e] hover:text-[#9e405a] disabled:opacity-30"
-                        >
-                          +
-                        </button>
-                      </div>
-
-                      <div className="text-right">
-                        <p className="font-semibold text-[#30272a]">
-                          {formatPrice(
-                            item.price * item.quantity,
-                            item.currency
+                          {item.image ? (
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full items-center justify-center px-3 text-center text-xs text-[#9e405a]">
+                              Bethel Perfume
+                            </div>
                           )}
-                        </p>
+                        </Link>
 
-                        <button
-                          type="button"
-                          onClick={() => handleRemove(item.productId)}
-                          className="mt-1 text-xs font-medium text-[#9e405a] hover:underline"
-                        >
-                          Remove
-                        </button>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <Link
+                                href={`/products/${item.slug}`}
+                                className="font-serif text-xl text-[#30272a] transition hover:text-[#9e405a]"
+                              >
+                                {item.name}
+                              </Link>
+
+                              {item.size && (
+                                <p className="mt-1 text-sm text-[#756b6e]">
+                                  {item.size}
+                                </p>
+                              )}
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => removeItem(item.productId)}
+                              className="text-sm text-[#9e405a] transition hover:text-[#c96a82]"
+                            >
+                              Remove
+                            </button>
+                          </div>
+
+                          <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
+                            <div className="flex items-center rounded-2xl border border-[#dfd3d7] bg-[#fffcfa]">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  changeQuantity(
+                                    item.productId,
+                                    item.quantity - 1
+                                  )
+                                }
+                                className="h-10 w-10 text-lg text-[#756b6e] transition hover:text-[#9e405a]"
+                              >
+                                −
+                              </button>
+
+                              <span className="w-10 text-center text-sm font-semibold text-[#30272a]">
+                                {item.quantity}
+                              </span>
+
+                              <button
+                                type="button"
+                                disabled={item.quantity >= item.stockQty}
+                                onClick={() =>
+                                  changeQuantity(
+                                    item.productId,
+                                    item.quantity + 1
+                                  )
+                                }
+                                className="h-10 w-10 text-lg text-[#756b6e] transition hover:text-[#9e405a] disabled:cursor-not-allowed disabled:opacity-30"
+                              >
+                                +
+                              </button>
+                            </div>
+
+                            <p className="font-semibold text-[#30272a]">
+                              {item.currency} {itemTotal.toFixed(2)}
+                            </p>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </article>
-                ))}
+                    </article>
+                  );
+                })}
               </div>
 
-              <aside className="h-fit rounded-3xl border border-[#eadfe2] bg-white/90 p-6 shadow-[0_12px_40px_rgba(120,70,85,0.07)] lg:sticky lg:top-6">
-                <h2 className="font-serif text-2xl text-[#30272a]">
+              {/* Summary */}
+              <aside className="h-fit rounded-3xl border border-[#eadfe2] bg-white/90 p-6 shadow-[0_12px_40px_rgba(120,70,85,0.06)] lg:sticky lg:top-6">
+                <p className="font-serif text-2xl text-[#30272a]">
                   Order summary
-                </h2>
+                </p>
 
-                <div className="mt-6 flex items-center justify-between border-b border-[#eadfe2] pb-5 text-sm">
-                  <span className="text-[#756b6e]">Subtotal</span>
+                <div className="mt-6 space-y-3 border-b border-[#eadfe2] pb-5">
+                  <div className="flex justify-between gap-4 text-sm text-[#756b6e]">
+                    <span>Items</span>
+                    <span>
+                      {items.reduce((total, item) => total + item.quantity, 0)}
+                    </span>
+                  </div>
 
-                  <span className="font-semibold text-[#30272a]">
-                    {formatPrice(subtotal, currency)}
+                  <div className="flex justify-between gap-4 text-sm text-[#756b6e]">
+                    <span>Subtotal</span>
+                    <span>
+                      {items[0]?.currency || "ETB"} {subtotal.toFixed(2)}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between gap-4 text-sm text-[#756b6e]">
+                    <span>Delivery</span>
+                    <span>Calculated at checkout</span>
+                  </div>
+                </div>
+
+                <div className="mt-5 flex items-center justify-between gap-4">
+                  <span className="font-serif text-xl text-[#30272a]">
+                    Total
+                  </span>
+
+                  <span className="text-lg font-semibold text-[#9e405a]">
+                    {items[0]?.currency || "ETB"} {subtotal.toFixed(2)}
                   </span>
                 </div>
 
-                <div className="mt-5 flex items-center justify-between">
-                  <span className="font-medium text-[#30272a]">Total</span>
-
-                  <span className="text-xl font-semibold text-[#9e405a]">
-                    {formatPrice(subtotal, currency)}
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  disabled
-                  className="mt-7 w-full rounded-2xl bg-[#c96a82] px-6 py-4 text-sm font-semibold text-white opacity-60"
+                <Link
+                  href="/checkout"
+                  className="mt-6 flex min-h-12 items-center justify-center rounded-2xl bg-[#c96a82] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#9e405a]"
                 >
-                  Checkout coming next
-                </button>
+                  Proceed to checkout
+                </Link>
 
                 <Link
                   href="/products"
-                  className="mt-3 flex justify-center rounded-2xl border border-[#d9c4ca] px-6 py-3.5 text-sm font-semibold text-[#9e405a] hover:bg-[#f7e5e9]"
+                  className="mt-3 flex min-h-12 items-center justify-center rounded-2xl border border-[#d9c4ca] px-6 py-3 text-sm font-medium text-[#9e405a] transition hover:bg-[#f7e5e9]"
                 >
                   Continue shopping
                 </Link>

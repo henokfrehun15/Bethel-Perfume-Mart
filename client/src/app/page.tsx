@@ -6,6 +6,7 @@ import BotanicalBackground from "@/components/BotanicalBackground";
 import ProductCard, {
   StorefrontProduct,
 } from "@/components/storefront/ProductCard";
+import StorefrontHeader from "@/components/storefront/StorefrontHeader";
 import { apiRequest } from "@/lib/api";
 
 interface ProductsResponse {
@@ -82,25 +83,7 @@ export default function Home() {
       <BotanicalBackground />
 
       <div className="relative z-10">
-        <header className="border-b border-[#eadfe2]/70 bg-[#fffcfa]/75 backdrop-blur-md">
-          <div className="bethel-container flex min-h-20 items-center justify-between gap-6">
-            <Link
-              href="/"
-              className="font-serif text-2xl text-[#9e405a]"
-            >
-              Bethel Perfume
-            </Link>
-
-            <nav className="flex items-center gap-5 text-sm">
-              <Link
-                href="/products"
-                className="font-medium text-[#756b6e] transition hover:text-[#9e405a]"
-              >
-                Collection
-              </Link>
-            </nav>
-          </div>
-        </header>
+        <StorefrontHeader />
 
         <section className="bethel-container flex min-h-[calc(100vh-5rem)] items-center py-20">
           <div className="max-w-2xl">
