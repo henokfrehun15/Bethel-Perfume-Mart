@@ -1,5 +1,33 @@
 import { Request, Response } from "express";
+import jwt from "jsonwebtoken";
 import { pool } from "../config/database";
+import { env } from "../config/env";
+
+/**
+ * True when the request carries a valid admin Bearer token.
+ * Used to decide whether hidden products may be included in listings.
+ */
+function isAdminRequest(req: Request): boolean {
+  try {
+    const authorization = req.headers.authorization;
+
+    if (!authorization) {
+      return false;
+    }
+
+    const [scheme, token] = authorization.split(" ");
+
+    if (scheme !== "Bearer" || !token) {
+      return false;
+    }
+
+    jwt.verify(token, env.jwtSecret);
+
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 
 // GET /api/products
@@ -15,12 +43,19 @@ export const getProducts = async (
       inStock,
       featured,
       promotion,
+      includeInactive,
       limit = "20",
       offset = "0",
     } = req.query;
 
     const conditions: string[] = [];
     const values: unknown[] = [];
+
+    // Hidden products stay out of the public catalog. Only a valid
+    // admin session may list them (includeInactive=true).
+    if (includeInactive !== "true" || !isAdminRequest(req)) {
+      conditions.push(`p.is_active = TRUE`);
+    }
 
     if (search) {
       values.push(`%${String(search)}%`);
@@ -123,6 +158,7 @@ export const getProducts = async (
         p.size,
         p.stock_status,
         p.stock_qty,
+        p.is_active,
         p.is_featured,
         p.is_promotion,
         p.promotion_price,
@@ -220,6 +256,14 @@ export const getProductBySlug = async (
 
     const product = productResult.rows[0];
 
+    // Hidden products are not visible on the storefront.
+    if (!product.is_active) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
     const imagesResult = await pool.query(
       `
       SELECT
@@ -288,6 +332,7 @@ export const createProduct = async (
       promotion_price,
       promotion_text,
       category_id,
+      is_active = true,
       images = [],
     } = req.body;
 
@@ -335,13 +380,14 @@ export const createProduct = async (
         is_promotion,
         promotion_price,
         promotion_text,
-        category_id
+        category_id,
+        is_active
       )
 
       VALUES (
         $1, $2, $3, $4, $5,
         $6, $7, $8, $9, $10,
-        $11, $12, $13, $14
+        $11, $12, $13, $14, $15
       )
 
       RETURNING *
@@ -361,6 +407,7 @@ export const createProduct = async (
         promotion_price || null,
         promotion_text || null,
         category_id,
+        is_active,
       ]
     );
 
@@ -474,6 +521,7 @@ export const updateProduct = async (
       promotion_price,
       promotion_text,
       category_id,
+      is_active,
       images,
     } = req.body;
 
@@ -554,9 +602,14 @@ export const updateProduct = async (
           ELSE category_id
         END,
 
+        is_active = CASE
+          WHEN $25::boolean THEN $26
+          ELSE is_active
+        END,
+
         updated_at = CURRENT_TIMESTAMP
 
-      WHERE id = $25
+      WHERE id = $27
 
       RETURNING *
       `,
@@ -597,6 +650,9 @@ export const updateProduct = async (
 
         category_id !== undefined,
         category_id ?? null,
+
+        is_active !== undefined,
+        is_active ?? null,
 
         id,
       ]
@@ -732,7 +788,7 @@ export const deleteProduct = async (
       return res.status(409).json({
         success: false,
         message:
-          "This product is part of existing orders, so it cannot be deleted. Mark it OUT_OF_STOCK instead.",
+          "This product is part of existing orders, so it cannot be deleted. Hide it from the store instead.",
       });
     }
 
@@ -769,6 +825,7 @@ export const getProductById = async (
         p.size,
         p.stock_status,
         p.stock_qty,
+        p.is_active,
         p.is_featured,
         p.is_promotion,
         p.promotion_price,

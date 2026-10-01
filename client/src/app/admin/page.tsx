@@ -16,21 +16,92 @@ interface CategoriesResponse {
   data: unknown[];
 }
 
+type OrderStatus =
+  | "PENDING"
+  | "CONFIRMED"
+  | "PROCESSING"
+  | "SHIPPED"
+  | "DELIVERED"
+  | "CANCELLED";
+
+interface RecentOrder {
+  order_number: string;
+  customer_name: string;
+  currency: string;
+  total: string | number;
+  status: OrderStatus;
+  created_at: string;
+}
+
+interface OrderStats {
+  total_orders: number;
+  pending_orders: number;
+  by_status: Record<string, number>;
+  revenue: Array<{
+    currency: string;
+    revenue: string | number;
+    count: number;
+  }>;
+  low_stock: number;
+  recent_orders: RecentOrder[];
+}
+
+interface OrderStatsResponse {
+  success: boolean;
+  data: OrderStats;
+}
+
+const STATUS_STYLES: Record<OrderStatus, string> = {
+  PENDING: "bg-[#fbf4e7] text-[#9a7538] border-[#eee0bf]",
+  CONFIRMED: "bg-[#eef3fb] text-[#4a6288] border-[#d8e2f0]",
+  PROCESSING: "bg-[#f1ecfa] text-[#6a5595] border-[#e0d6ef]",
+  SHIPPED: "bg-[#eef6f9] text-[#3f7285] border-[#d3e8ef]",
+  DELIVERED: "bg-[#edf5ee] text-[#687565] border-[#dce9de]",
+  CANCELLED: "bg-[#fbecef] text-[#a4475e] border-[#efd0d8]",
+};
+
+function formatPrice(price: string | number, currency: string) {
+  return `${currency} ${Number(price).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+function formatDateTime(iso: string) {
+  const date = new Date(iso);
+
+  return date.toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export default function AdminDashboard() {
   const [products, setProducts] = useState<number | null>(null);
   const [categories, setCategories] = useState<number | null>(null);
+  const [stats, setStats] = useState<OrderStats | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
     const loadStats = async () => {
       try {
-        const [productsResponse, categoriesResponse] = await Promise.all([
-          apiRequest<ProductsResponse>("/products?limit=1"),
+        const [
+          productsResponse,
+          categoriesResponse,
+          statsResponse,
+        ] = await Promise.all([
+          apiRequest<ProductsResponse>(
+            "/products?limit=1&includeInactive=true"
+          ),
           apiRequest<CategoriesResponse>("/categories"),
+          apiRequest<OrderStatsResponse>("/orders/stats"),
         ]);
 
         setProducts(productsResponse.total);
         setCategories(categoriesResponse.count);
+        setStats(statsResponse.data);
       } catch (error) {
         setError(
           error instanceof Error
@@ -119,6 +190,64 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
+
+        {/* Key numbers */}
+        <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="bethel-card p-5">
+            <p className="bethel-label">Orders</p>
+
+            <p className="mt-2 text-3xl font-semibold tracking-tight text-[#30272a]">
+              {stats ? stats.total_orders : "..."}
+            </p>
+
+            <p className="mt-1 text-sm text-[#756b6e]">
+              All customer orders
+            </p>
+          </div>
+
+          <div className="bethel-card p-5">
+            <p className="bethel-label">Pending</p>
+
+            <p className="mt-2 text-3xl font-semibold tracking-tight text-[#30272a]">
+              {stats ? stats.pending_orders : "..."}
+            </p>
+
+            <p className="mt-1 text-sm text-[#756b6e]">
+              Waiting to be confirmed
+            </p>
+          </div>
+
+          <div className="bethel-card p-5">
+            <p className="bethel-label">Revenue</p>
+
+            <p className="mt-2 text-3xl font-semibold tracking-tight text-[#30272a]">
+              {stats
+                ? stats.revenue.length > 0
+                  ? formatPrice(
+                      stats.revenue[0].revenue,
+                      stats.revenue[0].currency
+                    )
+                  : formatPrice(0, "ETB")
+                : "..."}
+            </p>
+
+            <p className="mt-1 text-sm text-[#756b6e]">
+              Excludes cancelled orders
+            </p>
+          </div>
+
+          <div className="bethel-card p-5">
+            <p className="bethel-label">Low stock</p>
+
+            <p className="mt-2 text-3xl font-semibold tracking-tight text-[#30272a]">
+              {stats ? stats.low_stock : "..."}
+            </p>
+
+            <p className="mt-1 text-sm text-[#756b6e]">
+              Active products at 5 units or fewer
+            </p>
+          </div>
+        </div>
 
         {/* Statistics */}
         <div className="grid gap-6 sm:grid-cols-2">
@@ -231,6 +360,66 @@ export default function AdminDashboard() {
               </a>
             </div>
           </div>
+        </div>
+
+        {/* Recent orders */}
+        <div className="bethel-card mt-8 overflow-hidden">
+          <div className="flex items-center justify-between border-b border-[#eadfe2] px-6 py-5">
+            <div>
+              <p className="bethel-label">Latest activity</p>
+
+              <h3 className="mt-1 text-lg font-semibold text-[#30272a]">
+                Recent orders
+              </h3>
+            </div>
+
+            <a
+              href="/admin/orders"
+              className="text-sm font-semibold text-[#9e405a] transition-colors hover:text-[#c96a82]"
+            >
+              View all →
+            </a>
+          </div>
+
+          {!stats || stats.recent_orders.length === 0 ? (
+            <p className="px-6 py-8 text-sm text-[#756b6e]">
+              {stats
+                ? "No orders yet. New orders will appear here."
+                : "Loading recent orders..."}
+            </p>
+          ) : (
+            <ul className="divide-y divide-[#f0e7e9]">
+              {stats.recent_orders.map((order) => (
+                <li
+                  key={order.order_number}
+                  className="flex flex-wrap items-center justify-between gap-3 px-6 py-4"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-[#30272a]">
+                      {order.order_number}
+                    </p>
+
+                    <p className="mt-0.5 truncate text-xs text-[#756b6e]">
+                      {order.customer_name} ·{" "}
+                      {formatDateTime(order.created_at)}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-semibold text-[#30272a]">
+                      {formatPrice(order.total, order.currency)}
+                    </span>
+
+                    <span
+                      className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-medium ${STATUS_STYLES[order.status]}`}
+                    >
+                      {order.status}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         {/* Quick actions */}

@@ -1,7 +1,7 @@
 # Bethel Perfume & Mart
 
 Full-stack e-commerce application for **Bethel Perfume & Mart**: a Next.js
-storefront (products, cart, checkout, order confirmation) plus an
+storefront (products, cart, checkout, order confirmation and tracking) plus an
 Express + PostgreSQL API with a JWT-protected admin dashboard for products,
 categories, orders and store settings.
 
@@ -74,17 +74,18 @@ Storefront: <http://localhost:3000> · Admin: <http://localhost:3000/admin/login
 Public:
 
 - `GET /api/health` – service + database health
-- `GET /api/products` – search (`search`, `category`, `inStock`, `featured`, `promotion`), pagination (`limit`, `offset`)
+- `GET /api/products` – search (`search`, `category`, `inStock`, `featured`, `promotion`), pagination (`limit`, `offset`); inactive products are hidden unless an admin requests `includeInactive=true`
 - `GET /api/products/:slug`, `GET /api/products/id/:id`
 - `GET /api/categories`, `GET /api/categories/:slug`
 - `GET /api/settings`
-- `POST /api/orders` – guest checkout (prices/stock always resolved server-side)
+- `POST /api/orders` – guest checkout (prices/stock always resolved server-side), rate limited
+- `POST /api/orders/track` – look up an order by number + phone, rate limited
 - `POST /api/auth/login` – rate limited
 
 Admin (requires `Authorization: Bearer <token>`):
 
 - `POST|PUT|DELETE /api/products`, `POST|PUT|DELETE /api/categories`
-- `GET /api/orders`, `GET /api/orders/:orderNumber`, `PUT /api/orders/:orderNumber/status`
+- `GET /api/orders`, `GET /api/orders/stats`, `GET /api/orders/:orderNumber`, `PUT /api/orders/:orderNumber/status`
 - `PUT /api/settings`
 
 ## Environment variables
@@ -98,7 +99,6 @@ Admin (requires `Authorization: Bearer <token>`):
 ## Roadmap / known gaps
 
 - Product images are stored as external URLs (no upload pipeline).
-- Delivery fee is a store setting placeholder — checkout currently ships free.
 - No automated tests or CI yet.
-- Consider a soft-delete (`is_active`) flag: deleting a product that already
-  appears in orders is intentionally blocked.
+- Products support soft-delete/hide via `is_active`: hard delete stays blocked
+  for products that appear in orders, and the admin UI offers "Hide instead".

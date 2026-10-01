@@ -10,6 +10,15 @@ const numberFromInput = z.coerce.number();
 const integerFromInput =
   z.coerce.number().int();
 
+/*
+ * NOTE: No field may carry a `.default()` here.
+ *
+ * `validate` replaces req.body with the parsed result, and Zod applies
+ * defaults even inside `.partial()` — so a partial update like
+ * `{ is_active: false }` would silently rewrite every defaulted field
+ * (wiping stock levels and images). The controller applies its own
+ * defaults on create, so the schema only validates.
+ */
 export const createProductSchema = z.object({
   name: z
     .string()
@@ -38,7 +47,7 @@ export const createProductSchema = z.object({
   currency: z
     .string()
     .length(3)
-    .default("ETB"),
+    .optional(),
 
   brand: z
     .string()
@@ -60,18 +69,18 @@ export const createProductSchema = z.object({
       "LOW_STOCK",
       "OUT_OF_STOCK",
     ])
-    .default("IN_STOCK"),
+    .optional(),
 
   stock_qty: integerFromInput
     .nonnegative()
-    .default(0),
+    .optional(),
 
-  is_featured: z.coerce.boolean().default(false),
+  is_featured: z.coerce.boolean().optional(),
 
   is_promotion: z
     .coerce
     .boolean()
-    .default(false),
+    .optional(),
 
   promotion_price: numberFromInput
     .nonnegative()
@@ -85,11 +94,13 @@ export const createProductSchema = z.object({
     .optional()
     .nullable(),
 
+  is_active: z.boolean().optional(),
+
   category_id: integerFromInput.positive(),
 
   images: z
     .array(imageSchema)
-    .default([]),
+    .optional(),
 });
 
 export const updateProductSchema =

@@ -48,11 +48,18 @@ export default function OrderSuccessPage() {
 
               <div className="mt-4 border-t border-[#eadfe2] pt-4">
                 <p className="text-sm leading-6 text-[#756b6e]">
-                  Status:{" "}
-                  <span className="font-semibold text-[#30272a]">
-                    Pending
-                  </span>
+                  Track your delivery anytime with your order number
+                  and the phone number you checked out with.
                 </p>
+
+                <Link
+                  href={`/track?order=${encodeURIComponent(
+                    orderNumber
+                  )}`}
+                  className="mt-3 inline-flex rounded-xl bg-[#c96a82] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#9e405a]"
+                >
+                  Track my order
+                </Link>
               </div>
             </div>
 

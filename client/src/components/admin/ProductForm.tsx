@@ -31,6 +31,7 @@ interface Product {
     | "LOW_STOCK"
     | "OUT_OF_STOCK";
   stock_qty: number;
+  is_active: boolean;
   is_featured: boolean;
   is_promotion: boolean;
   promotion_price: string | number | null;
@@ -87,6 +88,10 @@ export default function ProductForm({
 
   const [featured, setFeatured] = useState(
     product?.is_featured || false
+  );
+
+  const [active, setActive] = useState(
+    product?.is_active ?? true
   );
 
   const [promotion, setPromotion] = useState(
@@ -204,6 +209,7 @@ export default function ProductForm({
         stock_status: stockStatus,
         stock_qty: Number(stockQty),
         is_featured: featured,
+        is_active: active,
         is_promotion: promotion,
         promotion_price: promotionPrice.trim()
           ? Number(promotionPrice)
@@ -648,6 +654,59 @@ export default function ProductForm({
               </div>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Visibility */}
+      <section className="overflow-hidden rounded-[24px] border border-[#eee1e4] bg-white shadow-[0_10px_35px_rgba(92,52,61,0.05)]">
+        <div className="border-b border-[#f2e7e9] px-5 py-5 sm:px-7">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f7e5e9] text-[#C96A82]">
+              ◉
+            </div>
+
+            <div>
+              <h3 className="font-serif text-xl font-semibold text-[#30272A]">
+                Store visibility
+              </h3>
+              <p className="mt-0.5 text-xs text-[#8b7e82]">
+                Control whether customers can see this product.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-5 sm:p-7">
+          <label className="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-[#ead7dc] bg-[#fff9fa] p-4 transition hover:border-[#dca7b5]">
+            <div>
+              <p className="text-sm font-semibold text-[#30272A]">
+                {active
+                  ? "Published in the store"
+                  : "Hidden from the store"}
+              </p>
+
+              <p className="mt-1 text-xs text-[#817478]">
+                {active
+                  ? "Customers can find and order this product."
+                  : "Customers cannot see this product, but past orders keep working."}
+              </p>
+            </div>
+
+            <div className="relative shrink-0">
+              <input
+                type="checkbox"
+                checked={active}
+                onChange={(event) =>
+                  setActive(event.target.checked)
+                }
+                className="peer sr-only"
+              />
+
+              <div className="h-7 w-12 rounded-full bg-[#ddcdd1] transition peer-checked:bg-[#C96A82]" />
+
+              <div className="absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow-sm transition peer-checked:translate-x-5" />
+            </div>
+          </label>
         </div>
       </section>
 

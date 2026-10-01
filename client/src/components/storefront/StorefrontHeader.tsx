@@ -46,6 +46,13 @@ export default function StorefrontHeader() {
           </Link>
 
           <Link
+            href="/track"
+            className="font-medium text-[#756b6e] transition hover:text-[#9e405a]"
+          >
+            Track
+          </Link>
+
+          <Link
             href="/cart"
             className="relative flex items-center gap-2 font-medium text-[#756b6e] transition hover:text-[#9e405a]"
           >

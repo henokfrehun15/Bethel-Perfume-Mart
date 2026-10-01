@@ -17,6 +17,7 @@ interface Product {
     | "LOW_STOCK"
     | "OUT_OF_STOCK";
   stock_qty: number;
+  is_active: boolean;
   is_featured: boolean;
   is_promotion: boolean;
   promotion_price: string | number | null;
@@ -102,6 +103,9 @@ export default function AdminProductsPage() {
           String((page - 1) * limit)
         );
 
+        // The admin list must see hidden products too.
+        params.set("includeInactive", "true");
+
         if (search.trim()) {
           params.set(
             "search",
@@ -166,6 +170,40 @@ export default function AdminProductsPage() {
     setPage(1);
   };
 
+  const applyVisibility = async (
+    product: Product,
+    isActive: boolean
+  ) => {
+    try {
+      await apiRequest(`/products/${product.id}`, {
+        method: "PUT",
+        body: JSON.stringify({ is_active: isActive }),
+      });
+
+      await loadProducts();
+    } catch (error) {
+      window.alert(
+        error instanceof Error
+          ? error.message
+          : "Failed to update visibility"
+      );
+    }
+  };
+
+  const handleToggleVisibility = (product: Product) => {
+    const confirmed = window.confirm(
+      product.is_active
+        ? `Hide "${product.name}" from the store? Customers will no longer see it, but past orders keep working.`
+        : `Publish "${product.name}" back to the store?`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    return applyVisibility(product, !product.is_active);
+  };
+
   const handleDelete = async (
     product: Product
   ) => {
@@ -187,11 +225,26 @@ export default function AdminProductsPage() {
 
       await loadProducts();
     } catch (error) {
-      window.alert(
+      const message =
         error instanceof Error
           ? error.message
-          : "Failed to delete product"
-      );
+          : "Failed to delete product";
+
+      // Products already referenced by orders cannot be hard
+      // deleted — offer hiding them from the store instead.
+      if (message.includes("cannot be deleted")) {
+        const hideInstead = window.confirm(
+          `${message}\n\nHide "${product.name}" from the store instead?`
+        );
+
+        if (hideInstead) {
+          await applyVisibility(product, false);
+        }
+
+        return;
+      }
+
+      window.alert(message);
     }
   };
 
@@ -526,7 +579,9 @@ export default function AdminProductsPage() {
                   products.map((product) => (
                     <tr
                       key={product.id}
-                      className="border-b border-[#f0e7e9] transition-colors last:border-b-0 hover:bg-[#fffbfc]"
+                      className={`border-b border-[#f0e7e9] transition-colors last:border-b-0 hover:bg-[#fffbfc] ${
+                        product.is_active ? "" : "opacity-70"
+                      }`}
                     >
                       {/* Product */}
                       <td className="px-5 py-4">
@@ -640,6 +695,12 @@ export default function AdminProductsPage() {
                               Promotion
                             </span>
                           )}
+
+                          {!product.is_active && (
+                            <span className="inline-flex rounded-full border border-[#e5dadd] bg-[#f4eff0] px-2.5 py-1 text-xs font-medium text-[#756b6e]">
+                              Hidden
+                            </span>
+                          )}
                         </div>
                       </td>
 
@@ -652,6 +713,18 @@ export default function AdminProductsPage() {
                           >
                             Edit
                           </Link>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleToggleVisibility(product)
+                            }
+                            className="inline-flex items-center rounded-lg border border-[#e5dadd] bg-white px-3 py-2 text-xs font-semibold text-[#574b4f] transition-colors hover:border-[#d7a7b3] hover:bg-[#fdf5f7] hover:text-[#9e405a]"
+                          >
+                            {product.is_active
+                              ? "Hide"
+                              : "Publish"}
+                          </button>
 
                           <button
                             type="button"

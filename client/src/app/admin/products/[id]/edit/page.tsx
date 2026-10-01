@@ -26,6 +26,7 @@ interface Product {
     | "LOW_STOCK"
     | "OUT_OF_STOCK";
   stock_qty: number;
+  is_active: boolean;
   is_featured: boolean;
   is_promotion: boolean;
   promotion_price:

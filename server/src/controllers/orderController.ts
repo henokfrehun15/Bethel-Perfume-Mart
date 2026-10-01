@@ -150,6 +150,7 @@ export const createOrder = async (
         currency,
         stock_qty,
         stock_status,
+        is_active,
         is_promotion,
         promotion_price
 
@@ -190,6 +191,17 @@ export const createOrder = async (
     for (const product of productResult.rows) {
       const requestedQuantity =
         normalizedItems.get(product.id) || 0;
+
+      // Hidden products can no longer be purchased, even when they are
+      // still sitting in an old cart.
+      if (!product.is_active) {
+        await client.query("ROLLBACK");
+
+        return res.status(409).json({
+          success: false,
+          message: `${product.name} is no longer available.`,
+        });
+      }
 
       if (
         product.stock_status ===
@@ -578,6 +590,93 @@ export const listOrders = async (
     return res.status(500).json({
       success: false,
       message: "Failed to fetch orders",
+    });
+  }
+};
+
+// ============================================================
+// Admin: GET /api/orders/stats
+// Aggregated numbers for the dashboard overview.
+// ============================================================
+
+export const getOrderStats = async (
+  _req: Request,
+  res: Response
+) => {
+  try {
+    const [
+      statusResult,
+      revenueResult,
+      lowStockResult,
+      recentResult,
+    ] = await Promise.all([
+      // Order counts grouped by status.
+      pool.query(`
+        SELECT status, COUNT(*)::int AS count
+        FROM orders
+        GROUP BY status
+      `),
+
+      // Revenue excludes cancelled orders, grouped by currency.
+      pool.query(`
+        SELECT
+          currency,
+          COALESCE(SUM(total), 0) AS revenue,
+          COUNT(*)::int AS count
+        FROM orders
+        WHERE status != 'CANCELLED'
+        GROUP BY currency
+        ORDER BY SUM(total) DESC
+      `),
+
+      // Active products that need restocking (5 units or fewer).
+      pool.query(`
+        SELECT COUNT(*)::int AS count
+        FROM products
+        WHERE is_active = TRUE
+          AND (stock_status = 'LOW_STOCK' OR stock_qty <= 5)
+      `),
+
+      // Five most recent orders for the dashboard preview.
+      pool.query(`
+        SELECT
+          order_number,
+          customer_name,
+          currency,
+          total,
+          status,
+          created_at
+        FROM orders
+        ORDER BY created_at DESC, id DESC
+        LIMIT 5
+      `),
+    ]);
+
+    const byStatus: Record<string, number> = {};
+    let totalOrders = 0;
+
+    for (const row of statusResult.rows) {
+      byStatus[row.status] = row.count;
+      totalOrders += row.count;
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        total_orders: totalOrders,
+        pending_orders: byStatus.PENDING || 0,
+        by_status: byStatus,
+        revenue: revenueResult.rows,
+        low_stock: lowStockResult.rows[0].count,
+        recent_orders: recentResult.rows,
+      },
+    });
+  } catch (error) {
+    console.error("Order stats error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to load order stats",
     });
   }
 };

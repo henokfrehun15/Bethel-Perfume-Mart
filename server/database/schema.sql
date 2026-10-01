@@ -35,6 +35,8 @@ CREATE TABLE IF NOT EXISTS products (
 
     stock_qty INTEGER DEFAULT 0,
 
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+
     is_featured BOOLEAN DEFAULT FALSE,
 
     is_promotion BOOLEAN DEFAULT FALSE,
@@ -83,6 +85,12 @@ ON products(is_promotion);
 
 CREATE INDEX IF NOT EXISTS idx_product_images_product
 ON product_images(product_id);
+
+-- Existing databases created before the visibility flag was introduced
+-- pick it up here (idempotent; fresh installs already have the column).
+ALTER TABLE products
+    ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE;
+
 -- ============================================================
 -- Orders
 -- ============================================================
