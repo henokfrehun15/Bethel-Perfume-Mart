@@ -1,37 +1,39 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { pool } from "../config/database";
+import { runMigrations } from "./migrations";
 
 /**
- * Applies the SQL files in `server/database` to the configured database.
+ * Applies pending SQL migrations (and optionally the demo seed data)
+ * to the configured database.
  *
  * Usage:
- *   npm run db:setup          -> schema only
- *   npm run db:seed           -> schema + seed data
+ *   npm run db:migrate        -> migrations only (db:setup is an alias)
+ *   npm run db:seed           -> migrations + seed data
  *
- * Both SQL files are idempotent (IF NOT EXISTS / ON CONFLICT DO NOTHING),
- * so the script can safely be re-run.
+ * Migrations are tracked in `schema_migrations`, so every file runs
+ * exactly once. The seed file is idempotent (ON CONFLICT DO NOTHING).
  */
 
-const databaseDir = path.resolve(__dirname, "../../database");
+const databaseDir = path.resolve(process.cwd(), "database");
 
-async function applySqlFile(fileName: string): Promise<void> {
-  const filePath = path.join(databaseDir, fileName);
+async function applySeed(): Promise<void> {
+  const filePath = path.join(databaseDir, "seed.sql");
   const sql = await readFile(filePath, "utf8");
 
   await pool.query(sql);
 
-  console.log(`Applied ${fileName}`);
+  console.log("Applied seed.sql");
 }
 
 const run = async () => {
   const withSeed = process.argv.includes("--seed");
 
   try {
-    await applySqlFile("schema.sql");
+    await runMigrations(pool);
 
     if (withSeed) {
-      await applySqlFile("seed.sql");
+      await applySeed();
     }
 
     console.log("Database is ready.");

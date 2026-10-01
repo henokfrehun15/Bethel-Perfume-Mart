@@ -770,6 +770,25 @@ function digitsOnly(value: unknown): string {
 }
 
 /**
+ * Candidate spellings of a digits-only phone number for comparison:
+ * the number as given, plus its Ethiopian local/international
+ * equivalent ("09XXXXXXXX" <-> "2519XXXXXXXX").
+ */
+function phoneCandidates(digits: string): string[] {
+  const candidates = [digits];
+
+  if (digits.length === 12 && digits.startsWith("251")) {
+    // 2519XXXXXXXX -> 09XXXXXXXX
+    candidates.push(`0${digits.slice(3)}`);
+  } else if (digits.length === 10 && digits.startsWith("0")) {
+    // 09XXXXXXXX -> 2519XXXXXXXX
+    candidates.push(`251${digits.slice(1)}`);
+  }
+
+  return candidates;
+}
+
+/**
  * Compare two phone numbers by their trailing digits so that local
  * (09XXXXXXXX) and international (+2519XXXXXXXX) formats both match.
  */
@@ -788,7 +807,19 @@ function phonesMatch(a: string, b: string): boolean {
     return false;
   }
 
-  return a.endsWith(b) || b.endsWith(a);
+  for (const left of phoneCandidates(a)) {
+    for (const right of phoneCandidates(b)) {
+      if (
+        left === right ||
+        left.endsWith(right) ||
+        right.endsWith(left)
+      ) {
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
 
 export const trackOrder = async (

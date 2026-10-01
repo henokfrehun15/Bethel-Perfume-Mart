@@ -6,11 +6,14 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   // Override default ignores of eslint-config-next.
+  // Patterns are depth-agnostic so nested build output
+  // (e.g. client/client/.next) is never linted.
   globalIgnores([
-    // Default ignores of eslint-config-next:
-    ".next/**",
-    "out/**",
-    "build/**",
+    "**/.next/**",
+    "**/out/**",
+    "**/build/**",
+    "**/dist/**",
+    "**/coverage/**",
     "next-env.d.ts",
   ]),
 ]);

@@ -5,10 +5,13 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "db:setup": "tsx src/scripts/setupDatabase.ts",
+    "db:migrate": "tsx src/scripts/setupDatabase.ts",
     "db:seed": "tsx src/scripts/setupDatabase.ts --seed",
     "create-admin": "tsx src/scripts/createAdmin.ts"
   },
@@ -35,7 +38,10 @@
     "@types/morgan": "^1.9.10",
     "@types/node": "^26.4.0",
     "@types/pg": "^8.23.1",
+    "@types/supertest": "^7.2.1",
+    "supertest": "^7.3.0",
     "tsx": "^4.23.12",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.11"
   }
 }

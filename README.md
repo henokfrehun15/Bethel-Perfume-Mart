@@ -23,7 +23,7 @@ bethel-perfume-mart/
 │   ├── src/components/     # Shared UI (storefront + admin)
 │   └── src/lib/            # API client + cart storage helpers
 └── server/                 # Express API
-    ├── database/           # schema.sql + seed.sql
+    ├── database/           # migrations/*.sql (versioned schema) + seed.sql
     └── src/                # server, routes, controllers, middleware, services, scripts
 ```
 
@@ -38,7 +38,7 @@ npm run install:all
 # 2. configure the API
 cd server
 cp .env.example .env      # then fill in DATABASE_URL and JWT_SECRET
-npm run db:setup          # apply database/schema.sql
+npm run db:migrate        # apply pending migrations (db:setup is an alias)
 npm run db:seed           # optional demo categories/products
 npm run create-admin -- admin "a-strong-password"
 cd ..
@@ -65,8 +65,9 @@ Storefront: <http://localhost:3000> · Admin: <http://localhost:3000/admin/login
 | `npm run build`               | Type-check/build the API then build the client   |
 | `npm run typecheck`           | `tsc --noEmit` for both apps                     |
 | `npm run lint`                | ESLint for the client                            |
-| `npm run db:setup`            | Apply `server/database/schema.sql`               |
-| `npm run db:seed`             | Apply `server/database/seed.sql`                 |
+| `npm run db:migrate`         | Apply pending SQL migrations (alias: `db:setup`)   |
+| `npm run db:seed`            | Apply migrations + `server/database/seed.sql`      |
+| `npm test`                   | Vitest suites for the API and the storefront        |
 | `npm run create-admin -- <username> <password>` | Create/update an admin user     |
 
 ## API overview
@@ -96,9 +97,58 @@ Admin (requires `Authorization: Bearer <token>`):
 
 `client/.env.local` (see `client/.env.example`): `NEXT_PUBLIC_API_URL`.
 
+## Database migrations
+
+The schema is versioned in `server/database/migrations` and applied in
+filename order. Each file runs exactly once inside its own transaction and is
+recorded in the `schema_migrations` table, so `npm run db:migrate` is safe to
+re-run on any environment.
+
+To change the schema, **add a new numbered file** (never edit one that has
+already been applied anywhere):
+
+```
+server/database/migrations/
+├── 0001_initial_schema.sql
+└── 0002_add_something.sql   # your new change
+```
+
+## Tests
+
+```bash
+npm test                        # API + storefront unit tests
+npm test --prefix server        # API only
+npm run test:watch --prefix server
+```
+
+**Unit tests** (`server/src/tests/unit`, `client/src/lib/*.test.ts`) mock the
+database pool and always run.
+
+**Integration tests** (`server/src/tests/integration`) exercise real SQL —
+oversell protection, stock restocking, order tracking, visibility rules — and
+are skipped unless `TEST_DATABASE_URL` points at a disposable database. They
+never read `DATABASE_URL`, so they cannot touch a real store:
+
+```bash
+docker run -d --name bethel-test-db \
+  -e POSTGRES_PASSWORD=test -e POSTGRES_USER=test -e POSTGRES_DB=bethel_test \
+  -p 55432:5432 postgres:16-alpine
+
+TEST_DATABASE_URL=postgresql://test:test@localhost:55432/bethel_test \
+  DATABASE_SSL=false npm test --prefix server
+```
+
+Tests apply migrations to that database themselves and clean up their own
+fixtures.
+
+## Continuous integration
+
+`.github/workflows/ci.yml` runs on every push and pull request: API typecheck +
+tests (with a PostgreSQL service container) and storefront lint, typecheck,
+tests and production build.
+
 ## Roadmap / known gaps
 
 - Product images are stored as external URLs (no upload pipeline).
-- No automated tests or CI yet.
 - Products support soft-delete/hide via `is_active`: hard delete stays blocked
   for products that appear in orders, and the admin UI offers "Hide instead".
