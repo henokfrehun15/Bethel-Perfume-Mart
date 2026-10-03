@@ -180,7 +180,9 @@ describe("POST /api/uploads/images", () => {
     // The client filename is never reused.
     expect(filename).not.toBe("photo.png");
     expect(filename.endsWith(".png")).toBe(true);
-    expect(url).toContain(`/uploads/${filename}`);
+    // Upload URLs are stored relative to the API so they survive
+    // origin changes between environments.
+    expect(url).toBe(`/uploads/${filename}`);
     expect(
       existsSync(path.join(getUploadDir(), filename))
     ).toBe(true);

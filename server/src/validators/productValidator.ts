@@ -1,7 +1,24 @@
 import { z } from "zod";
 
+/**
+ * Images are either uploaded through this API (stored as `/uploads/...`
+ * paths that clients resolve against the API origin) or hosted
+ * externally (absolute http(s) URLs).
+ */
+const imageUrlSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(2048)
+  .refine(
+    (value) =>
+      /^https?:\/\//i.test(value) ||
+      value.startsWith("/uploads/"),
+    "Image URL must be an absolute http(s) URL or a /uploads/ path"
+  );
+
 const imageSchema = z.object({
-  url: z.string().url(),
+  url: imageUrlSchema,
   alt_text: z.string().max(255).optional(),
 });
 

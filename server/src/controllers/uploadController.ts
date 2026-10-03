@@ -93,7 +93,7 @@ export const uploadImage = async (
     message: "Image uploaded.",
     data: {
       filename: file.filename,
-      url: buildPublicUrl(req, file.filename),
+      url: buildPublicUrl(file.filename),
       size: file.size,
       mime: detected,
     },

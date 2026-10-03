@@ -61,6 +61,38 @@ describe("createProductSchema", () => {
 
     expect(result.success).toBe(true);
   });
+
+  it("accepts uploaded (/uploads/) and external (http(s)) image URLs", () => {
+    expect(
+      createProductSchema.safeParse({
+        ...validProduct,
+        images: [{ url: "/uploads/1712000000-abc-123.png" }],
+      }).success
+    ).toBe(true);
+
+    expect(
+      createProductSchema.safeParse({
+        ...validProduct,
+        images: [{ url: "https://cdn.example.com/photo.jpg" }],
+      }).success
+    ).toBe(true);
+  });
+
+  it("rejects image URLs that are neither uploads nor absolute URLs", () => {
+    for (const url of [
+      "not a url",
+      "ftp://example.com/photo.jpg",
+      "javascript:alert(1)",
+      "/images/photo.jpg",
+    ]) {
+      expect(
+        createProductSchema.safeParse({
+          ...validProduct,
+          images: [{ url }],
+        }).success
+      ).toBe(false);
+    }
+  });
 });
 
 /*

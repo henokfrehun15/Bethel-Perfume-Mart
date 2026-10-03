@@ -1,7 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { existsSync, mkdirSync } from "node:fs";
 import path from "node:path";
-import { Request } from "express";
 import multer from "multer";
 
 import { env } from "../config/env";
@@ -43,18 +42,23 @@ export function getUploadDir(): string {
 }
 
 /**
- * Absolute URL for a stored file. Uses PUBLIC_ASSET_URL when set,
- * otherwise derives the origin from the incoming request.
+ * Public URL for a stored file.
+ *
+ * By default only the mount path is returned (`/uploads/<filename>`):
+ * storing an absolute URL would bake whatever host the admin used at
+ * upload time (e.g. localhost) into the database permanently, breaking
+ * the image in every other environment. Clients resolve the path
+ * against the API origin at render time.
+ *
+ * Set PUBLIC_ASSET_URL when uploads are served from a dedicated asset
+ * host or CDN, in which case an absolute URL is returned instead.
  */
-export function buildPublicUrl(
-  req: Request,
-  filename: string
-): string {
-  const base = env.publicAssetUrl
-    ? env.publicAssetUrl.replace(/\/+$/, "")
-    : `${req.protocol}://${req.get("host") ?? "localhost"}`;
+export function buildPublicUrl(filename: string): string {
+  if (env.publicAssetUrl) {
+    return `${env.publicAssetUrl.replace(/\/+$/, "")}${UPLOAD_MOUNT_PATH}/${filename}`;
+  }
 
-  return `${base}${UPLOAD_MOUNT_PATH}/${filename}`;
+  return `${UPLOAD_MOUNT_PATH}/${filename}`;
 }
 
 /**

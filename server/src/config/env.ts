@@ -79,9 +79,10 @@ export const env = {
   // from the server package directory (server/uploads by default).
   uploadDir: optional("UPLOAD_DIR", "uploads"),
   uploadMaxBytes: positiveInt("UPLOAD_MAX_BYTES", 5_000_000),
-  // Absolute base for uploaded image URLs. When empty the server
-  // derives it from the incoming request, which works behind a proxy
-  // as long as TRUST_PROXY is enabled.
+  // Optional absolute base for uploaded image URLs. When empty,
+  // uploads are stored as /uploads/... paths that clients resolve
+  // against the API origin. Set it only when uploads are served from
+  // a separate asset host or CDN.
   publicAssetUrl: optional("PUBLIC_ASSET_URL", ""),
 };
 
