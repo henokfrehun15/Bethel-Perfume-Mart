@@ -121,6 +121,14 @@ const server = app.listen(env.port, () => {
   console.log(
     `Server running on http://localhost:${env.port} (${env.nodeEnv})`
   );
+
+  // Establish the first database connection right away so the first
+  // real request does not pay the (remote) connection setup cost.
+  pool
+    .query("SELECT 1")
+    .catch((error) => {
+      console.error("Database warm-up failed:", error);
+    });
 });
 
 /**

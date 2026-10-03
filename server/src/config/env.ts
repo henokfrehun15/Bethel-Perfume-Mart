@@ -56,6 +56,17 @@ function positiveInt(
     : fallback;
 }
 
+function nonNegativeInt(
+  key: string,
+  fallback: number
+): number {
+  const value = Number(process.env[key]);
+
+  return Number.isInteger(value) && value >= 0
+    ? value
+    : fallback;
+}
+
 export const env = {
   nodeEnv: optional("NODE_ENV", "development"),
 
@@ -65,6 +76,10 @@ export const env = {
 
   databaseUrl: required("DATABASE_URL"),
   databaseSsl: flag("DATABASE_SSL", true),
+  // Keep-alive ping interval for the database pool (milliseconds).
+  // Keeps serverless computes (Neon) from suspending and connections
+  // from being dropped between requests. 0 disables the ping.
+  dbKeepAliveMs: nonNegativeInt("DB_KEEP_ALIVE_MS", 240_000),
 
   jwtSecret: required("JWT_SECRET"),
   jwtExpiresIn: optional("JWT_EXPIRES_IN", "1d"),

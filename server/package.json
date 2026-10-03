@@ -13,6 +13,7 @@
     "db:setup": "tsx src/scripts/setupDatabase.ts",
     "db:migrate": "tsx src/scripts/setupDatabase.ts",
     "db:seed": "tsx src/scripts/setupDatabase.ts --seed",
+    "db:probe": "tsx src/scripts/dbProbe.ts",
     "create-admin": "tsx src/scripts/createAdmin.ts"
   },
   "keywords": [],
