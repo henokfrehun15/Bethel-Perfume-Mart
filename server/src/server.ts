@@ -1,10 +1,12 @@
 import { env, isProduction } from "./config/env";
 import express from "express";
+import compression from "compression";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import { pool } from "./config/database";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
+import { rateLimit } from "./middleware/rateLimit";
 import authRoutes from "./routes/authRoutes";
 import categoryRoutes from "./routes/categoryRoutes";
 import orderRoutes from "./routes/orderRoutes";
@@ -43,6 +45,7 @@ app.use(
 );
 
 app.use(express.json({ limit: "1mb" }));
+app.use(compression());
 app.use(morgan(isProduction ? "combined" : "dev"));
 
 // Uploaded product images. Filenames are unique, so responses can be
@@ -78,6 +81,19 @@ app.get("/api/health", async (_req, res) => {
     });
   }
 });
+
+// Baseline rate limit for all API routes (the /uploads static mount
+// and the health check above are intentionally excluded). Stricter
+// per-route limiters — login, checkout, tracking — apply on top.
+app.use(
+  "/api",
+  rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 600,
+    message:
+      "Too many requests. Please slow down and try again shortly.",
+  })
+);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/categories", categoryRoutes);

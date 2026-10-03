@@ -1,11 +1,16 @@
 import { Router } from "express";
 import { requireAdmin } from "../middleware/authMiddleware";
+import { validate } from "../middleware/validate";
 import {
-getCategories,
-getCategoryBySlug,
-createCategory,
-updateCategory,
-deleteCategory,
+  createCategorySchema,
+  updateCategorySchema,
+} from "../validators/categoryValidator";
+import {
+  getCategories,
+  getCategoryBySlug,
+  createCategory,
+  updateCategory,
+  deleteCategory,
 } from "../controllers/categoryController";
 
 const router = Router();
@@ -15,18 +20,23 @@ router.get("/", getCategories);
 router.get("/:slug", getCategoryBySlug);
 
 // Admin routes
-router.post("/", 
-    requireAdmin, 
-    createCategory
+router.post(
+  "/",
+  requireAdmin,
+  validate(createCategorySchema),
+  createCategory
 );
-router.put("/:id",
-    requireAdmin,
-    updateCategory
+router.put(
+  "/:id",
+  requireAdmin,
+  validate(updateCategorySchema),
+  updateCategory
 );
 
-router.delete("/:id", 
-    requireAdmin,
-    deleteCategory
+router.delete(
+  "/:id",
+  requireAdmin,
+  deleteCategory
 );
 
 export default router;
