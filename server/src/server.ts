@@ -25,7 +25,15 @@ if (env.trustProxy) {
 }
 
 // Security
-app.use(helmet());
+app.use(
+  helmet({
+    // The storefront embeds /uploads images cross-origin (the Next.js
+    // app and the API are different origins). Helmet's default
+    // "same-origin" resource policy makes browsers block those <img>
+    // loads, so uploaded assets must be explicitly cross-origin.
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
 
 // Middleware
 app.use(

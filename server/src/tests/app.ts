@@ -1,4 +1,5 @@
 import express from "express";
+import helmet from "helmet";
 
 import authRoutes from "../routes/authRoutes";
 import categoryRoutes from "../routes/categoryRoutes";
@@ -18,6 +19,14 @@ import {
  * each test file mocks `../config/database` as needed.
  */
 const app = express();
+
+// Mirrors the helmet config in server.ts, so security headers on
+// static uploads are covered by tests too.
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
 
 app.use(express.json());
 

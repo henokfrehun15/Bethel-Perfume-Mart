@@ -191,6 +191,30 @@ describe("POST /api/uploads/images", () => {
     expect(served.headers["content-type"]).toContain("image/png");
   });
 
+  it("serves images with a cross-origin resource policy", async () => {
+    // Regression: helmet's default "same-origin" CORP header made
+    // browsers block /uploads images embedded by the storefront
+    // (a different origin), even though the request returned 200.
+    const uploaded = await request(app)
+      .post("/api/uploads/images")
+      .set("Authorization", `Bearer ${signAdminToken()}`)
+      .attach("file", PNG_1X1, {
+        filename: "photo.png",
+        contentType: "image/png",
+      });
+
+    const { filename } = uploaded.body.data as {
+      filename: string;
+    };
+
+    const served = await request(app).get(`/uploads/${filename}`);
+
+    expect(served.status).toBe(200);
+    expect(served.headers["cross-origin-resource-policy"]).toBe(
+      "cross-origin"
+    );
+  });
+
   it("deletes an uploaded image", async () => {
     const uploaded = await request(app)
       .post("/api/uploads/images")
