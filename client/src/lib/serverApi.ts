@@ -44,6 +44,117 @@ export interface Product {
   images: ProductImage[];
 }
 
+/** Product row as returned by the list endpoint (cover image only). */
+export interface StorefrontProductSummary {
+  id: number;
+  name: string;
+  slug: string;
+  description: string | null;
+  price: string | number;
+  currency: string;
+  brand: string | null;
+  size: string | null;
+  stock_status:
+    | "IN_STOCK"
+    | "LOW_STOCK"
+    | "OUT_OF_STOCK";
+  stock_qty: number;
+  is_featured: boolean;
+  is_promotion: boolean;
+  promotion_price: string | number | null;
+  promotion_text: string | null;
+  category_id: number;
+  category_name: string | null;
+  category_slug: string | null;
+  image: string | null;
+}
+
+export interface StorefrontCategory {
+  id: number;
+  name: string;
+  slug: string;
+}
+
+interface FetchOptions {
+  /**
+   * Cache the response for this many seconds. Omit to always fetch
+   * fresh (used for query-driven pages where every combination would
+   * create its own cache entry).
+   */
+  revalidate?: number;
+}
+
+function fetchOptions(options: FetchOptions): RequestInit {
+  return options.revalidate !== undefined
+    ? { next: { revalidate: options.revalidate } }
+    : { cache: "no-store" };
+}
+
+/**
+ * Fetch the product list. Returns null when the request fails, so
+ * callers can decide between an empty state and an error notice.
+ */
+export async function getStorefrontProducts(
+  query: string,
+  options: FetchOptions = {}
+): Promise<{
+  data: StorefrontProductSummary[];
+  total: number;
+} | null> {
+  try {
+    const suffix = query ? `?${query}` : "";
+
+    const response = await fetch(
+      `${API_URL}/products${suffix}`,
+      fetchOptions(options)
+    );
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = (await response.json()) as {
+      data?: StorefrontProductSummary[];
+      total?: number;
+    };
+
+    return {
+      data: payload.data ?? [],
+      total: payload.total ?? 0,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Fetch the category list. Returns null when the request fails;
+ * categories only power an optional filter, so callers may treat
+ * that as an empty list.
+ */
+export async function getStorefrontCategories(
+  options: FetchOptions = {}
+): Promise<StorefrontCategory[] | null> {
+  try {
+    const response = await fetch(
+      `${API_URL}/categories`,
+      fetchOptions(options)
+    );
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = (await response.json()) as {
+      data?: StorefrontCategory[];
+    };
+
+    return payload.data ?? [];
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Fetch a product for rendering. Returns null when the product does
  * not exist (or is hidden), so the caller can render a 404. Other

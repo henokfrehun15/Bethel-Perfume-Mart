@@ -191,7 +191,5 @@ External image URLs (e.g. a CDN) still work and are not deleted by the app.
 ## Roadmap / known gaps
 
 - Checkout is cash-on-delivery only — no online payment gateway yet.
-- Product pages are server-rendered with per-product metadata; the home page
-  and collection listing still render on the client.
 - Products support soft-delete/hide via `is_active`: hard delete stays blocked
   for products that appear in orders, and the admin UI offers "Hide instead".

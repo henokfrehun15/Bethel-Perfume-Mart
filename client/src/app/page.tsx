@@ -1,82 +1,45 @@
-"use client";
-
+import type { Metadata } from "next";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+
 import BotanicalBackground from "@/components/BotanicalBackground";
-import ProductCard, {
-  StorefrontProduct,
-} from "@/components/storefront/ProductCard";
+import ProductCard from "@/components/storefront/ProductCard";
 import StorefrontHeader from "@/components/storefront/StorefrontHeader";
-import { apiRequest } from "@/lib/api";
+import {
+  getStorefrontCategories,
+  getStorefrontProducts,
+  type StorefrontCategory,
+  type StorefrontProductSummary,
+} from "@/lib/serverApi";
 
-interface ProductsResponse {
-  success: boolean;
-  count: number;
-  total: number;
-  limit: number;
-  offset: number;
-  data: StorefrontProduct[];
-}
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
-interface Category {
-  id: number;
-  name: string;
-  slug: string;
-}
+/*
+ * Rendered on the server so search engines and social cards see the
+ * featured products, promotions and categories in the initial HTML.
+ * The API responses are cached for PRODUCT_REVALIDATE_SECONDS; a
+ * failing request degrades to an empty section instead of an error.
+ */
+export default async function Home() {
+  const [featuredResult, promotionsResult, categories] =
+    await Promise.all([
+      getStorefrontProducts("featured=true&limit=4", {
+        revalidate: 300,
+      }),
+      getStorefrontProducts("promotion=true&limit=4", {
+        revalidate: 300,
+      }),
+      getStorefrontCategories({ revalidate: 300 }),
+    ]);
 
-interface CategoriesResponse {
-  success: boolean;
-  count: number;
-  data: Category[];
-}
+  const featured: StorefrontProductSummary[] =
+    featuredResult?.data ?? [];
 
-export default function Home() {
-  const [featured, setFeatured] = useState<
-    StorefrontProduct[]
-  >([]);
+  const promotions: StorefrontProductSummary[] =
+    promotionsResult?.data ?? [];
 
-  const [promotions, setPromotions] = useState<
-    StorefrontProduct[]
-  >([]);
-
-  const [categories, setCategories] = useState<
-    Category[]
-  >([]);
-
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const loadStorefront = async () => {
-      try {
-        const [
-          featuredResponse,
-          promotionResponse,
-          categoriesResponse,
-        ] = await Promise.all([
-          apiRequest<ProductsResponse>(
-            "/products?featured=true&limit=4"
-          ),
-          apiRequest<ProductsResponse>(
-            "/products?promotion=true&limit=4"
-          ),
-          apiRequest<CategoriesResponse>(
-            "/categories"
-          ),
-        ]);
-
-        setFeatured(featuredResponse.data || []);
-        setPromotions(promotionResponse.data || []);
-        setCategories(categoriesResponse.data || []);
-      } catch {
-        // Keep the homepage usable even if optional
-        // sections fail to load.
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadStorefront();
-  }, []);
+  const categoryList: StorefrontCategory[] = categories ?? [];
 
   return (
     <main className="bethel-page min-h-screen">
@@ -121,7 +84,7 @@ export default function Home() {
           </div>
         </section>
 
-        {categories.length > 0 && (
+        {categoryList.length > 0 && (
           <section className="bethel-container pb-20">
             <div className="mb-8">
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#c96a82]">
@@ -134,7 +97,7 @@ export default function Home() {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {categories.slice(0, 4).map(
+              {categoryList.slice(0, 4).map(
                 (category) => (
                   <Link
                     key={category.id}
@@ -184,24 +147,7 @@ export default function Home() {
             </Link>
           </div>
 
-          {loading ? (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {Array.from({ length: 4 }).map(
-                (_, index) => (
-                  <div
-                    key={index}
-                    className="overflow-hidden rounded-3xl bg-white"
-                  >
-                    <div className="aspect-[4/5] animate-pulse bg-[#f7e5e9]" />
-                    <div className="space-y-3 p-5">
-                      <div className="h-3 w-20 animate-pulse rounded bg-[#f7e5e9]" />
-                      <div className="h-6 w-3/4 animate-pulse rounded bg-[#f7e5e9]" />
-                    </div>
-                  </div>
-                )
-              )}
-            </div>
-          ) : featured.length > 0 ? (
+          {featured.length > 0 ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {featured.map((product) => (
                 <ProductCard

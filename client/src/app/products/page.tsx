@@ -1,149 +1,163 @@
-"use client";
+import type { Metadata } from "next";
+import Link from "next/link";
 
-import { FormEvent, useEffect, useState } from "react";
-
-import ProductCard, {
-  StorefrontProduct,
-} from "@/components/storefront/ProductCard";
-import StorefrontHeader from "@/components/storefront/StorefrontHeader";
 import BotanicalBackground from "@/components/BotanicalBackground";
-import { apiRequest } from "@/lib/api";
+import ProductCard from "@/components/storefront/ProductCard";
+import ProductFilters from "@/components/storefront/ProductFilters";
+import StorefrontHeader from "@/components/storefront/StorefrontHeader";
+import {
+  getStorefrontCategories,
+  getStorefrontProducts,
+} from "@/lib/serverApi";
 
-interface ProductsResponse {
-  success: boolean;
-  count: number;
-  total: number;
-  limit: number;
-  offset: number;
-  data: StorefrontProduct[];
+const LIMIT = 12;
+
+interface ProductsPageProps {
+  searchParams: Promise<
+    Record<string, string | string[] | undefined>
+  >;
 }
 
-interface Category {
-  id: number;
-  name: string;
-  slug: string;
+function single(
+  value: string | string[] | undefined
+): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
 }
 
-interface CategoriesResponse {
-  success: boolean;
-  count: number;
-  data: Category[];
+interface CatalogueQuery {
+  search: string;
+  category: string;
+  inStock: boolean;
+  promotion: boolean;
+  page: number;
 }
 
-export default function ProductsPage() {
-  const [products, setProducts] = useState<StorefrontProduct[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+function readQuery(
+  params: Record<string, string | string[] | undefined>
+): CatalogueQuery {
+  const search = single(params.search)?.trim() ?? "";
+  const category = single(params.category) ?? "";
+  const inStock = single(params.inStock) === "true";
+  const promotion = single(params.promotion) === "true";
+  const page = Math.max(
+    1,
+    Number(single(params.page)) || 1
+  );
 
-  const [searchInput, setSearchInput] = useState("");
-  const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("");
-  const [inStock, setInStock] = useState(false);
-  const [promotion, setPromotion] = useState(false);
+  return { search, category, inStock, promotion, page };
+}
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+/** API query string for the current filters and page. */
+function apiQuery(query: CatalogueQuery): string {
+  const params = new URLSearchParams();
 
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
+  params.set("limit", String(LIMIT));
+  params.set("offset", String((query.page - 1) * LIMIT));
 
-  const limit = 12;
-  const totalPages = Math.max(1, Math.ceil(total / limit));
+  if (query.search) {
+    params.set("search", query.search);
+  }
 
-  useEffect(() => {
-    const loadCategories = async () => {
-      try {
-        const response = await apiRequest<CategoriesResponse>(
-          "/categories"
-        );
+  if (query.category) {
+    params.set("category", query.category);
+  }
 
-        setCategories(response.data || []);
-      } catch {
-        // Categories are only a filter, so don't block
-        // the catalog if this request fails.
-      }
-    };
+  if (query.inStock) {
+    params.set("inStock", "true");
+  }
 
-    loadCategories();
-  }, []);
+  if (query.promotion) {
+    params.set("promotion", "true");
+  }
 
-  useEffect(() => {
-    const loadProducts = async () => {
-      setLoading(true);
-      setError("");
+  return params.toString();
+}
 
-      try {
-        const params = new URLSearchParams();
+/** Browser URL for the same filters on another page. */
+function pageHref(
+  query: CatalogueQuery,
+  page: number
+): string {
+  const params = new URLSearchParams();
 
-        params.set("limit", String(limit));
-        params.set(
-          "offset",
-          String((page - 1) * limit)
-        );
+  if (query.search) {
+    params.set("search", query.search);
+  }
 
-        if (search.trim()) {
-          params.set("search", search.trim());
+  if (query.category) {
+    params.set("category", query.category);
+  }
+
+  if (query.inStock) {
+    params.set("inStock", "true");
+  }
+
+  if (query.promotion) {
+    params.set("promotion", "true");
+  }
+
+  if (page > 1) {
+    params.set("page", String(page));
+  }
+
+  const suffix = params.toString();
+
+  return suffix ? `/products?${suffix}` : "/products";
+}
+
+/*
+ * Filtered views are rendered per request from the search params, so
+ * search engines index the clean /products URL while filter
+ * combinations stay shareable and back-button friendly.
+ */
+export async function generateMetadata({
+  searchParams,
+}: ProductsPageProps): Promise<Metadata> {
+  const params = await searchParams;
+  const query = readQuery(params);
+
+  const filtered =
+    Boolean(
+      query.search ||
+        query.category ||
+        query.inStock ||
+        query.promotion
+    ) || query.page > 1;
+
+  return {
+    title: "Collection",
+    description:
+      "Explore the Bethel Perfume collection and discover fragrances for every moment.",
+    alternates: { canonical: "/products" },
+    ...(filtered
+      ? {
+          // Filter combinations and pages beyond the first add no
+          // unique value to the index.
+          robots: { index: false, follow: true },
         }
+      : {}),
+  };
+}
 
-        if (category) {
-          params.set("category", category);
-        }
+export default async function ProductsPage({
+  searchParams,
+}: ProductsPageProps) {
+  const params = await searchParams;
+  const query = readQuery(params);
 
-        if (inStock) {
-          params.set("inStock", "true");
-        }
-
-        if (promotion) {
-          params.set("promotion", "true");
-        }
-
-        const response =
-          await apiRequest<ProductsResponse>(
-            `/products?${params.toString()}`
-          );
-
-        setProducts(response.data || []);
-        setTotal(response.total || 0);
-      } catch (err) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Failed to load products."
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadProducts();
-  }, [
-    search,
-    category,
-    inStock,
-    promotion,
-    page,
+  const [productsResult, categories] = await Promise.all([
+    getStorefrontProducts(apiQuery(query)),
+    getStorefrontCategories({ revalidate: 300 }),
   ]);
 
-  const handleSearch = (event: FormEvent) => {
-    event.preventDefault();
+  const products = productsResult?.data ?? [];
+  const total = productsResult?.total ?? 0;
+  const failed = productsResult === null;
 
-    setPage(1);
-    setSearch(searchInput);
-  };
-
-  const clearFilters = () => {
-    setSearchInput("");
-    setSearch("");
-    setCategory("");
-    setInStock(false);
-    setPromotion(false);
-    setPage(1);
-  };
-
-  const hasFilters =
-    search ||
-    category ||
-    inStock ||
-    promotion;
+  const totalPages = Math.max(
+    1,
+    Math.ceil(total / LIMIT)
+  );
 
   return (
     <main className="bethel-page min-h-screen">
@@ -172,99 +186,19 @@ export default function ProductsPage() {
           </div>
 
           {/* Filters */}
-          <div className="mt-10 rounded-3xl border border-[#eadfe2] bg-white/90 p-4 shadow-[0_12px_40px_rgba(120,70,85,0.06)] backdrop-blur-sm md:p-5">
-            <form
-              onSubmit={handleSearch}
-              className="flex flex-col gap-3 md:flex-row"
-            >
-              <input
-                type="search"
-                value={searchInput}
-                onChange={(event) =>
-                  setSearchInput(event.target.value)
-                }
-                placeholder="Search fragrances..."
-                className="min-h-12 flex-1 rounded-2xl border border-[#dfd3d7] bg-[#fffcfa] px-4 text-sm text-[#30272a] outline-none transition placeholder:text-[#9b9093] focus:border-[#c96a82] focus:ring-2 focus:ring-[#c96a82]/10"
-              />
-
-              <button
-                type="submit"
-                className="min-h-12 rounded-2xl bg-[#c96a82] px-7 text-sm font-semibold text-white transition hover:bg-[#9e405a]"
-              >
-                Search
-              </button>
-            </form>
-
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <select
-                value={category}
-                onChange={(event) => {
-                  setCategory(event.target.value);
-                  setPage(1);
-                }}
-                className="min-h-11 rounded-2xl border border-[#dfd3d7] bg-[#fffcfa] px-4 text-sm text-[#30272a] outline-none focus:border-[#c96a82]"
-              >
-                <option value="">
-                  All categories
-                </option>
-
-                {categories.map((item) => (
-                  <option
-                    key={item.id}
-                    value={item.slug}
-                  >
-                    {item.name}
-                  </option>
-                ))}
-              </select>
-
-              <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-2xl border border-[#dfd3d7] bg-[#fffcfa] px-4 text-sm text-[#30272a]">
-                <input
-                  type="checkbox"
-                  checked={inStock}
-                  onChange={(event) => {
-                    setInStock(event.target.checked);
-                    setPage(1);
-                  }}
-                  className="h-4 w-4 accent-[#c96a82]"
-                />
-
-                In stock only
-              </label>
-
-              <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-2xl border border-[#dfd3d7] bg-[#fffcfa] px-4 text-sm text-[#30272a]">
-                <input
-                  type="checkbox"
-                  checked={promotion}
-                  onChange={(event) => {
-                    setPromotion(event.target.checked);
-                    setPage(1);
-                  }}
-                  className="h-4 w-4 accent-[#c96a82]"
-                />
-
-                Promotions
-              </label>
-
-              {hasFilters ? (
-                <button
-                  type="button"
-                  onClick={clearFilters}
-                  className="min-h-11 rounded-2xl border border-[#d9c4ca] px-4 text-sm font-medium text-[#9e405a] transition hover:bg-[#f7e5e9]"
-                >
-                  Clear filters
-                </button>
-              ) : (
-                <div className="hidden lg:block" />
-              )}
-            </div>
-          </div>
+          <ProductFilters
+            categories={categories ?? []}
+            search={query.search}
+            category={query.category}
+            inStock={query.inStock}
+            promotion={query.promotion}
+          />
 
           {/* Results summary */}
           <div className="mt-10 flex items-center justify-between gap-4">
             <p className="text-sm text-[#756b6e]">
-              {loading
-                ? "Loading fragrances..."
+              {failed
+                ? "Could not load fragrances."
                 : `${total} fragrance${
                     total === 1 ? "" : "s"
                   } found`}
@@ -272,39 +206,21 @@ export default function ProductsPage() {
 
             {total > 0 && (
               <p className="text-sm text-[#756b6e]">
-                Page {page} of {totalPages}
+                Page {query.page} of {totalPages}
               </p>
             )}
           </div>
 
           {/* Error */}
-          {error && (
+          {failed && (
             <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-              {error}
+              The collection could not be loaded. Please
+              refresh the page and try again.
             </div>
           )}
 
           {/* Product content */}
-          {loading ? (
-            <div className="grid gap-6 pt-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {Array.from({ length: 8 }).map(
-                (_, index) => (
-                  <div
-                    key={index}
-                    className="overflow-hidden rounded-3xl border border-[#eadfe2] bg-white"
-                  >
-                    <div className="aspect-[4/5] animate-pulse bg-[#f7e5e9]" />
-
-                    <div className="space-y-3 p-5">
-                      <div className="h-3 w-20 animate-pulse rounded bg-[#f7e5e9]" />
-                      <div className="h-6 w-3/4 animate-pulse rounded bg-[#f7e5e9]" />
-                      <div className="h-4 w-1/2 animate-pulse rounded bg-[#f7e5e9]" />
-                    </div>
-                  </div>
-                )
-              )}
-            </div>
-          ) : products.length > 0 ? (
+          {!failed && products.length > 0 ? (
             <div className="grid gap-6 pt-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {products.map((product) => (
                 <ProductCard
@@ -313,59 +229,67 @@ export default function ProductsPage() {
                 />
               ))}
             </div>
-          ) : (
-            <div className="mt-8 rounded-3xl border border-dashed border-[#d9c4ca] bg-white/70 px-6 py-16 text-center">
-              <p className="font-serif text-2xl text-[#30272a]">
-                No fragrances found
-              </p>
+          ) : null}
 
-              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#756b6e]">
-                Try a different search or remove some
-                filters to see more of the collection.
-              </p>
+          {!failed &&
+            products.length === 0 && (
+              <div className="mt-8 rounded-3xl border border-dashed border-[#d9c4ca] bg-white/70 px-6 py-16 text-center">
+                <p className="font-serif text-2xl text-[#30272a]">
+                  No fragrances found
+                </p>
 
-              <button
-                type="button"
-                onClick={clearFilters}
-                className="mt-6 rounded-2xl bg-[#c96a82] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#9e405a]"
-              >
-                View all fragrances
-              </button>
-            </div>
-          )}
+                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#756b6e]">
+                  Try a different search or remove some
+                  filters to see more of the collection.
+                </p>
+
+                <Link
+                  href="/products"
+                  className="mt-6 inline-flex rounded-2xl bg-[#c96a82] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#9e405a]"
+                >
+                  View all fragrances
+                </Link>
+              </div>
+            )}
 
           {/* Pagination */}
-          {!loading && totalPages > 1 && (
+          {totalPages > 1 && (
             <div className="mt-12 flex items-center justify-center gap-3">
-              <button
-                type="button"
-                disabled={page === 1}
-                onClick={() =>
-                  setPage((current) =>
-                    Math.max(1, current - 1)
-                  )
-                }
-                className="rounded-2xl border border-[#dfd3d7] bg-white px-5 py-3 text-sm font-medium text-[#756b6e] transition hover:border-[#c96a82] hover:text-[#9e405a] disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                Previous
-              </button>
+              {query.page > 1 ? (
+                <Link
+                  href={pageHref(query, query.page - 1)}
+                  className="rounded-2xl border border-[#dfd3d7] bg-white px-5 py-3 text-sm font-medium text-[#756b6e] transition hover:border-[#c96a82] hover:text-[#9e405a]"
+                >
+                  Previous
+                </Link>
+              ) : (
+                <span
+                  aria-disabled="true"
+                  className="cursor-not-allowed rounded-2xl border border-[#dfd3d7] bg-white px-5 py-3 text-sm font-medium text-[#756b6e] opacity-40"
+                >
+                  Previous
+                </span>
+              )}
 
               <span className="rounded-2xl bg-[#f7e5e9] px-5 py-3 text-sm font-semibold text-[#9e405a]">
-                {page}
+                {query.page}
               </span>
 
-              <button
-                type="button"
-                disabled={page === totalPages}
-                onClick={() =>
-                  setPage((current) =>
-                    Math.min(totalPages, current + 1)
-                  )
-                }
-                className="rounded-2xl border border-[#dfd3d7] bg-white px-5 py-3 text-sm font-medium text-[#756b6e] transition hover:border-[#c96a82] hover:text-[#9e405a] disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                Next
-              </button>
+              {query.page < totalPages ? (
+                <Link
+                  href={pageHref(query, query.page + 1)}
+                  className="rounded-2xl border border-[#dfd3d7] bg-white px-5 py-3 text-sm font-medium text-[#756b6e] transition hover:border-[#c96a82] hover:text-[#9e405a]"
+                >
+                  Next
+                </Link>
+              ) : (
+                <span
+                  aria-disabled="true"
+                  className="cursor-not-allowed rounded-2xl border border-[#dfd3d7] bg-white px-5 py-3 text-sm font-medium text-[#756b6e] opacity-40"
+                >
+                  Next
+                </span>
+              )}
             </div>
           )}
         </section>
