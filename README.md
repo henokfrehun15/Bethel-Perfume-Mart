@@ -101,9 +101,10 @@ Uploaded images are served from the API at `/uploads/<filename>`.
 
 `server/.env` (see `server/.env.example`): `DATABASE_URL`, `JWT_SECRET`,
 `JWT_EXPIRES_IN`, `COOKIE_SAME_SITE`, `PORT`, `CLIENT_URL`, optional
-`DATABASE_SSL`, `TRUST_PROXY`, `WHATSAPP_NUMBER`, `WHATSAPP_API_URL`,
-`WHATSAPP_API_TOKEN`, plus the upload settings `UPLOAD_DIR`,
-`UPLOAD_MAX_BYTES` and `PUBLIC_ASSET_URL`.
+`DATABASE_SSL`, `TRUST_PROXY`, `REDIS_URL` (shared rate-limit counters),
+`WHATSAPP_NUMBER`, `WHATSAPP_API_URL`, `WHATSAPP_API_TOKEN`, plus the
+storage settings `UPLOAD_DIR`, `UPLOAD_MAX_BYTES`, `PUBLIC_ASSET_URL`,
+`STORAGE_DRIVER` and the `S3_*` variables.
 
 `client/.env.local` (see `client/.env.example`): `NEXT_PUBLIC_API_URL`,
 `NEXT_PUBLIC_SITE_URL`.

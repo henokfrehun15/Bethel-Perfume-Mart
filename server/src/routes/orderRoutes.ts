@@ -16,6 +16,7 @@ const router = Router();
 // Abuse protection for the public order endpoints: checkout spam and
 // phone-number probing via the tracking lookup.
 const checkoutLimiter = rateLimit({
+  name: "checkout",
   windowMs: 15 * 60 * 1000,
   max: 20,
   message:
@@ -23,6 +24,7 @@ const checkoutLimiter = rateLimit({
 });
 
 const trackLimiter = rateLimit({
+  name: "track",
   windowMs: 15 * 60 * 1000,
   max: 10,
   message:

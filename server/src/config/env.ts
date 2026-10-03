@@ -77,6 +77,10 @@ export const env = {
 
   trustProxy: flag("TRUST_PROXY", false),
 
+  // Rate limiter counters live in memory by default. Set REDIS_URL
+  // to share counters between API instances (horizontal scaling).
+  redisUrl: optional("REDIS_URL", ""),
+
   whatsappNumber: optional("WHATSAPP_NUMBER", ""),
   whatsappApiUrl: optional("WHATSAPP_API_URL", ""),
   whatsappApiToken: optional("WHATSAPP_API_TOKEN", ""),

@@ -1,7 +1,16 @@
 import { existsSync } from "node:fs";
 import { rm } from "node:fs/promises";
 import path from "node:path";
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it, vi } from "vitest";
+
+/**
+ * Test files run concurrently and each cleans its upload directory
+ * in afterAll, so this file uses its own directory to avoid deleting
+ * files another test file is still writing.
+ */
+vi.hoisted(() => {
+  process.env.UPLOAD_DIR = ".tmp-test-storage";
+});
 
 import {
   getStorageDriver,
@@ -14,6 +23,9 @@ let driver: StorageDriver;
 
 afterAll(async () => {
   await rm(getUploadDir(), { recursive: true, force: true });
+
+  // Do not leak the override into other test files sharing this worker.
+  delete process.env.UPLOAD_DIR;
 });
 
 describe("storage driver selection", () => {

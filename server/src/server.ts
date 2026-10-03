@@ -98,6 +98,7 @@ app.get("/api/health", async (_req, res) => {
 app.use(
   "/api",
   rateLimit({
+    name: "global",
     windowMs: 15 * 60 * 1000,
     max: 600,
     message:

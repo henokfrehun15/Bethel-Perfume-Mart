@@ -13,6 +13,7 @@ const router = Router();
 
 // Brute-force protection: 10 attempts per IP per 15 minutes.
 const loginLimiter = rateLimit({
+  name: "login",
   windowMs: 15 * 60 * 1000,
   max: 10,
   message:
@@ -25,6 +26,7 @@ router.post("/logout", logout);
 // Password changes are rare; keep a generous ceiling so a mistake
 // cannot lock the owner out of their own store.
 const passwordChangeLimiter = rateLimit({
+  name: "password-change",
   windowMs: 15 * 60 * 1000,
   max: 10,
   message:
