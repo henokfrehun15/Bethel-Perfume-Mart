@@ -72,15 +72,6 @@ interface UploadResponse {
   };
 }
 
-/**
- * Images uploaded through this app live under the API's /uploads mount.
- * Only those may be deleted through the API — external URLs are not
- * ours to remove.
- */
-function isUploadedImage(url: string): boolean {
-  return url.includes("/uploads/");
-}
-
 export default function ProductForm({
   product,
 }: ProductFormProps) {
@@ -195,17 +186,10 @@ export default function ProductForm({
   };
 
   const removeImage = (index: number) => {
-    const removed = images[index];
-
-    // Clean up files we uploaded ourselves. External URLs are left
-    // alone, and failures must not block editing.
-    if (removed && isUploadedImage(removed)) {
-      void apiRequest("/uploads/images", {
-        method: "DELETE",
-        body: JSON.stringify({ url: removed }),
-      }).catch(() => undefined);
-    }
-
+    // The file itself is not deleted here: the server removes stored
+    // files that become unreferenced once the product is saved, so
+    // cancelling the edit never leaves a product pointing at a
+    // deleted file.
     setImages((current) =>
       current.filter(
         (_, imageIndex) => imageIndex !== index

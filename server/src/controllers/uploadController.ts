@@ -1,44 +1,10 @@
-import { open, unlink } from "node:fs/promises";
 import { Request, Response } from "express";
 
 import {
-  buildPublicUrl,
-  filenameFromUrl,
-  resolveUploadPath,
+  generateImageFilename,
   sniffImageMime,
 } from "../services/uploadService";
-
-/** Read the first bytes of a stored file for magic-byte checks. */
-async function readHead(
-  absolutePath: string
-): Promise<Buffer> {
-  const handle = await open(absolutePath, "r");
-
-  try {
-    const buffer = Buffer.alloc(16);
-
-    const { bytesRead } = await handle.read(
-      buffer,
-      0,
-      buffer.length,
-      0
-    );
-
-    return buffer.subarray(0, bytesRead);
-  } finally {
-    await handle.close();
-  }
-}
-
-async function removeQuietly(
-  absolutePath: string
-): Promise<void> {
-  try {
-    await unlink(absolutePath);
-  } catch {
-    // The file may already be gone; nothing to clean up.
-  }
-}
+import { getStorageDriver } from "../services/storageService";
 
 // POST /api/uploads/images (admin)
 export const uploadImage = async (
@@ -47,7 +13,7 @@ export const uploadImage = async (
 ) => {
   const file = req.file;
 
-  if (!file) {
+  if (!file || !file.buffer) {
     return res.status(400).json({
       success: false,
       message:
@@ -55,32 +21,10 @@ export const uploadImage = async (
     });
   }
 
-  const absolute = resolveUploadPath(file.filename);
-
-  if (!absolute) {
-    return res.status(400).json({
-      success: false,
-      message: "The uploaded file could not be stored.",
-    });
-  }
-
-  // The browser-reported MIME type is untrusted, so verify the bytes.
-  let detected: string | null = null;
-
-  try {
-    detected = sniffImageMime(await readHead(absolute));
-  } catch {
-    await removeQuietly(absolute);
-
-    return res.status(400).json({
-      success: false,
-      message: "The uploaded file could not be read.",
-    });
-  }
+  // The browser-reported MIME type is untrusted; the bytes decide.
+  const detected = sniffImageMime(file.buffer);
 
   if (!detected) {
-    await removeQuietly(absolute);
-
     return res.status(400).json({
       success: false,
       message:
@@ -88,12 +32,29 @@ export const uploadImage = async (
     });
   }
 
+  const filename = generateImageFilename(detected);
+  const driver = getStorageDriver();
+
+  const stored = await driver.storeImage(
+    filename,
+    file.buffer,
+    detected
+  );
+
+  if (!stored) {
+    return res.status(500).json({
+      success: false,
+      message:
+        "The uploaded file could not be stored. Please try again.",
+    });
+  }
+
   return res.status(201).json({
     success: true,
     message: "Image uploaded.",
     data: {
-      filename: file.filename,
-      url: buildPublicUrl(file.filename),
+      filename,
+      url: driver.publicUrl(filename),
       size: file.size,
       mime: detected,
     },
@@ -110,12 +71,12 @@ export const deleteUploadedImage = async (
   const url =
     typeof req.body?.url === "string" ? req.body.url : "";
 
-  const filename = url ? filenameFromUrl(url) : null;
-  const absolute = filename
-    ? resolveUploadPath(filename)
+  const driver = getStorageDriver();
+  const filename = url
+    ? driver.filenameFromPublicUrl(url)
     : null;
 
-  if (!filename || !absolute) {
+  if (!filename) {
     return res.status(400).json({
       success: false,
       message:
@@ -123,20 +84,13 @@ export const deleteUploadedImage = async (
     });
   }
 
-  try {
-    await unlink(absolute);
-  } catch (error) {
-    const code = (error as NodeJS.ErrnoException).code;
+  const deleted = await driver.deleteImage(filename);
 
-    // Already gone is still the desired end state.
-    if (code !== "ENOENT") {
-      console.error("Delete upload error:", error);
-
-      return res.status(500).json({
-        success: false,
-        message: "Failed to delete the image",
-      });
-    }
+  if (!deleted) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete the image",
+    });
   }
 
   return res.status(200).json({

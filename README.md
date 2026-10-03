@@ -165,13 +165,17 @@ The admin product form uploads images straight to the API
 URL, alongside any externally hosted image URLs. The server:
 
 - accepts JPEG, PNG, WebP, AVIF and GIF up to `UPLOAD_MAX_BYTES`;
-- verifies the file really is an image by reading its magic bytes, so a
-  renamed text file is rejected;
-- stores it under a generated filename in `UPLOAD_DIR` and serves it from
-  `/uploads`, so the original filename is never trusted;
-- serves responses with long-lived caching, because filenames are unique;
-- serves them with `Cross-Origin-Resource-Policy: cross-origin` so browsers
-  allow the storefront (a different origin) to embed them.
+- verifies the file really is an image by reading its magic bytes **before**
+  anything is stored, so a renamed text file is rejected;
+- stores it under a generated filename via the configured storage driver
+  (disk by default, S3/R2/MinIO when `STORAGE_DRIVER=s3`), so the original
+  filename is never trusted;
+- serves local files from `/uploads` with `Cross-Origin-Resource-Policy:
+  cross-origin` (so the storefront can embed them) and long-lived caching,
+  because filenames are unique;
+- deletes stored files automatically once no product references their URL
+  anymore (on product update or delete), so removing an image in the admin
+  never leaves orphaned files behind.
 
 Uploaded images are stored in the database as `/uploads/...` paths, not
 absolute URLs — the storefront resolves them against the API origin at
@@ -185,9 +189,6 @@ External image URLs (e.g. a CDN) still work and are not deleted by the app.
 
 ## Roadmap / known gaps
 
-- Uploaded images live on the API's local disk: move `UPLOAD_DIR` to a
-  persistent volume, or swap `uploadService` for object storage (S3, Cloudinary)
-  before running more than one API instance.
 - Checkout is cash-on-delivery only — no online payment gateway yet.
 - Product pages are server-rendered with per-product metadata; the home page
   and collection listing still render on the client.

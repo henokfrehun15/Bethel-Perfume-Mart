@@ -42,23 +42,15 @@ export function getUploadDir(): string {
 }
 
 /**
- * Public URL for a stored file.
- *
- * By default only the mount path is returned (`/uploads/<filename>`):
- * storing an absolute URL would bake whatever host the admin used at
- * upload time (e.g. localhost) into the database permanently, breaking
- * the image in every other environment. Clients resolve the path
- * against the API origin at render time.
- *
- * Set PUBLIC_ASSET_URL when uploads are served from a dedicated asset
- * host or CDN, in which case an absolute URL is returned instead.
+ * Unique storage filename for a verified image MIME type. The client
+ * filename is never trusted or reused.
  */
-export function buildPublicUrl(filename: string): string {
-  if (env.publicAssetUrl) {
-    return `${env.publicAssetUrl.replace(/\/+$/, "")}${UPLOAD_MOUNT_PATH}/${filename}`;
-  }
+export function generateImageFilename(
+  mimeType: string
+): string {
+  const extension = EXTENSION_BY_MIME[mimeType] ?? ".bin";
 
-  return `${UPLOAD_MOUNT_PATH}/${filename}`;
+  return `${Date.now()}-${randomUUID()}${extension}`;
 }
 
 /**
@@ -115,9 +107,7 @@ export function filenameFromUrl(url: string): string | null {
   );
 
   return /^[A-Za-z0-9._-]+$/.test(filename) ? filename : null;
-}
-
-/**
+}/**
  * Identify an image by its magic bytes. The browser-reported MIME
  * type can be spoofed, so the stored file is verified after upload.
  */
@@ -176,26 +166,14 @@ export function sniffImageMime(
   return null;
 }
 
+/**
+ * Receive uploads into memory. The controller verifies the magic
+ * bytes before anything is stored, and the 5 MB limit keeps buffering
+ * safe. The storage driver then persists the verified bytes (disk or
+ * object storage).
+ */
 export const imageUpload = multer({
-  storage: multer.diskStorage({
-    destination: (_req, _file, callback) => {
-      try {
-        callback(null, getUploadDir());
-      } catch (error) {
-        callback(error as Error, "");
-      }
-    },
-    filename: (_req, file, callback) => {
-      const extension =
-        EXTENSION_BY_MIME[file.mimetype] ?? ".bin";
-
-      // The client filename is never trusted or reused.
-      callback(
-        null,
-        `${Date.now()}-${randomUUID()}${extension}`
-      );
-    },
-  }),
+  storage: multer.memoryStorage(),
   limits: {
     fileSize: env.uploadMaxBytes,
   },

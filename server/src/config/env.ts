@@ -90,6 +90,20 @@ export const env = {
   // against the API origin. Set it only when uploads are served from
   // a separate asset host or CDN.
   publicAssetUrl: optional("PUBLIC_ASSET_URL", ""),
+
+  // Image storage backend: "local" (disk, default) or "s3" (S3 and
+  // S3-compatible object storage such as R2, MinIO or Cloudflare).
+  // The s3 driver requires the four S3_* credentials below.
+  storageDriver: optional("STORAGE_DRIVER", "local"),
+  s3Bucket: optional("S3_BUCKET", ""),
+  s3Region: optional("S3_REGION", ""),
+  s3AccessKeyId: optional("S3_ACCESS_KEY_ID", ""),
+  s3SecretAccessKey: optional("S3_SECRET_ACCESS_KEY", ""),
+  // Custom endpoint for S3-compatible providers (R2, MinIO, ...).
+  s3Endpoint: optional("S3_ENDPOINT", ""),
+  // Public base for S3 image URLs. Defaults to the bucket's endpoint
+  // URL; set this when serving uploads through a CDN (e.g. CloudFront).
+  s3PublicUrl: optional("S3_PUBLIC_URL", ""),
 };
 
 export const isProduction = env.nodeEnv === "production";

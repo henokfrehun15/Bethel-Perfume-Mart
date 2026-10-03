@@ -13,6 +13,7 @@ import {
   getUploadDir,
   UPLOAD_MOUNT_PATH,
 } from "../services/uploadService";
+import { getStorageDriver } from "../services/storageService";
 
 /**
  * A supertest-friendly mirror of server.ts: the same middleware and
@@ -32,13 +33,17 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-app.use(
-  UPLOAD_MOUNT_PATH,
-  express.static(getUploadDir(), {
-    index: false,
-    dotfiles: "deny",
-  })
-);
+// Mirrors the conditional static mount in server.ts: only the local
+// storage driver serves files from disk.
+if (getStorageDriver().kind === "local") {
+  app.use(
+    UPLOAD_MOUNT_PATH,
+    express.static(getUploadDir(), {
+      index: false,
+      dotfiles: "deny",
+    })
+  );
+}
 
 app.use("/api/auth", authRoutes);
 app.use("/api/categories", categoryRoutes);

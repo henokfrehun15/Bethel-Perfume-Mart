@@ -4,13 +4,20 @@ import path from "node:path";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import request from "supertest";
 
-const { poolMock } = vi.hoisted(() => ({
-  poolMock: {
+const { poolMock, clientMock } = vi.hoisted(() => {
+  const client = {
     query: vi.fn(),
-    connect: vi.fn(),
+    release: vi.fn(),
+  };
+
+  const poolMock = {
+    query: vi.fn(),
+    connect: vi.fn(async () => client),
     end: vi.fn(),
-  },
-}));
+  };
+
+  return { poolMock, clientMock: client };
+});
 
 vi.mock("../../config/database", () => ({ pool: poolMock }));
 
@@ -32,6 +39,11 @@ const PNG_1X1 = Buffer.from(
 beforeEach(() => {
   poolMock.query.mockReset();
   poolMock.query.mockResolvedValue({ rows: [] });
+  poolMock.connect.mockClear();
+
+  clientMock.query.mockReset();
+  clientMock.query.mockResolvedValue({ rows: [] });
+  clientMock.release.mockReset();
 
   // requireAdmin session check.
   routeSql(poolMock, [
@@ -253,5 +265,132 @@ describe("POST /api/uploads/images", () => {
       .send({ url: "https://cdn.example.com/photo.png" });
 
     expect(response.status).toBe(400);
+  });
+});
+
+describe("product image cleanup", () => {
+  async function uploadFixture(): Promise<string> {
+    const uploaded = await request(app)
+      .post("/api/uploads/images")
+      .set("Authorization", `Bearer ${signAdminToken()}`)
+      .attach("file", PNG_1X1, {
+        filename: "photo.png",
+        contentType: "image/png",
+      });
+
+    const { filename, url } = uploaded.body.data as {
+      filename: string;
+      url: string;
+    };
+
+    expect(
+      existsSync(path.join(getUploadDir(), filename))
+    ).toBe(true);
+
+    return url;
+  }
+
+  function routeUpdateTransaction(previousUrls: string[]) {
+    routeSql(clientMock, [
+      { match: /UPDATE products/, rows: [{ id: 1 }] },
+      {
+        match: /SELECT\s+url\s+FROM product_images/,
+        rows: previousUrls.map((url) => ({ url })),
+      },
+      { match: /DELETE FROM product_images/, rows: [] },
+      { match: /INSERT INTO product_images/, rows: [] },
+    ]);
+  }
+
+  it("removes the stored file when an update drops the last reference", async () => {
+    const url = await uploadFixture();
+
+    routeUpdateTransaction([url]);
+
+    // No product references the URL anymore.
+    routeSql(poolMock, [
+      {
+        match: /password_changed_at/,
+        rows: [{ password_changed_at: null }],
+      },
+      {
+        match: /COUNT\(\*\)::int AS count/,
+        rows: [{ count: 0 }],
+      },
+    ]);
+
+    const response = await request(app)
+      .put("/api/products/1")
+      .set("Authorization", `Bearer ${signAdminToken()}`)
+      .send({
+        images: [{ url: "https://cdn.example.com/new.jpg" }],
+      });
+
+    expect(response.status).toBe(200);
+
+    const filename = url.split("/").pop()!;
+
+    expect(
+      existsSync(path.join(getUploadDir(), filename))
+    ).toBe(false);
+  });
+
+  it("keeps the stored file while another product still references it", async () => {
+    const url = await uploadFixture();
+
+    routeUpdateTransaction([url]);
+
+    routeSql(poolMock, [
+      {
+        match: /password_changed_at/,
+        rows: [{ password_changed_at: null }],
+      },
+      {
+        match: /COUNT\(\*\)::int AS count/,
+        rows: [{ count: 1 }],
+      },
+    ]);
+
+    const response = await request(app)
+      .put("/api/products/1")
+      .set("Authorization", `Bearer ${signAdminToken()}`)
+      .send({
+        images: [{ url: "https://cdn.example.com/new.jpg" }],
+      });
+
+    expect(response.status).toBe(200);
+
+    const filename = url.split("/").pop()!;
+
+    expect(
+      existsSync(path.join(getUploadDir(), filename))
+    ).toBe(true);
+  });
+
+  it("never deletes external urls on cleanup", async () => {
+    routeUpdateTransaction([
+      "https://cdn.example.com/shared.jpg",
+    ]);
+
+    routeSql(poolMock, [
+      {
+        match: /password_changed_at/,
+        rows: [{ password_changed_at: null }],
+      },
+    ]);
+
+    const response = await request(app)
+      .put("/api/products/1")
+      .set("Authorization", `Bearer ${signAdminToken()}`)
+      .send({ images: [] });
+
+    expect(response.status).toBe(200);
+
+    // No COUNT lookup for a URL the storage driver does not manage.
+    const countQueries = poolMock.query.mock.calls.filter(
+      (call) => /COUNT\(\*\)/.test(String(call[0]))
+    );
+
+    expect(countQueries).toHaveLength(0);
   });
 });

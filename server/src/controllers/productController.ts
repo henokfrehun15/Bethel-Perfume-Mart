@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import { pool } from "../config/database";
 import { env } from "../config/env";
 import { ADMIN_COOKIE } from "../services/sessionCookie";
+import { removeUnreferencedImages } from "../services/storageService";
 
 /**
  * True when the request carries a valid admin credential — the
@@ -516,6 +517,9 @@ export const updateProduct = async (
       });
     }
 
+    // Image URLs dropped by this update; cleaned up after COMMIT.
+    let removedImageUrls: string[] = [];
+
     const {
       name,
       slug,
@@ -678,6 +682,21 @@ export const updateProduct = async (
     }
 
     if (Array.isArray(images)) {
+      // Remember the current URLs so files that end up unreferenced
+      // can be removed from storage after the transaction commits.
+      const previousImages = await client.query(
+        `
+        SELECT url
+        FROM product_images
+        WHERE product_id = $1
+        `,
+        [id]
+      );
+
+      const previousUrls = previousImages.rows.map(
+        (row: { url: string }) => row.url
+      );
+
       await client.query(
         `
         DELETE FROM product_images
@@ -716,9 +735,25 @@ export const updateProduct = async (
           ]
         );
       }
+
+      const keptUrls = new Set(
+        images
+          .map((image: { url?: string }) => image?.url)
+          .filter((url: string | undefined): url is string =>
+            Boolean(url)
+          )
+      );
+
+      removedImageUrls = previousUrls.filter(
+        (url) => !keptUrls.has(url)
+      );
     }
 
     await client.query("COMMIT");
+
+    // Best-effort: delete stored files no product references anymore.
+    // Never blocks or fails the update itself.
+    await removeUnreferencedImages(removedImageUrls);
 
     res.status(200).json({
       success: true,
@@ -771,6 +806,17 @@ export const deleteProduct = async (
       });
     }
 
+    // Remember the images so their files can be removed from storage
+    // once the product (and, by cascade, its image rows) is gone.
+    const existingImages = await pool.query(
+      `
+      SELECT url
+      FROM product_images
+      WHERE product_id = $1
+      `,
+      [id]
+    );
+
     const result = await pool.query(
       `
       DELETE FROM products
@@ -786,6 +832,13 @@ export const deleteProduct = async (
         message: "Product not found",
       });
     }
+
+    // Best-effort cleanup of now-unreferenced image files.
+    await removeUnreferencedImages(
+      existingImages.rows.map(
+        (row: { url: string }) => row.url
+      )
+    );
 
     res.status(200).json({
       success: true,

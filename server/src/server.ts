@@ -18,6 +18,7 @@ import {
   getUploadDir,
   UPLOAD_MOUNT_PATH,
 } from "./services/uploadService";
+import { getStorageDriver } from "./services/storageService";
 
 const app = express();
 
@@ -53,17 +54,21 @@ app.use(cookieParser());
 app.use(compression());
 app.use(morgan(isProduction ? "combined" : "dev"));
 
-// Uploaded product images. Filenames are unique, so responses can be
-// cached aggressively.
-app.use(
-  UPLOAD_MOUNT_PATH,
-  express.static(getUploadDir(), {
-    index: false,
-    dotfiles: "deny",
-    maxAge: "30d",
-    immutable: true,
-  })
-);
+// Uploaded product images, served straight from disk by the local
+// storage driver (the s3 driver serves images from object storage
+// instead). Filenames are unique, so responses can be cached
+// aggressively.
+if (getStorageDriver().kind === "local") {
+  app.use(
+    UPLOAD_MOUNT_PATH,
+    express.static(getUploadDir(), {
+      index: false,
+      dotfiles: "deny",
+      maxAge: "30d",
+      immutable: true,
+    })
+  );
+}
 
 // Health check (also verifies the database connection)
 app.get("/api/health", async (_req, res) => {
