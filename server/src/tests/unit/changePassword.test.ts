@@ -131,4 +131,27 @@ describe("PUT /api/auth/password", () => {
       "password_changed_at = CURRENT_TIMESTAMP"
     );
   });
+
+  it("refreshes this session's cookie so the admin stays signed in", async () => {
+    const response = await request(app)
+      .put("/api/auth/password")
+      .set("Authorization", `Bearer ${signAdminToken()}`)
+      .send({
+        currentPassword: CURRENT_PASSWORD,
+        newPassword: NEW_PASSWORD,
+      });
+
+    expect(response.status).toBe(200);
+
+    const cookies = response.headers["set-cookie"] as unknown as string[];
+
+    expect(cookies).toBeDefined();
+
+    const sessionCookie = cookies.find((cookie) =>
+      cookie.startsWith("admin_token=")
+    );
+
+    expect(sessionCookie).toBeDefined();
+    expect(sessionCookie).toContain("HttpOnly");
+  });
 });

@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   changePassword,
   login,
+  logout,
 } from "../controllers/authController";
 import { requireAdmin } from "../middleware/authMiddleware";
 import { rateLimit } from "../middleware/rateLimit";
@@ -19,6 +20,7 @@ const loginLimiter = rateLimit({
 });
 
 router.post("/login", loginLimiter, login);
+router.post("/logout", logout);
 
 // Password changes are rare; keep a generous ceiling so a mistake
 // cannot lock the owner out of their own store.

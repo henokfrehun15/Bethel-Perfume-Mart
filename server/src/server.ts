@@ -1,6 +1,7 @@
 import { env, isProduction } from "./config/env";
 import express from "express";
 import compression from "compression";
+import cookieParser from "cookie-parser";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
@@ -41,10 +42,14 @@ app.use(
 app.use(
   cors({
     origin: env.clientUrl,
+    // The admin session cookie must travel with cross-origin
+    // requests from the storefront app.
+    credentials: true,
   })
 );
 
 app.use(express.json({ limit: "1mb" }));
+app.use(cookieParser());
 app.use(compression());
 app.use(morgan(isProduction ? "combined" : "dev"));
 

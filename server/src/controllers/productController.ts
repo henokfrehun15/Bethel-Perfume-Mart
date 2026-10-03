@@ -2,13 +2,23 @@ import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { pool } from "../config/database";
 import { env } from "../config/env";
+import { ADMIN_COOKIE } from "../services/sessionCookie";
 
 /**
- * True when the request carries a valid admin Bearer token.
- * Used to decide whether hidden products may be included in listings.
+ * True when the request carries a valid admin credential — the
+ * httpOnly session cookie or a Bearer token. Used to decide whether
+ * hidden products may be included in listings.
  */
 function isAdminRequest(req: Request): boolean {
   try {
+    const cookieToken = req.cookies?.[ADMIN_COOKIE];
+
+    if (typeof cookieToken === "string" && cookieToken) {
+      jwt.verify(cookieToken, env.jwtSecret);
+
+      return true;
+    }
+
     const authorization = req.headers.authorization;
 
     if (!authorization) {

@@ -1,4 +1,5 @@
 import express from "express";
+import cookieParser from "cookie-parser";
 import helmet from "helmet";
 
 import authRoutes from "../routes/authRoutes";
@@ -29,6 +30,7 @@ app.use(
 );
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.use(
   UPLOAD_MOUNT_PATH,

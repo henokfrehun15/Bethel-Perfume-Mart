@@ -51,15 +51,29 @@ beforeEach(() => {
 });
 
 describe("POST /api/auth/login", () => {
-  it("returns a token for valid credentials", async () => {
+  it("sets an httpOnly session cookie and never returns the token in the body", async () => {
     const response = await request(app)
       .post("/api/auth/login")
       .send({ username: "admin", password: PASSWORD });
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
-    expect(typeof response.body.data.token).toBe("string");
     expect(response.body.data.admin.username).toBe("admin");
+    // The token must not be readable by client-side script.
+    expect(response.body.data.token).toBeUndefined();
+
+    const cookies = response.headers["set-cookie"] as unknown as string[];
+
+    expect(cookies).toBeDefined();
+
+    const sessionCookie = cookies.find((cookie) =>
+      cookie.startsWith("admin_token=")
+    );
+
+    expect(sessionCookie).toBeDefined();
+    expect(sessionCookie).toContain("HttpOnly");
+    expect(sessionCookie).toContain("SameSite=Lax");
+    expect(sessionCookie).toContain("Path=/");
   });
 
   it("rejects a wrong password with 401", async () => {
@@ -85,6 +99,27 @@ describe("POST /api/auth/login", () => {
       .send({ username: "admin" });
 
     expect(response.status).toBe(400);
+  });
+});
+
+describe("POST /api/auth/logout", () => {
+  it("clears the session cookie", async () => {
+    const response = await request(app)
+      .post("/api/auth/logout")
+      .send();
+
+    expect(response.status).toBe(200);
+
+    const cookies = response.headers["set-cookie"] as unknown as string[];
+
+    expect(cookies).toBeDefined();
+
+    const cleared = cookies.find((cookie) =>
+      cookie.startsWith("admin_token=")
+    );
+
+    // clearing sets an immediate expiry with an empty value.
+    expect(cleared).toContain("Expires=Thu, 01 Jan 1970");
   });
 });
 
@@ -188,6 +223,53 @@ describe("admin authentication", () => {
     expect(response.body.data.total_orders).toBe(3);
     expect(response.body.data.pending_orders).toBe(3);
     expect(response.body.data.low_stock).toBe(1);
+  });
+
+  it("authenticates via the httpOnly session cookie", async () => {
+    const login = await request(app)
+      .post("/api/auth/login")
+      .send({ username: "admin", password: PASSWORD });
+
+    const cookies = login.headers["set-cookie"] as unknown as string[];
+
+    // Capture the cookie pair (name=value) before the attributes.
+    const sessionPair = cookies
+      .find((cookie: string) =>
+        cookie.startsWith("admin_token=")
+      )!
+      .split(";")[0];
+
+    routeSql(poolMock, [
+      {
+        match: /password_changed_at/,
+        rows: [{ password_changed_at: null }],
+      },
+      {
+        match: /GROUP BY status/,
+        rows: [{ status: "PENDING", count: 2 }],
+      },
+      {
+        match: /WHERE status != 'CANCELLED'/,
+        rows: [
+          { currency: "ETB", revenue: "3600.00", count: 2 },
+        ],
+      },
+      {
+        match: /stock_qty <= 5/,
+        rows: [{ count: 0 }],
+      },
+      {
+        match: /FROM orders/,
+        rows: [],
+      },
+    ]);
+
+    const response = await request(app)
+      .get("/api/orders/stats")
+      .set("Cookie", sessionPair);
+
+    expect(response.status).toBe(200);
+    expect(response.body.data.total_orders).toBe(2);
   });
 });
 

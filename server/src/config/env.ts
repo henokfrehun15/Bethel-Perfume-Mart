@@ -69,6 +69,12 @@ export const env = {
   jwtSecret: required("JWT_SECRET"),
   jwtExpiresIn: optional("JWT_EXPIRES_IN", "1d"),
 
+  // SameSite attribute of the admin session cookie. "lax" (default)
+  // works when the API and the admin app share a registrable domain;
+  // use "none" when they live on different production domains (the
+  // cookie is then always Secure, i.e. https-only).
+  cookieSameSite: optional("COOKIE_SAME_SITE", "lax"),
+
   trustProxy: flag("TRUST_PROXY", false),
 
   whatsappNumber: optional("WHATSAPP_NUMBER", ""),

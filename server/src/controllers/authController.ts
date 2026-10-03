@@ -1,9 +1,14 @@
 import { Request, Response } from "express";
 import {
   loginAdmin,
+  signAdminToken,
   updateAdminPassword,
   verifyAdminPassword,
 } from "../services/authService";
+import {
+  clearAdminCookie,
+  setAdminCookie,
+} from "../services/sessionCookie";
 import { AuthenticatedRequest } from "../middleware/authMiddleware";
 
 export const login = async (
@@ -29,10 +34,14 @@ export const login = async (
       });
     }
 
+    // The token lives in an httpOnly cookie, never in the response
+    // body, so client-side script (and therefore XSS) cannot read it.
+    setAdminCookie(res, result.token);
+
     return res.status(200).json({
       success: true,
       message: "Login successful",
-      data: result,
+      data: { admin: result.admin },
     });
   } catch (error) {
     console.error("Admin login error:", error);
@@ -44,11 +53,24 @@ export const login = async (
   }
 };
 
+// POST /api/auth/logout
+// Clears the httpOnly session cookie. Safe to call unauthenticated:
+// an already-empty session is the desired end state.
+export const logout = (_req: Request, res: Response) => {
+  clearAdminCookie(res);
+
+  return res.status(200).json({
+    success: true,
+    message: "Logged out",
+  });
+};
+
 /**
  * PUT /api/auth/password (admin)
  * Changes the signed-in admin's password. Tokens issued before the
  * change stop working (see requireAdmin), so other sessions must sign
- * in again — including this one, if the client does not refresh.
+ * in again; this session's cookie is refreshed so the admin stays
+ * signed in.
  */
 export const changePassword = async (
   req: AuthenticatedRequest,
@@ -110,10 +132,21 @@ export const changePassword = async (
       });
     }
 
+    // Tokens issued before the change are now stale. Refresh this
+    // session's cookie so the admin who changed the password stays
+    // signed in; every other session must sign in again.
+    setAdminCookie(
+      res,
+      signAdminToken({
+        id: adminId,
+        username: req.admin!.username,
+      })
+    );
+
     return res.status(200).json({
       success: true,
       message:
-        "Password updated. Other sessions have been signed out — sign in again with your new password.",
+        "Password updated. Other sessions have been signed out.",
     });
   } catch (error) {
     console.error("Change password error:", error);

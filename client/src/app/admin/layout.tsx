@@ -3,7 +3,7 @@
 import { ReactNode, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { clearAdminSession, getAdminToken } from "@/lib/api";
+import { clearAdminSession, getAdminUser } from "@/lib/api";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -26,28 +26,24 @@ export default function AdminLayout({
     }
 
     queueMicrotask(() => {
-      const token = getAdminToken();
-      const storedUser = localStorage.getItem("admin_user");
+      // Display hint only — the real session lives in an httpOnly
+      // cookie. Expired sessions are caught by the API's 401 handling.
+      const user = getAdminUser();
 
-      if (!token) {
+      if (!user) {
         router.replace("/admin/login");
         return;
       }
 
-      if (storedUser) {
-        try {
-          const user = JSON.parse(storedUser);
-          setUsername(user.username || "");
-        } catch {
-          localStorage.removeItem("admin_user");
-        }
-      }
+      setUsername(user.username);
 
       setCheckingAuth(false);
     });
   }, [isLoginPage, router]);
 
   const handleLogout = () => {
+    // Clears the display hint and asks the API to clear the
+    // httpOnly session cookie.
     clearAdminSession();
 
     router.replace("/admin/login");

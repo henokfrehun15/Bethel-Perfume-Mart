@@ -81,14 +81,17 @@ Public:
 - `GET /api/settings`
 - `POST /api/orders` – guest checkout (prices/stock always resolved server-side), rate limited
 - `POST /api/orders/track` – look up an order by number + phone, rate limited
-- `POST /api/auth/login` – rate limited
+- `POST /api/auth/login` – rate limited; sets the admin session as an httpOnly cookie
+- `POST /api/auth/logout` – clears the session cookie
 
-Admin (requires `Authorization: Bearer <token>`):
+Admin (authenticated via the httpOnly `admin_token` cookie; a Bearer
+token in the `Authorization` header is also accepted for programmatic
+API clients):
 
 - `POST|PUT|DELETE /api/products`, `POST|PUT|DELETE /api/categories`
 - `GET /api/orders`, `GET /api/orders/stats`, `GET /api/orders/:orderNumber`, `PUT /api/orders/:orderNumber/status`
 - `PUT /api/settings`
-- `PUT /api/auth/password` – change the signed-in admin's password (signs out other sessions)
+- `PUT /api/auth/password` – change the signed-in admin's password (signs out other sessions, refreshes this one)
 - `POST /api/uploads/images` – upload a product image (multipart field `file`, admin only)
 - `DELETE /api/uploads/images` – delete a previously uploaded image by URL
 
@@ -97,9 +100,10 @@ Uploaded images are served from the API at `/uploads/<filename>`.
 ## Environment variables
 
 `server/.env` (see `server/.env.example`): `DATABASE_URL`, `JWT_SECRET`,
-`JWT_EXPIRES_IN`, `PORT`, `CLIENT_URL`, optional `DATABASE_SSL`, `TRUST_PROXY`,
-`WHATSAPP_NUMBER`, `WHATSAPP_API_URL`, `WHATSAPP_API_TOKEN`, plus the upload
-settings `UPLOAD_DIR`, `UPLOAD_MAX_BYTES` and `PUBLIC_ASSET_URL`.
+`JWT_EXPIRES_IN`, `COOKIE_SAME_SITE`, `PORT`, `CLIENT_URL`, optional
+`DATABASE_SSL`, `TRUST_PROXY`, `WHATSAPP_NUMBER`, `WHATSAPP_API_URL`,
+`WHATSAPP_API_TOKEN`, plus the upload settings `UPLOAD_DIR`,
+`UPLOAD_MAX_BYTES` and `PUBLIC_ASSET_URL`.
 
 `client/.env.local` (see `client/.env.example`): `NEXT_PUBLIC_API_URL`,
 `NEXT_PUBLIC_SITE_URL`.

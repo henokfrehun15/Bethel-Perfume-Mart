@@ -19,6 +19,16 @@ interface LoginResult {
 const JWT_SECRET = env.jwtSecret;
 const JWT_EXPIRES_IN = env.jwtExpiresIn;
 
+/** Mint a signed session token for an admin. */
+export const signAdminToken = (
+  payload: AdminPayload
+): string => {
+  // Explicitly cast expiresIn so TypeScript recognizes it as valid SignOptions
+  return jwt.sign(payload, JWT_SECRET, {
+    expiresIn: JWT_EXPIRES_IN as SignOptions["expiresIn"],
+  });
+};
+
 
 export const loginAdmin = async (
   username: string,
@@ -56,13 +66,8 @@ export const loginAdmin = async (
     username: admin.username,
   };
 
-  // Explicitly cast expiresIn so TypeScript recognizes it as valid SignOptions
-  const token = jwt.sign(payload, JWT_SECRET, {
-    expiresIn: JWT_EXPIRES_IN as SignOptions["expiresIn"],
-  });
-
   return {
-    token,
+    token: signAdminToken(payload),
     admin: {
       id: admin.id,
       username: admin.username,

@@ -5,8 +5,12 @@ const API_URL =
 /** Abort requests that take longer than this. */
 const REQUEST_TIMEOUT_MS = 20_000;
 
-const TOKEN_KEY = "admin_token";
 const USER_KEY = "admin_user";
+
+export interface AdminUser {
+  id: number;
+  username: string;
+}
 
 /** Error thrown for any failed API call, including network/timeout failures. */
 export class ApiError extends Error {
@@ -19,12 +23,44 @@ export class ApiError extends Error {
   }
 }
 
-export function getAdminToken(): string | null {
+/**
+ * The signed-in admin's username, kept for display only.
+ *
+ * The real credential is an httpOnly cookie set by the API, which
+ * JavaScript (and therefore XSS) cannot read. The presence of this
+ * value is only a UI hint — every admin request is authenticated by
+ * the cookie and 401s redirect to the login page.
+ */
+export function getAdminUser(): AdminUser | null {
   if (typeof window === "undefined") {
     return null;
   }
 
-  return localStorage.getItem(TOKEN_KEY);
+  const stored = localStorage.getItem(USER_KEY);
+
+  if (!stored) {
+    return null;
+  }
+
+  try {
+    const user = JSON.parse(stored) as AdminUser;
+
+    return user && typeof user.username === "string"
+      ? user
+      : null;
+  } catch {
+    localStorage.removeItem(USER_KEY);
+
+    return null;
+  }
+}
+
+export function setAdminUser(user: AdminUser): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  localStorage.setItem(USER_KEY, JSON.stringify(user));
 }
 
 export function clearAdminSession() {
@@ -32,8 +68,15 @@ export function clearAdminSession() {
     return;
   }
 
-  localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
+
+  // Best effort: ask the API to clear the httpOnly cookie, which
+  // JavaScript cannot delete itself. Failures are ignored — an
+  // already-cleared session is the desired end state.
+  fetch(`${API_URL}/auth/logout`, {
+    method: "POST",
+    credentials: "include",
+  }).catch(() => {});
 }
 
 function readErrorMessage(data: unknown): string | null {
@@ -52,8 +95,6 @@ export async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const token = getAdminToken();
-
   const headers = new Headers(options.headers);
   const hasBody =
     options.body !== undefined && options.body !== null;
@@ -61,10 +102,6 @@ export async function apiRequest<T>(
   // Only send a JSON content type when there is actually a body.
   if (hasBody && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
-  }
-
-  if (token) {
-    headers.set("Authorization", `Bearer ${token}`);
   }
 
   const controller = new AbortController();
@@ -94,6 +131,7 @@ export async function apiRequest<T>(
     response = await fetch(`${API_URL}${endpoint}`, {
       ...options,
       headers,
+      credentials: "include",
       signal: controller.signal,
     });
   } catch {

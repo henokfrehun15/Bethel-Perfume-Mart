@@ -38,7 +38,9 @@ src/lib        # api client (src/lib/api.ts), cart storage, site constants
 ```
 
 Cart state is kept in `localStorage` (`src/lib/cart.ts`) and broadcast through
-the `bethel-cart-updated` window event. Admin authentication stores the JWT in
-`localStorage` under `admin_token`; `apiRequest` attaches it to every call and
-clears the session when the API answers 401.
+the `bethel-cart-updated` window event. Admin authentication is an httpOnly
+session cookie set by the API — JavaScript never sees the token, so XSS cannot
+exfiltrate a session; `apiRequest` sends the cookie with every call and clears
+the session when the API answers 401. Only the admin's display username is
+kept in `localStorage` under `admin_user`.
 

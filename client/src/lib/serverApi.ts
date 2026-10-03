@@ -1,9 +1,9 @@
 /**
  * Server-side API access for server components.
  *
- * The client-side helper in `api.ts` reads the admin token from
- * localStorage, so it cannot run on the server. This module fetches
- * public storefront data during render, which is what makes product
+ * The client-side helper in `api.ts` is browser-oriented (localStorage
+ * display hints, cookie credentials), so this module fetches public
+ * storefront data during render instead, which is what makes product
  * pages crawlable and link-previewable.
  */
 

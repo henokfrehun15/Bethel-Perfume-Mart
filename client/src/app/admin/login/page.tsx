@@ -2,13 +2,12 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { apiRequest } from "@/lib/api";
+import { apiRequest, setAdminUser } from "@/lib/api";
 
 interface LoginResponse {
   success: boolean;
   message: string;
   data: {
-    token: string;
     admin: {
       id: number;
       username: string;
@@ -52,15 +51,9 @@ export default function AdminLoginPage() {
           }
         );
 
-      localStorage.setItem(
-        "admin_token",
-        response.data.token
-      );
-
-      localStorage.setItem(
-        "admin_user",
-        JSON.stringify(response.data.admin)
-      );
+      // The session token itself is set by the API as an httpOnly
+      // cookie; only the display username is stored client-side.
+      setAdminUser(response.data.admin);
 
       router.push("/admin");
     } catch (error) {
