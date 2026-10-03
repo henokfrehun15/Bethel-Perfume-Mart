@@ -40,3 +40,7 @@ Thumbs.db
 
 # Local audit scratch files
 audit-*.txt
+
+# Uploaded product images (runtime data, never committed)
+uploads/
+.tmp-test-uploads/

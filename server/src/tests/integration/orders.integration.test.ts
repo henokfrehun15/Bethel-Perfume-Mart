@@ -64,6 +64,10 @@ const CUSTOMER = "Integration Test";
 const PHONE = "0912345678";
 const suffix = Date.now().toString(36);
 
+// signAdminToken() signs with this id, so the suite needs a row for it.
+const ADMIN_ID = 1;
+let ownsAdmin = false;
+
 let categoryCounter = 0;
 let productCounter = 0;
 const createdProductIds: number[] = [];
@@ -149,6 +153,23 @@ runIntegration(
   () => {
     beforeAll(async () => {
       await runMigrations(pool);
+
+      // requireAdmin looks the admin up on every protected request, so
+      // the suite needs a real row that matches the signed token id.
+      const existing = await pool.query(
+        "SELECT id FROM admins WHERE id = $1",
+        [ADMIN_ID]
+      );
+
+      ownsAdmin = existing.rows.length === 0;
+
+      if (ownsAdmin) {
+        await pool.query(
+          `INSERT INTO admins (id, username, password_hash)
+           VALUES ($1, $2, $3)`,
+          [ADMIN_ID, `it-admin-${suffix}`, "not-a-real-hash"]
+        );
+      }
     });
 
     afterAll(async () => {
@@ -168,6 +189,13 @@ runIntegration(
         `DELETE FROM categories WHERE slug LIKE $1`,
         [`it-cat-${suffix}%`]
       );
+
+      if (ownsAdmin) {
+        await pool.query(
+          "DELETE FROM admins WHERE id = $1",
+          [ADMIN_ID]
+        );
+      }
 
       await pool.end();
     });

@@ -1,6 +1,12 @@
 import { Router } from "express";
-import { login } from "../controllers/authController";
+import {
+  changePassword,
+  login,
+} from "../controllers/authController";
+import { requireAdmin } from "../middleware/authMiddleware";
 import { rateLimit } from "../middleware/rateLimit";
+import { validate } from "../middleware/validate";
+import { changePasswordSchema } from "../validators/authValidator";
 
 const router = Router();
 
@@ -13,5 +19,22 @@ const loginLimiter = rateLimit({
 });
 
 router.post("/login", loginLimiter, login);
+
+// Password changes are rare; keep a generous ceiling so a mistake
+// cannot lock the owner out of their own store.
+const passwordChangeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message:
+    "Too many password changes. Please try again in a few minutes.",
+});
+
+router.put(
+  "/password",
+  passwordChangeLimiter,
+  requireAdmin,
+  validate(changePasswordSchema),
+  changePassword
+);
 
 export default router;

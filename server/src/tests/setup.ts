@@ -17,6 +17,9 @@ process.env.JWT_EXPIRES_IN ??= "1h";
 process.env.CLIENT_URL ??= "http://localhost:3000";
 process.env.NODE_ENV = "test";
 
+// Upload tests must not write into the real upload directory.
+process.env.UPLOAD_DIR ??= ".tmp-test-uploads";
+
 // Tests must never call the real WhatsApp webhook, even when the
 // developer's .env configures one. Assigning "" (a defined value)
 // also stops dotenv from filling it in from .env.

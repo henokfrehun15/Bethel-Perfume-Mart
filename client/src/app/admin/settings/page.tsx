@@ -22,6 +22,11 @@ interface SettingsResponse {
   data: StoreSettings;
 }
 
+interface MessageResponse {
+  success: boolean;
+  message: string;
+}
+
 export default function SettingsPage() {
   const [settings, setSettings] =
     useState<StoreSettings>({
@@ -43,6 +48,19 @@ export default function SettingsPage() {
     useState("");
 
   const [success, setSuccess] =
+    useState("");
+
+  const [currentPassword, setCurrentPassword] =
+    useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] =
+    useState("");
+
+  const [changingPassword, setChangingPassword] =
+    useState(false);
+  const [passwordError, setPasswordError] =
+    useState("");
+  const [passwordSuccess, setPasswordSuccess] =
     useState("");
 
   useEffect(() => {
@@ -79,6 +97,62 @@ export default function SettingsPage() {
       ...current,
       [field]: value,
     }));
+  };
+
+  const handleChangePassword = async (
+    event: FormEvent<HTMLFormElement>
+  ) => {
+    event.preventDefault();
+
+    setPasswordError("");
+    setPasswordSuccess("");
+
+    if (newPassword.length < 8) {
+      setPasswordError(
+        "The new password must be at least 8 characters."
+      );
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError(
+        "The new passwords do not match."
+      );
+      return;
+    }
+
+    setChangingPassword(true);
+
+    try {
+      const response =
+        await apiRequest<MessageResponse>(
+          "/auth/password",
+          {
+            method: "PUT",
+            body: JSON.stringify({
+              currentPassword,
+              newPassword,
+            }),
+          }
+        );
+
+      setPasswordSuccess(
+        response.message ||
+          "Password updated."
+      );
+
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      setPasswordError(
+        error instanceof Error
+          ? error.message
+          : "Failed to change password"
+      );
+    } finally {
+      setChangingPassword(false);
+    }
   };
 
   const handleSubmit = async (
@@ -340,6 +414,112 @@ export default function SettingsPage() {
             : "Save settings"}
         </button>
       </form>
+
+      <section className="mt-10 rounded-2xl border border-gray-200 bg-white p-6">
+        <h2 className="text-lg font-semibold text-gray-900">
+          Admin account
+        </h2>
+
+        <p className="mt-1 text-sm text-gray-500">
+          Changing your password signs out every other
+          session, including this browser.
+        </p>
+
+        <form
+          onSubmit={handleChangePassword}
+          className="mt-6 max-w-md space-y-4"
+        >
+          <div>
+            <label
+              htmlFor="currentPassword"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Current password
+            </label>
+
+            <input
+              id="currentPassword"
+              type="password"
+              autoComplete="current-password"
+              required
+              value={currentPassword}
+              onChange={(event) =>
+                setCurrentPassword(event.target.value)
+              }
+              className="mt-1 w-full rounded-lg border px-4 py-3 text-sm outline-none focus:ring-2"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="newPassword"
+              className="block text-sm font-medium text-gray-700"
+            >
+              New password
+            </label>
+
+            <input
+              id="newPassword"
+              type="password"
+              autoComplete="new-password"
+              required
+              minLength={8}
+              value={newPassword}
+              onChange={(event) =>
+                setNewPassword(event.target.value)
+              }
+              className="mt-1 w-full rounded-lg border px-4 py-3 text-sm outline-none focus:ring-2"
+            />
+
+            <p className="mt-1 text-xs text-gray-500">
+              At least 8 characters.
+            </p>
+          </div>
+
+          <div>
+            <label
+              htmlFor="confirmPassword"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Confirm new password
+            </label>
+
+            <input
+              id="confirmPassword"
+              type="password"
+              autoComplete="new-password"
+              required
+              value={confirmPassword}
+              onChange={(event) =>
+                setConfirmPassword(event.target.value)
+              }
+              className="mt-1 w-full rounded-lg border px-4 py-3 text-sm outline-none focus:ring-2"
+            />
+          </div>
+
+          {passwordError && (
+            <p className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+              {passwordError}
+            </p>
+          )}
+
+          {passwordSuccess && (
+            <p className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+              {passwordSuccess}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={changingPassword}
+            className="rounded-lg bg-black px-6 py-3 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {changingPassword
+              ? "Updating..."
+              : "Change password"}
+          </button>
+        </form>
+      </section>
     </div>
   );
 }

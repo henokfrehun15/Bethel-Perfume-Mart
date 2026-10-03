@@ -1,6 +1,11 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import {
+  ChangeEvent,
+  FormEvent,
+  useEffect,
+  useState,
+} from "react";
 import { useRouter } from "next/navigation";
 import { apiRequest } from "@/lib/api";
 
@@ -52,6 +57,26 @@ interface CategoriesResponse {
 interface ProductResponse {
   success: boolean;
   data: Product;
+}
+
+interface UploadResponse {
+  success: boolean;
+  message: string;
+  data: {
+    filename: string;
+    url: string;
+    size: number;
+    mime: string;
+  };
+}
+
+/**
+ * Images uploaded through this app live under the API's /uploads mount.
+ * Only those may be deleted through the API — external URLs are not
+ * ours to remove.
+ */
+function isUploadedImage(url: string): boolean {
+  return url.includes("/uploads/");
 }
 
 export default function ProductForm({
@@ -126,6 +151,10 @@ export default function ProductForm({
     useState(true);
   const [error, setError] = useState("");
 
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] =
+    useState("");
+
   useEffect(() => {
     const loadCategories = async () => {
       try {
@@ -164,11 +193,70 @@ export default function ProductForm({
   };
 
   const removeImage = (index: number) => {
+    const removed = images[index];
+
+    // Clean up files we uploaded ourselves. External URLs are left
+    // alone, and failures must not block editing.
+    if (removed && isUploadedImage(removed)) {
+      void apiRequest("/uploads/images", {
+        method: "DELETE",
+        body: JSON.stringify({ url: removed }),
+      }).catch(() => undefined);
+    }
+
     setImages((current) =>
       current.filter(
         (_, imageIndex) => imageIndex !== index
       )
     );
+  };
+
+  const handleUpload = async (
+    event: ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+
+    // Allow re-selecting the same file after a failure.
+    event.target.value = "";
+
+    if (!file) {
+      return;
+    }
+
+    setUploading(true);
+    setUploadError("");
+
+    try {
+      const body = new FormData();
+
+      body.append("file", file);
+
+      // No Content-Type is set here on purpose: the browser must add
+      // the multipart boundary itself.
+      const response = await apiRequest<UploadResponse>(
+        "/uploads/images",
+        { method: "POST", body }
+      );
+
+      const url = response.data.url.trim();
+
+      setImages((current) => {
+        // Replace the empty placeholder row on a fresh product.
+        if (current.length === 1 && !current[0].trim()) {
+          return [url];
+        }
+
+        return [...current, url];
+      });
+    } catch (uploadFailure) {
+      setUploadError(
+        uploadFailure instanceof Error
+          ? uploadFailure.message
+          : "The image could not be uploaded."
+      );
+    } finally {
+      setUploading(false);
+    }
   };
 
   const updateImage = (
@@ -761,18 +849,38 @@ export default function ProductForm({
                   Product Images
                 </h3>
                 <p className="mt-0.5 text-xs text-[#8b7e82]">
-                  Add image URLs for your fragrance.
-                </p>
+              Upload images or paste external image URLs.
+            </p>
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={addImage}
-              className="rounded-2xl bg-[#fff3f6] px-4 py-2.5 text-xs font-semibold text-[#9E405A] transition hover:bg-[#f7e5e9]"
-            >
-              + Add image
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <label
+                className={`cursor-pointer rounded-2xl bg-[#C96A82] px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-[#b95770] ${
+                  uploading
+                    ? "pointer-events-none opacity-60"
+                    : ""
+                }`}
+              >
+                {uploading ? "Uploading..." : "Upload image"}
+
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
+                  className="sr-only"
+                  disabled={uploading}
+                  onChange={handleUpload}
+                />
+              </label>
+
+              <button
+                type="button"
+                onClick={addImage}
+                className="rounded-2xl bg-[#fff3f6] px-4 py-2.5 text-xs font-semibold text-[#9E405A] transition hover:bg-[#f7e5e9]"
+              >
+                + Add image
+              </button>
+            </div>
           </div>
         </div>
 
@@ -782,8 +890,17 @@ export default function ProductForm({
               key={index}
               className="group flex flex-col gap-2 rounded-2xl border border-[#eadfe2] bg-[#fffdfc] p-3 sm:flex-row sm:items-center"
             >
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#f7e5e9] text-sm text-[#C96A82]">
-                {index + 1}
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#f7e5e9] text-sm text-[#C96A82]">
+                {image.trim() ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={image}
+                    alt=""
+                    className="h-11 w-11 object-cover"
+                  />
+                ) : (
+                  index + 1
+                )}
               </div>
 
               <input
@@ -812,6 +929,17 @@ export default function ProductForm({
               )}
             </div>
           ))}
+
+          {uploadError && (
+            <p className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-xs font-medium text-red-600">
+              {uploadError}
+            </p>
+          )}
+
+          <p className="text-xs leading-5 text-[#8b7e82]">
+            JPEG, PNG, WebP, AVIF or GIF, up to 5 MB. The
+            first image is used as the product cover.
+          </p>
         </div>
       </section>
 

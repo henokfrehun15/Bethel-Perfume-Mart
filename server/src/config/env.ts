@@ -45,6 +45,17 @@ function port(key: string, fallback: number): number {
     : fallback;
 }
 
+function positiveInt(
+  key: string,
+  fallback: number
+): number {
+  const value = Number(process.env[key]);
+
+  return Number.isInteger(value) && value > 0
+    ? value
+    : fallback;
+}
+
 export const env = {
   nodeEnv: optional("NODE_ENV", "development"),
 
@@ -63,6 +74,15 @@ export const env = {
   whatsappNumber: optional("WHATSAPP_NUMBER", ""),
   whatsappApiUrl: optional("WHATSAPP_API_URL", ""),
   whatsappApiToken: optional("WHATSAPP_API_TOKEN", ""),
+
+  // Where uploaded product images are written. Relative paths resolve
+  // from the server package directory (server/uploads by default).
+  uploadDir: optional("UPLOAD_DIR", "uploads"),
+  uploadMaxBytes: positiveInt("UPLOAD_MAX_BYTES", 5_000_000),
+  // Absolute base for uploaded image URLs. When empty the server
+  // derives it from the incoming request, which works behind a proxy
+  // as long as TRUST_PROXY is enabled.
+  publicAssetUrl: optional("PUBLIC_ASSET_URL", ""),
 };
 
 export const isProduction = env.nodeEnv === "production";

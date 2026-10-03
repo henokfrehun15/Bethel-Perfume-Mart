@@ -1,6 +1,7 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import request from "supertest";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 const { poolMock } = vi.hoisted(() => ({
   poolMock: {
@@ -13,6 +14,7 @@ const { poolMock } = vi.hoisted(() => ({
 vi.mock("../../config/database", () => ({ pool: poolMock }));
 
 import app from "../app";
+import { env } from "../../config/env";
 import { routeSql, signAdminToken } from "../helpers";
 
 const PASSWORD = "correct-password";
@@ -27,6 +29,11 @@ beforeEach(() => {
   poolMock.query.mockReset();
 
   routeSql(poolMock, [
+    // Lookup performed by requireAdmin on every protected request.
+    {
+      match: /password_changed_at/,
+      rows: [{ password_changed_at: null }],
+    },
     {
       match: /FROM admins/,
       rows: (_sql, params) =>
@@ -111,10 +118,48 @@ describe("admin authentication", () => {
     expect(response.status).toBe(401);
   });
 
+  it("rejects a token issued before a password change", async () => {
+    // One hour old, while the password was changed just now.
+    routeSql(poolMock, [
+      {
+        match: /password_changed_at/,
+        rows: [
+          {
+            password_changed_at: new Date().toISOString(),
+          },
+        ],
+      },
+    ]);
+
+    const stale = jwt.sign(
+      {
+        id: 1,
+        username: "admin",
+        iat: Math.floor(Date.now() / 1000) - 3600,
+      },
+      env.jwtSecret,
+      { expiresIn: "24h" }
+    );
+
+    const response = await request(app)
+      .get("/api/orders/stats")
+      .set("Authorization", `Bearer ${stale}`);
+
+    expect(response.status).toBe(401);
+    expect(response.body.message).toContain(
+      "no longer valid"
+    );
+  });
+
   it("accepts a valid admin token", async () => {
     // The stats endpoint needs aggregate rows; route its SQL so the
     // handler responds 200 instead of failing on empty results.
     routeSql(poolMock, [
+      // requireAdmin session check still runs first.
+      {
+        match: /password_changed_at/,
+        rows: [{ password_changed_at: null }],
+      },
       {
         match: /GROUP BY status/,
         rows: [{ status: "PENDING", count: 3 }],

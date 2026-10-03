@@ -10,6 +10,11 @@ import categoryRoutes from "./routes/categoryRoutes";
 import orderRoutes from "./routes/orderRoutes";
 import productRoutes from "./routes/productRoutes";
 import settingsRoutes from "./routes/settingsRoutes";
+import uploadRoutes from "./routes/uploadRoutes";
+import {
+  getUploadDir,
+  UPLOAD_MOUNT_PATH,
+} from "./services/uploadService";
 
 const app = express();
 
@@ -31,6 +36,18 @@ app.use(
 
 app.use(express.json({ limit: "1mb" }));
 app.use(morgan(isProduction ? "combined" : "dev"));
+
+// Uploaded product images. Filenames are unique, so responses can be
+// cached aggressively.
+app.use(
+  UPLOAD_MOUNT_PATH,
+  express.static(getUploadDir(), {
+    index: false,
+    dotfiles: "deny",
+    maxAge: "30d",
+    immutable: true,
+  })
+);
 
 // Health check (also verifies the database connection)
 app.get("/api/health", async (_req, res) => {
@@ -59,6 +76,7 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/settings", settingsRoutes);
+app.use("/api/uploads", uploadRoutes);
 
 // 404 + centralized error handling (must be last)
 app.use(notFoundHandler);

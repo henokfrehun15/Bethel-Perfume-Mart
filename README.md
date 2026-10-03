@@ -88,14 +88,21 @@ Admin (requires `Authorization: Bearer <token>`):
 - `POST|PUT|DELETE /api/products`, `POST|PUT|DELETE /api/categories`
 - `GET /api/orders`, `GET /api/orders/stats`, `GET /api/orders/:orderNumber`, `PUT /api/orders/:orderNumber/status`
 - `PUT /api/settings`
+- `PUT /api/auth/password` – change the signed-in admin's password (signs out other sessions)
+- `POST /api/uploads/images` – upload a product image (multipart field `file`, admin only)
+- `DELETE /api/uploads/images` – delete a previously uploaded image by URL
+
+Uploaded images are served from the API at `/uploads/<filename>`.
 
 ## Environment variables
 
 `server/.env` (see `server/.env.example`): `DATABASE_URL`, `JWT_SECRET`,
 `JWT_EXPIRES_IN`, `PORT`, `CLIENT_URL`, optional `DATABASE_SSL`, `TRUST_PROXY`,
-`WHATSAPP_NUMBER`, `WHATSAPP_API_URL`, `WHATSAPP_API_TOKEN`.
+`WHATSAPP_NUMBER`, `WHATSAPP_API_URL`, `WHATSAPP_API_TOKEN`, plus the upload
+settings `UPLOAD_DIR`, `UPLOAD_MAX_BYTES` and `PUBLIC_ASSET_URL`.
 
-`client/.env.local` (see `client/.env.example`): `NEXT_PUBLIC_API_URL`.
+`client/.env.local` (see `client/.env.example`): `NEXT_PUBLIC_API_URL`,
+`NEXT_PUBLIC_SITE_URL`.
 
 ## Database migrations
 
@@ -147,8 +154,28 @@ fixtures.
 tests (with a PostgreSQL service container) and storefront lint, typecheck,
 tests and production build.
 
+## Product images
+
+The admin product form uploads images straight to the API
+(`POST /api/uploads/images`, multipart field `file`) and keeps the returned
+URL, alongside any externally hosted image URLs. The server:
+
+- accepts JPEG, PNG, WebP, AVIF and GIF up to `UPLOAD_MAX_BYTES`;
+- verifies the file really is an image by reading its magic bytes, so a
+  renamed text file is rejected;
+- stores it under a generated filename in `UPLOAD_DIR` and serves it from
+  `/uploads`, so the original filename is never trusted;
+- serves responses with long-lived caching, because filenames are unique.
+
+External image URLs (e.g. a CDN) still work and are not deleted by the app.
+
 ## Roadmap / known gaps
 
-- Product images are stored as external URLs (no upload pipeline).
+- Uploaded images live on the API's local disk: move `UPLOAD_DIR` to a
+  persistent volume, or swap `uploadService` for object storage (S3, Cloudinary)
+  before running more than one API instance.
+- Checkout is cash-on-delivery only — no online payment gateway yet.
+- Product pages are server-rendered with per-product metadata; the home page
+  and collection listing still render on the client.
 - Products support soft-delete/hide via `is_active`: hard delete stays blocked
   for products that appear in orders, and the admin UI offers "Hide instead".

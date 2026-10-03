@@ -75,3 +75,52 @@ export const hashPassword = async (
 ): Promise<string> => {
   return bcrypt.hash(password, 12);
 };
+
+/** Check an admin's current password without exposing the hash. */
+export const verifyAdminPassword = async (
+  adminId: number,
+  password: string
+): Promise<boolean> => {
+  const result = await pool.query(
+    `
+    SELECT password_hash
+    FROM admins
+    WHERE id = $1
+    `,
+    [adminId]
+  );
+
+  const admin = result.rows[0];
+
+  if (!admin) {
+    return false;
+  }
+
+  return bcrypt.compare(password, admin.password_hash);
+};
+
+/**
+ * Replace an admin's password and stamp the change so that tokens
+ * issued before now are rejected by the auth middleware.
+ */
+export const updateAdminPassword = async (
+  adminId: number,
+  newPassword: string
+): Promise<boolean> => {
+  const passwordHash = await hashPassword(newPassword);
+
+  const result = await pool.query(
+    `
+    UPDATE admins
+    SET
+      password_hash = $1,
+      password_changed_at = CURRENT_TIMESTAMP,
+      updated_at = CURRENT_TIMESTAMP
+    WHERE id = $2
+    RETURNING id
+    `,
+    [passwordHash, adminId]
+  );
+
+  return result.rows.length > 0;
+};
