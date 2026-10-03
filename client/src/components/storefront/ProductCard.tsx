@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import ProductImage from "./ProductImage";
+
 export interface StorefrontProduct {
   id: number;
   name: string;
@@ -52,19 +54,17 @@ export default function ProductCard({
     <article className="group overflow-hidden rounded-3xl border border-[#eadfe2] bg-white shadow-[0_12px_40px_rgba(120,70,85,0.07)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_50px_rgba(120,70,85,0.12)]">
       <Link href={`/products/${product.slug}`}>
         <div className="relative aspect-[4/5] overflow-hidden bg-[#f9f0f2]">
-          {product.image ? (
-            <img
-              src={product.image}
-              alt={product.name}
-              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-            />
-          ) : (
+          <ProductImage
+            src={product.image}
+            alt={product.name}
+            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+          >
             <div className="flex h-full items-center justify-center px-6 text-center">
               <span className="font-serif text-2xl text-[#c96a82]">
                 Bethel Perfume
               </span>
             </div>
-          )}
+          </ProductImage>
 
           {hasPromotion && (
             <span className="absolute left-4 top-4 rounded-full bg-[#c96a82] px-3 py-1.5 text-xs font-semibold text-white">

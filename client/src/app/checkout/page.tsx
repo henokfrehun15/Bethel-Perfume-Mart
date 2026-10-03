@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import ProductImage from "@/components/storefront/ProductImage";
 import StorefrontHeader from "@/components/storefront/StorefrontHeader";
 import {
   CartItem,
@@ -317,13 +318,11 @@ export default function CheckoutPage() {
                 {items.map((item) => (
                   <div key={item.productId} className="flex gap-3">
                     <div className="h-16 w-14 shrink-0 overflow-hidden rounded-xl bg-[#f7e5e9]">
-                      {item.image ? (
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : null}
+                      <ProductImage
+                        src={item.image}
+                        alt={item.name}
+                        className="h-full w-full object-cover"
+                      />
                     </div>
 
                     <div className="min-w-0 flex-1">

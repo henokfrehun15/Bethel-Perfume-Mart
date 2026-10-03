@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+
+import ProductImage from "@/components/storefront/ProductImage";
 import { apiRequest } from "@/lib/api";
 
 interface Product {
@@ -586,14 +588,11 @@ export default function AdminProductsPage() {
                       {/* Product */}
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
-                          {product.image ? (
-                            /* eslint-disable-next-line @next/next/no-img-element */
-                            <img
-                              src={product.image}
-                              alt={product.name}
-                              className="h-14 w-14 shrink-0 rounded-xl border border-[#eadfe2] object-cover shadow-sm"
-                            />
-                          ) : (
+                          <ProductImage
+                            src={product.image}
+                            alt={product.name}
+                            className="h-14 w-14 shrink-0 rounded-xl border border-[#eadfe2] object-cover shadow-sm"
+                          >
                             <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-[#eadfe2] bg-[#fdf5f7] text-[#c96a82]">
                               <svg
                                 viewBox="0 0 24 24"
@@ -614,7 +613,7 @@ export default function AdminProductsPage() {
                                 />
                               </svg>
                             </div>
-                          )}
+                          </ProductImage>
 
                           <div className="min-w-0">
                             <p className="truncate font-semibold text-[#30272a]">

@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { addToCart } from "@/lib/cart";
 import type { Product } from "@/lib/serverApi";
+import ProductImage from "./ProductImage";
 import StorefrontHeader from "./StorefrontHeader";
 
 interface ProductDetailProps {
@@ -99,22 +100,21 @@ export default function ProductDetail({
             {/* Product images */}
             <div>
               <div className="overflow-hidden rounded-[2rem] border border-[#eadfe2] bg-[#f9f0f2] shadow-[0_16px_50px_rgba(120,70,85,0.08)]">
-                {currentImage ? (
-                  <img
-                    src={currentImage}
-                    alt={
-                      images[selectedImage]?.alt_text ||
-                      product.name
-                    }
-                    className="aspect-[4/5] h-full w-full object-cover"
-                  />
-                ) : (
+                <ProductImage
+                  src={currentImage}
+                  alt={
+                    images[selectedImage]?.alt_text ||
+                    product.name
+                  }
+                  className="aspect-[4/5] h-full w-full object-cover"
+                  eager
+                >
                   <div className="flex aspect-[4/5] items-center justify-center px-8 text-center">
                     <span className="font-serif text-3xl text-[#c96a82]">
                       Bethel Perfume
                     </span>
                   </div>
-                )}
+                </ProductImage>
               </div>
 
               {images.length > 1 && (
@@ -132,7 +132,7 @@ export default function ProductDetail({
                           : "border-transparent"
                       }`}
                     >
-                      <img
+                      <ProductImage
                         src={image.url}
                         alt={
                           image.alt_text ||

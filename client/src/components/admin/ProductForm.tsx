@@ -7,6 +7,8 @@ import {
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
+
+import ProductImage from "@/components/storefront/ProductImage";
 import { apiRequest } from "@/lib/api";
 
 interface Category {
@@ -891,16 +893,13 @@ export default function ProductForm({
               className="group flex flex-col gap-2 rounded-2xl border border-[#eadfe2] bg-[#fffdfc] p-3 sm:flex-row sm:items-center"
             >
               <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#f7e5e9] text-sm text-[#C96A82]">
-                {image.trim() ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    src={image}
-                    alt=""
-                    className="h-11 w-11 object-cover"
-                  />
-                ) : (
-                  index + 1
-                )}
+                <ProductImage
+                  src={image}
+                  alt=""
+                  className="h-11 w-11 object-cover"
+                >
+                  {index + 1}
+                </ProductImage>
               </div>
 
               <input

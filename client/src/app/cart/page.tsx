@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import ProductImage from "@/components/storefront/ProductImage";
 import StorefrontHeader from "@/components/storefront/StorefrontHeader";
 import {
   CartItem,
@@ -101,17 +102,15 @@ export default function CartPage() {
                           href={`/products/${item.slug}`}
                           className="h-28 w-24 shrink-0 overflow-hidden rounded-2xl bg-[#f7e5e9] sm:h-32 sm:w-28"
                         >
-                          {item.image ? (
-                            <img
-                              src={item.image}
-                              alt={item.name}
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
+                          <ProductImage
+                            src={item.image}
+                            alt={item.name}
+                            className="h-full w-full object-cover"
+                          >
                             <div className="flex h-full items-center justify-center px-3 text-center text-xs text-[#9e405a]">
                               Bethel Perfume
                             </div>
-                          )}
+                          </ProductImage>
                         </Link>
 
                         <div className="min-w-0 flex-1">

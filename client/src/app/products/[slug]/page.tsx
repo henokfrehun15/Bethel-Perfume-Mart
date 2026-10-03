@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import ProductDetail from "@/components/storefront/ProductDetail";
+import { resolveImageUrl } from "@/lib/images";
 import {
   getProductBySlug,
   type Product,
@@ -27,20 +28,6 @@ interface ProductPageProps {
  * HTTP 200 (vercel/next.js#93253).
  */
 export const dynamic = "force-dynamic";
-
-function absoluteUrl(
-  url: string | null | undefined
-): string | undefined {
-  if (!url) {
-    return undefined;
-  }
-
-  if (url.startsWith("http://") || url.startsWith("https://")) {
-    return url;
-  }
-
-  return `${SITE_URL}${url.startsWith("/") ? "" : "/"}${url}`;
-}
 
 function truncate(value: string, max = 160): string {
   return value.length > max
@@ -85,7 +72,9 @@ export async function generateMetadata({
   const socialTitle = `${pageTitle} | ${SITE_NAME}`;
 
   const image = product.images[0];
-  const imageUrl = absoluteUrl(image?.url);
+  // Uploads are stored as /uploads/... paths served by the API, so
+  // they must resolve against the API origin, not the site origin.
+  const imageUrl = resolveImageUrl(image?.url) ?? undefined;
 
   return {
     title: pageTitle,
