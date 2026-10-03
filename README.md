@@ -165,7 +165,17 @@ URL, alongside any externally hosted image URLs. The server:
   renamed text file is rejected;
 - stores it under a generated filename in `UPLOAD_DIR` and serves it from
   `/uploads`, so the original filename is never trusted;
-- serves responses with long-lived caching, because filenames are unique.
+- serves responses with long-lived caching, because filenames are unique;
+- serves them with `Cross-Origin-Resource-Policy: cross-origin` so browsers
+  allow the storefront (a different origin) to embed them.
+
+Uploaded images are stored in the database as `/uploads/...` paths, not
+absolute URLs — the storefront resolves them against the API origin at
+render time, so images keep working when the API moves between hosts
+(set `PUBLIC_ASSET_URL` only if uploads are served from a separate CDN).
+Migration `0003` normalises any older absolute URLs the same way, and the
+storefront falls back to a branded placeholder when an image is missing
+or fails to load.
 
 External image URLs (e.g. a CDN) still work and are not deleted by the app.
 
