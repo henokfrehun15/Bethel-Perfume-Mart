@@ -82,7 +82,7 @@ export default function ProductFilters({
     search || category || inStock || promotion;
 
   return (
-    <div className="mt-10 rounded-3xl border border-[#eadfe2] bg-white/90 p-4 shadow-[0_12px_40px_rgba(120,70,85,0.06)] backdrop-blur-sm md:p-5">
+    <div className="mt-10 rounded-3xl border border-border bg-white/90 p-4 shadow-[0_12px_40px_rgba(120,70,85,0.06)] backdrop-blur-sm md:p-5">
       <form
         onSubmit={handleSearch}
         className="flex flex-col gap-3 md:flex-row"
@@ -95,12 +95,12 @@ export default function ProductFilters({
             setSearchInput(event.target.value)
           }
           placeholder="Search fragrances..."
-          className="min-h-12 flex-1 rounded-2xl border border-[#dfd3d7] bg-[#fffcfa] px-4 text-sm text-[#30272a] outline-none transition placeholder:text-[#9b9093] focus:border-[#c96a82] focus:ring-2 focus:ring-[#c96a82]/10"
+          className="min-h-12 flex-1 rounded-2xl border border-input bg-background px-4 text-sm text-foreground outline-none transition placeholder:text-muted-light focus:border-primary focus:ring-2 focus:ring-primary/10"
         />
 
         <button
           type="submit"
-          className="min-h-12 rounded-2xl bg-[#c96a82] px-7 text-sm font-semibold text-white transition hover:bg-[#9e405a]"
+          className="min-h-12 rounded-2xl bg-primary px-7 text-sm font-semibold text-white transition hover:bg-primary-dark"
         >
           Search
         </button>
@@ -112,7 +112,7 @@ export default function ProductFilters({
           onChange={(event) =>
             apply({ category: event.target.value })
           }
-          className="min-h-11 rounded-2xl border border-[#dfd3d7] bg-[#fffcfa] px-4 text-sm text-[#30272a] outline-none focus:border-[#c96a82]"
+          className="min-h-11 rounded-2xl border border-input bg-background px-4 text-sm text-foreground outline-none focus:border-primary"
         >
           <option value="">
             All categories
@@ -128,27 +128,27 @@ export default function ProductFilters({
           ))}
         </select>
 
-        <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-2xl border border-[#dfd3d7] bg-[#fffcfa] px-4 text-sm text-[#30272a]">
+        <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-2xl border border-input bg-background px-4 text-sm text-foreground">
           <input
             type="checkbox"
             checked={inStock}
             onChange={(event) =>
               apply({ inStock: event.target.checked })
             }
-            className="h-4 w-4 accent-[#c96a82]"
+            className="h-4 w-4 accent-primary"
           />
 
           In stock only
         </label>
 
-        <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-2xl border border-[#dfd3d7] bg-[#fffcfa] px-4 text-sm text-[#30272a]">
+        <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-2xl border border-input bg-background px-4 text-sm text-foreground">
           <input
             type="checkbox"
             checked={promotion}
             onChange={(event) =>
               apply({ promotion: event.target.checked })
             }
-            className="h-4 w-4 accent-[#c96a82]"
+            className="h-4 w-4 accent-primary"
           />
 
           Promotions
@@ -158,7 +158,7 @@ export default function ProductFilters({
           <button
             type="button"
             onClick={() => router.push("/products")}
-            className="min-h-11 rounded-2xl border border-[#d9c4ca] px-4 text-sm font-medium text-[#9e405a] transition hover:bg-[#f7e5e9]"
+            className="min-h-11 rounded-2xl border border-[#d9c4ca] px-4 text-sm font-medium text-primary-dark transition hover:bg-primary-light"
           >
             Clear filters
           </button>

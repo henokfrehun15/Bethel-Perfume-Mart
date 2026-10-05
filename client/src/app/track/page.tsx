@@ -4,6 +4,7 @@ import { FormEvent, Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
+import StorefrontFooter from "@/components/storefront/StorefrontFooter";
 import StorefrontHeader from "@/components/storefront/StorefrontHeader";
 import { apiRequest } from "@/lib/api";
 
@@ -102,8 +103,8 @@ function StatusTimeline({ status }: { status: OrderStatus }) {
               <span
                 className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-semibold ${
                   done || current
-                    ? "border-[#c96a82] bg-[#c96a82] text-white"
-                    : "border-[#eadfe2] bg-white text-[#9b9093]"
+                    ? "border-primary bg-primary text-white"
+                    : "border-border bg-white text-muted-light"
                 }`}
               >
                 {done ? "✓" : index + 1}
@@ -112,7 +113,7 @@ function StatusTimeline({ status }: { status: OrderStatus }) {
               {index < STATUS_FLOW.length - 1 && (
                 <span
                   className={`w-px flex-1 ${
-                    done ? "bg-[#c96a82]" : "bg-[#eadfe2]"
+                    done ? "bg-primary" : "bg-border"
                   }`}
                 />
               )}
@@ -121,13 +122,13 @@ function StatusTimeline({ status }: { status: OrderStatus }) {
             <div className="pb-5 pt-1">
               <p
                 className={`text-sm font-semibold ${
-                  done || current ? "text-[#30272a]" : "text-[#9b9093]"
+                  done || current ? "text-foreground" : "text-muted-light"
                 }`}
               >
                 {STATUS_LABELS[step]}
 
                 {current && (
-                  <span className="ml-2 rounded-full bg-[#f7e5e9] px-2 py-0.5 text-xs font-medium text-[#9e405a]">
+                  <span className="ml-2 rounded-full bg-primary-light px-2 py-0.5 text-xs font-medium text-primary-dark">
                     Current
                   </span>
                 )}
@@ -189,28 +190,28 @@ function TrackForm() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-[#c96a82]">
+      <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-primary-dark">
         Order tracking
       </p>
 
-      <h1 className="font-serif text-4xl leading-tight text-[#30272a] md:text-5xl">
+      <h1 className="font-serif text-4xl leading-tight text-foreground md:text-5xl">
         Where is my order?
       </h1>
 
-      <p className="mt-4 text-base leading-7 text-[#756b6e]">
+      <p className="mt-4 text-base leading-7 text-muted">
         Enter the order number from your confirmation and the phone
         number you checked out with to see the latest status.
       </p>
 
       <form
         onSubmit={handleSubmit}
-        className="mt-8 rounded-3xl border border-[#eadfe2] bg-white/90 p-6 shadow-[0_12px_40px_rgba(120,70,85,0.05)] md:p-7"
+        className="mt-8 rounded-3xl border border-border bg-white/90 p-6 shadow-[0_12px_40px_rgba(120,70,85,0.05)] md:p-7"
       >
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
             <label
               htmlFor="track-order-number"
-              className="mb-2 block text-sm font-medium text-[#30272a]"
+              className="mb-2 block text-sm font-medium text-foreground"
             >
               Order number
             </label>
@@ -224,14 +225,14 @@ function TrackForm() {
                 setOrderNumber(event.target.value)
               }
               placeholder="BETHEL-20250101-000001"
-              className="w-full rounded-2xl border border-[#dfd3d7] bg-[#fffcfa] px-4 py-3 text-sm text-[#30272a] outline-none transition placeholder:text-[#9b9093] focus:border-[#c96a82] focus:ring-2 focus:ring-[#c96a82]/10"
+              className="w-full rounded-2xl border border-input bg-background px-4 py-3 text-sm text-foreground outline-none transition placeholder:text-muted-light focus:border-primary focus:ring-2 focus:ring-primary/10"
             />
           </div>
 
           <div>
             <label
               htmlFor="track-phone"
-              className="mb-2 block text-sm font-medium text-[#30272a]"
+              className="mb-2 block text-sm font-medium text-foreground"
             >
               Phone number
             </label>
@@ -243,13 +244,13 @@ function TrackForm() {
               value={phone}
               onChange={(event) => setPhone(event.target.value)}
               placeholder="09XXXXXXXX"
-              className="w-full rounded-2xl border border-[#dfd3d7] bg-[#fffcfa] px-4 py-3 text-sm text-[#30272a] outline-none transition placeholder:text-[#9b9093] focus:border-[#c96a82] focus:ring-2 focus:ring-[#c96a82]/10"
+              className="w-full rounded-2xl border border-input bg-background px-4 py-3 text-sm text-foreground outline-none transition placeholder:text-muted-light focus:border-primary focus:ring-2 focus:ring-primary/10"
             />
           </div>
         </div>
 
         {error && (
-          <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700">
+          <div className="mt-5 rounded-2xl border border-[#edcbd1] bg-[#fdf0f2] p-4 text-sm leading-6 text-[#9e405a]">
             {error}
           </div>
         )}
@@ -257,26 +258,26 @@ function TrackForm() {
         <button
           type="submit"
           disabled={loading}
-          className="mt-6 w-full rounded-2xl bg-[#c96a82] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#9e405a] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+          className="mt-6 w-full rounded-2xl bg-primary px-6 py-3 text-sm font-semibold text-white transition hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
         >
           {loading ? "Looking up order..." : "Track order"}
         </button>
       </form>
 
       {order && (
-        <div className="mt-8 rounded-3xl border border-[#eadfe2] bg-white/90 p-6 shadow-[0_12px_40px_rgba(120,70,85,0.05)] md:p-7">
-          <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#eadfe2] pb-5">
+        <div className="mt-8 rounded-3xl border border-border bg-white/90 p-6 shadow-[0_12px_40px_rgba(120,70,85,0.05)] md:p-7">
+          <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border pb-5">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9b9093]">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-light">
                 Order number
               </p>
 
-              <p className="mt-1 break-all font-serif text-xl text-[#9e405a]">
+              <p className="mt-1 break-all font-serif text-xl text-primary-dark">
                 {order.order_number}
               </p>
             </div>
 
-            <span className="rounded-full border border-[#eadfe2] bg-[#fffcfa] px-3 py-1 text-xs font-semibold text-[#30272a]">
+            <span className="rounded-full border border-border bg-background px-3 py-1 text-xs font-semibold text-foreground">
               {STATUS_LABELS[order.status]}
             </span>
           </div>
@@ -285,18 +286,18 @@ function TrackForm() {
             <StatusTimeline status={order.status} />
           </div>
 
-          <div className="border-t border-[#eadfe2] pt-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9b9093]">
+          <div className="border-t border-border pt-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-light">
               Placed on
             </p>
 
-            <p className="mt-1 text-sm text-[#30272a]">
+            <p className="mt-1 text-sm text-foreground">
               {formatDateTime(order.created_at)}
             </p>
           </div>
 
-          <div className="mt-5 space-y-3 border-t border-[#eadfe2] pt-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9b9093]">
+          <div className="mt-5 space-y-3 border-t border-border pt-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-light">
               Items
             </p>
 
@@ -306,11 +307,11 @@ function TrackForm() {
                 className="flex items-start justify-between gap-4 text-sm"
               >
                 <div>
-                  <p className="font-medium text-[#30272a]">
+                  <p className="font-medium text-foreground">
                     {item.product_name}
                   </p>
 
-                  <p className="mt-0.5 text-xs text-[#756b6e]">
+                  <p className="mt-0.5 text-xs text-muted">
                     Qty {item.quantity}
                     {item.product_size
                       ? ` · ${item.product_size}`
@@ -318,29 +319,29 @@ function TrackForm() {
                   </p>
                 </div>
 
-                <p className="font-semibold text-[#30272a]">
+                <p className="font-semibold text-foreground">
                   {formatPrice(item.subtotal, order.currency)}
                 </p>
               </div>
             ))}
           </div>
 
-          <div className="mt-5 space-y-2 border-t border-[#eadfe2] pt-5 text-sm">
-            <div className="flex justify-between text-[#756b6e]">
+          <div className="mt-5 space-y-2 border-t border-border pt-5 text-sm">
+            <div className="flex justify-between text-muted">
               <span>Subtotal</span>
               <span>
                 {formatPrice(order.subtotal, order.currency)}
               </span>
             </div>
 
-            <div className="flex justify-between text-[#756b6e]">
+            <div className="flex justify-between text-muted">
               <span>Delivery</span>
               <span>
                 {formatPrice(order.delivery_fee, order.currency)}
               </span>
             </div>
 
-            <div className="flex justify-between text-base font-semibold text-[#30272a]">
+            <div className="flex justify-between text-base font-semibold text-foreground">
               <span>Total</span>
               <span>
                 {formatPrice(order.total, order.currency)}
@@ -353,7 +354,7 @@ function TrackForm() {
       <div className="mt-8 text-center">
         <Link
           href="/products"
-          className="text-sm font-semibold text-[#9e405a] transition-colors hover:text-[#c96a82]"
+          className="text-sm font-semibold text-primary-dark transition-colors hover:text-primary"
         >
           Continue shopping →
         </Link>
@@ -372,13 +373,15 @@ export default function TrackPage() {
           <Suspense
             fallback={
               <div className="flex justify-center py-16">
-                <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#f0d7de] border-t-[#c96a82]" />
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#f0d7de] border-t-primary" />
               </div>
             }
           >
             <TrackForm />
           </Suspense>
         </section>
+
+        <StorefrontFooter />
       </div>
     </main>
   );

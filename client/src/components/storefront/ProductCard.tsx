@@ -51,7 +51,7 @@ export default function ProductCard({
     product.stock_status === "OUT_OF_STOCK";
 
   return (
-    <article className="group overflow-hidden rounded-3xl border border-[#eadfe2] bg-white shadow-[0_12px_40px_rgba(120,70,85,0.07)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_50px_rgba(120,70,85,0.12)]">
+    <article className="group overflow-hidden rounded-3xl border border-border bg-white shadow-[0_12px_40px_rgba(120,70,85,0.07)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_50px_rgba(120,70,85,0.12)]">
       <Link href={`/products/${product.slug}`}>
         <div className="relative aspect-[4/5] overflow-hidden bg-[#f9f0f2]">
           <ProductImage
@@ -60,27 +60,27 @@ export default function ProductCard({
             className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
           >
             <div className="flex h-full items-center justify-center px-6 text-center">
-              <span className="font-serif text-2xl text-[#c96a82]">
+              <span className="font-serif text-2xl text-primary">
                 Bethel Perfume
               </span>
             </div>
           </ProductImage>
 
           {hasPromotion && (
-            <span className="absolute left-4 top-4 rounded-full bg-[#c96a82] px-3 py-1.5 text-xs font-semibold text-white">
+            <span className="absolute left-4 top-4 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-white">
               {product.promotion_text || "Special offer"}
             </span>
           )}
 
           {product.is_featured && !hasPromotion && (
-            <span className="absolute left-4 top-4 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-[#9e405a] shadow-sm">
+            <span className="absolute left-4 top-4 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-primary-dark shadow-sm">
               Featured
             </span>
           )}
 
           {isOutOfStock && (
             <div className="absolute inset-0 flex items-end bg-black/10">
-              <div className="w-full bg-white/90 px-4 py-3 text-center text-sm font-medium text-[#756b6e]">
+              <div className="w-full bg-white/90 px-4 py-3 text-center text-sm font-medium text-muted">
                 Currently unavailable
               </div>
             </div>
@@ -90,19 +90,19 @@ export default function ProductCard({
 
       <div className="p-5">
         {product.category_name && (
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#c96a82]">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary-dark">
             {product.category_name}
           </p>
         )}
 
         <Link href={`/products/${product.slug}`}>
-          <h3 className="font-serif text-xl text-[#30272a] transition hover:text-[#9e405a]">
+          <h3 className="font-serif text-xl text-foreground transition hover:text-primary-dark">
             {product.name}
           </h3>
         </Link>
 
         {product.brand && (
-          <p className="mt-1 text-sm text-[#756b6e]">
+          <p className="mt-1 text-sm text-muted">
             {product.brand}
           </p>
         )}
@@ -111,10 +111,10 @@ export default function ProductCard({
           <div>
             {hasPromotion ? (
               <>
-                <p className="text-sm text-[#9b9093] line-through">
+                <p className="text-sm text-muted-light line-through">
                   {formatPrice(product.price, product.currency)}
                 </p>
-                <p className="font-semibold text-[#9e405a]">
+                <p className="font-semibold text-primary-dark">
                   {formatPrice(
                     product.promotion_price!,
                     product.currency
@@ -122,14 +122,14 @@ export default function ProductCard({
                 </p>
               </>
             ) : (
-              <p className="font-semibold text-[#30272a]">
+              <p className="font-semibold text-foreground">
                 {formatPrice(product.price, product.currency)}
               </p>
             )}
           </div>
 
           {product.size && (
-            <span className="text-xs text-[#756b6e]">
+            <span className="text-xs text-muted">
               {product.size}
             </span>
           )}

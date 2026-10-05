@@ -3,9 +3,14 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import { addToCart } from "@/lib/cart";
+import {
+  addToCart,
+  type CartItem,
+} from "@/lib/cart";
 import type { Product } from "@/lib/serverApi";
+import CartDrawer from "./CartDrawer";
 import ProductImage from "./ProductImage";
+import StorefrontFooter from "./StorefrontFooter";
 import StorefrontHeader from "./StorefrontHeader";
 
 interface ProductDetailProps {
@@ -31,6 +36,10 @@ export default function ProductDetail({
   const [selectedImage, setSelectedImage] =
     useState(0);
   const [added, setAdded] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerItems, setDrawerItems] = useState<
+    CartItem[]
+  >([]);
 
   const images = [...product.images].sort(
     (a, b) => a.sort_order - b.sort_order
@@ -64,19 +73,21 @@ export default function ProductDetail({
       return;
     }
 
-    addToCart({
-      productId: product.id,
-      name: product.name,
-      slug: product.slug,
-      price: cartPrice,
-      currency: product.currency,
-      image: images[0]?.url || null,
-      size: product.size,
-      quantity: 1,
-      stockQty: product.stock_qty,
-    });
-
     setAdded(true);
+    setDrawerItems(
+      addToCart({
+        productId: product.id,
+        name: product.name,
+        slug: product.slug,
+        price: cartPrice,
+        currency: product.currency,
+        image: images[0]?.url || null,
+        size: product.size,
+        quantity: 1,
+        stockQty: product.stock_qty,
+      })
+    );
+    setDrawerOpen(true);
 
     window.setTimeout(() => {
       setAdded(false);
@@ -91,7 +102,7 @@ export default function ProductDetail({
         <section className="bethel-container py-10 md:py-16">
           <Link
             href="/products"
-            className="text-sm font-medium text-[#9e405a] hover:underline"
+            className="text-sm font-medium text-primary-dark hover:underline"
           >
             ← Back to collection
           </Link>
@@ -99,7 +110,7 @@ export default function ProductDetail({
           <div className="mt-8 grid gap-10 lg:grid-cols-2 lg:gap-16">
             {/* Product images */}
             <div>
-              <div className="overflow-hidden rounded-[2rem] border border-[#eadfe2] bg-[#f9f0f2] shadow-[0_16px_50px_rgba(120,70,85,0.08)]">
+              <div className="overflow-hidden rounded-[2rem] border border-border bg-[#f9f0f2] shadow-[0_16px_50px_rgba(120,70,85,0.08)]">
                 <ProductImage
                   src={currentImage}
                   alt={
@@ -110,7 +121,7 @@ export default function ProductDetail({
                   eager
                 >
                   <div className="flex aspect-[4/5] items-center justify-center px-8 text-center">
-                    <span className="font-serif text-3xl text-[#c96a82]">
+                    <span className="font-serif text-3xl text-primary">
                       Bethel Perfume
                     </span>
                   </div>
@@ -128,7 +139,7 @@ export default function ProductDetail({
                       }
                       className={`overflow-hidden rounded-2xl border-2 ${
                         selectedImage === index
-                          ? "border-[#c96a82]"
+                          ? "border-primary"
                           : "border-transparent"
                       }`}
                     >
@@ -148,16 +159,16 @@ export default function ProductDetail({
 
             {/* Product information */}
             <div className="flex flex-col justify-center">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#c96a82]">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary-dark">
                 {product.brand || "Bethel Perfume"}
               </p>
 
-              <h1 className="mt-3 font-serif text-4xl leading-tight text-[#30272a] md:text-5xl">
+              <h1 className="mt-3 font-serif text-4xl leading-tight text-foreground md:text-5xl">
                 {product.name}
               </h1>
 
               {product.brand && (
-                <p className="mt-3 text-base text-[#756b6e]">
+                <p className="mt-3 text-base text-muted">
                   {product.brand}
                 </p>
               )}
@@ -166,14 +177,14 @@ export default function ProductDetail({
               <div className="mt-7">
                 {hasPromotion ? (
                   <div>
-                    <p className="text-lg text-[#9b9093] line-through">
+                    <p className="text-lg text-muted-light line-through">
                       {formatPrice(
                         product.price,
                         product.currency
                       )}
                     </p>
 
-                    <p className="text-2xl font-semibold text-[#9e405a]">
+                    <p className="text-2xl font-semibold text-primary-dark">
                       {formatPrice(
                         product.promotion_price!,
                         product.currency
@@ -181,7 +192,7 @@ export default function ProductDetail({
                     </p>
                   </div>
                 ) : (
-                  <p className="text-2xl font-semibold text-[#30272a]">
+                  <p className="text-2xl font-semibold text-foreground">
                     {formatPrice(
                       product.price,
                       product.currency
@@ -193,40 +204,40 @@ export default function ProductDetail({
               {/* Promotion */}
               {hasPromotion &&
                 product.promotion_text && (
-                  <div className="mt-5 rounded-2xl bg-[#f7e5e9] px-4 py-3 text-sm font-medium text-[#9e405a]">
+                  <div className="mt-5 rounded-2xl bg-primary-light px-4 py-3 text-sm font-medium text-primary-dark">
                     {product.promotion_text}
                   </div>
                 )}
 
               {/* Description */}
               {product.description && (
-                <div className="mt-8 border-t border-[#eadfe2] pt-7">
-                  <h2 className="font-serif text-2xl text-[#30272a]">
+                <div className="mt-8 border-t border-border pt-7">
+                  <h2 className="font-serif text-2xl text-foreground">
                     About this fragrance
                   </h2>
 
-                  <p className="mt-3 whitespace-pre-line text-sm leading-7 text-[#756b6e]">
+                  <p className="mt-3 whitespace-pre-line text-sm leading-7 text-muted">
                     {product.description}
                   </p>
                 </div>
               )}
 
               {/* Details */}
-              <div className="mt-8 grid gap-3 border-t border-[#eadfe2] pt-7 sm:grid-cols-2">
+              <div className="mt-8 grid gap-3 border-t border-border pt-7 sm:grid-cols-2">
                 {product.size && (
-                  <div className="rounded-2xl bg-[#fffcfa] p-4">
-                    <p className="text-xs uppercase tracking-wider text-[#9b9093]">
+                  <div className="rounded-2xl bg-background p-4">
+                    <p className="text-xs uppercase tracking-wider text-muted-light">
                       Size
                     </p>
 
-                    <p className="mt-1 font-medium text-[#30272a]">
+                    <p className="mt-1 font-medium text-foreground">
                       {product.size}
                     </p>
                   </div>
                 )}
 
-                <div className="rounded-2xl bg-[#fffcfa] p-4">
-                  <p className="text-xs uppercase tracking-wider text-[#9b9093]">
+                <div className="rounded-2xl bg-background p-4">
+                  <p className="text-xs uppercase tracking-wider text-muted-light">
                     Availability
                   </p>
 
@@ -248,7 +259,7 @@ export default function ProductDetail({
                   type="button"
                   disabled={isOutOfStock}
                   onClick={handleAddToCart}
-                  className="w-full rounded-2xl bg-[#c96a82] px-6 py-4 text-sm font-semibold text-white transition hover:bg-[#9e405a] disabled:cursor-not-allowed disabled:bg-[#cfc4c7]"
+                  className="w-full rounded-2xl bg-primary px-6 py-4 text-sm font-semibold text-white transition hover:bg-primary-dark disabled:cursor-not-allowed disabled:bg-[#cfc4c7]"
                 >
                   {isOutOfStock
                     ? "Currently unavailable"
@@ -257,24 +268,22 @@ export default function ProductDetail({
                       : "Add to cart"}
                 </button>
 
-                <div className="mt-3 flex items-center justify-between gap-4">
-                  <Link
-                    href="/cart"
-                    className="text-sm font-medium text-[#9e405a] hover:underline"
-                  >
-                    View cart
-                  </Link>
-
-                  <p className="text-right text-xs text-[#9b9093]">
-                    Your selection is saved in your
-                    cart.
-                  </p>
-                </div>
+                <p className="mt-3 text-center text-xs text-muted-light">
+                  Cash on delivery — pay when it arrives.
+                </p>
               </div>
             </div>
           </div>
         </section>
+
+        <StorefrontFooter />
       </div>
+
+      <CartDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        items={drawerItems}
+      />
     </main>
   );
 }

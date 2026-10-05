@@ -12,14 +12,14 @@ export default function ProductsLoading() {
       {Array.from({ length: 8 }).map((_, index) => (
         <div
           key={index}
-          className="overflow-hidden rounded-3xl border border-[#eadfe2] bg-white"
+          className="overflow-hidden rounded-3xl border border-border bg-white"
         >
-          <div className="aspect-[4/5] animate-pulse bg-[#f7e5e9]" />
+          <div className="aspect-[4/5] animate-pulse bg-primary-light" />
 
           <div className="space-y-3 p-5">
-            <div className="h-3 w-20 animate-pulse rounded bg-[#f7e5e9]" />
-            <div className="h-6 w-3/4 animate-pulse rounded bg-[#f7e5e9]" />
-            <div className="h-4 w-1/2 animate-pulse rounded bg-[#f7e5e9]" />
+            <div className="h-3 w-20 animate-pulse rounded bg-primary-light" />
+            <div className="h-6 w-3/4 animate-pulse rounded bg-primary-light" />
+            <div className="h-4 w-1/2 animate-pulse rounded bg-primary-light" />
           </div>
         </div>
       ))}

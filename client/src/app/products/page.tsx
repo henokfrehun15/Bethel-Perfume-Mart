@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import BotanicalBackground from "@/components/BotanicalBackground";
 import ProductCard from "@/components/storefront/ProductCard";
 import ProductFilters from "@/components/storefront/ProductFilters";
+import StorefrontFooter from "@/components/storefront/StorefrontFooter";
 import StorefrontHeader from "@/components/storefront/StorefrontHeader";
 import {
   getStorefrontCategories,
@@ -161,9 +161,6 @@ export default async function ProductsPage({
 
   return (
     <main className="bethel-page min-h-screen">
-      {/* Botanical background */}
-      <BotanicalBackground />
-
       <div className="relative z-10">
         {/* Shared storefront header with live cart count */}
         <StorefrontHeader />
@@ -171,15 +168,15 @@ export default async function ProductsPage({
         <section className="bethel-container py-12 md:py-16">
           {/* Page introduction */}
           <div className="max-w-2xl">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-[#c96a82]">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-primary-dark">
               The collection
             </p>
 
-            <h1 className="font-serif text-4xl leading-tight text-[#30272a] md:text-5xl">
+            <h1 className="font-serif text-4xl leading-tight text-foreground md:text-5xl">
               Find a fragrance that feels like you.
             </h1>
 
-            <p className="mt-4 max-w-xl text-base leading-7 text-[#756b6e]">
+            <p className="mt-4 max-w-xl text-base leading-7 text-muted">
               Explore the Bethel Perfume collection and
               discover fragrances for every moment.
             </p>
@@ -196,7 +193,7 @@ export default async function ProductsPage({
 
           {/* Results summary */}
           <div className="mt-10 flex items-center justify-between gap-4">
-            <p className="text-sm text-[#756b6e]">
+            <p className="text-sm text-muted">
               {failed
                 ? "Could not load fragrances."
                 : `${total} fragrance${
@@ -205,7 +202,7 @@ export default async function ProductsPage({
             </p>
 
             {total > 0 && (
-              <p className="text-sm text-[#756b6e]">
+              <p className="text-sm text-muted">
                 Page {query.page} of {totalPages}
               </p>
             )}
@@ -213,7 +210,7 @@ export default async function ProductsPage({
 
           {/* Error */}
           {failed && (
-            <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            <div className="mt-6 rounded-2xl border border-[#edcbd1] bg-[#fdf0f2] p-4 text-sm text-[#9e405a]">
               The collection could not be loaded. Please
               refresh the page and try again.
             </div>
@@ -234,18 +231,18 @@ export default async function ProductsPage({
           {!failed &&
             products.length === 0 && (
               <div className="mt-8 rounded-3xl border border-dashed border-[#d9c4ca] bg-white/70 px-6 py-16 text-center">
-                <p className="font-serif text-2xl text-[#30272a]">
+                <p className="font-serif text-2xl text-foreground">
                   No fragrances found
                 </p>
 
-                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#756b6e]">
+                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted">
                   Try a different search or remove some
                   filters to see more of the collection.
                 </p>
 
                 <Link
                   href="/products"
-                  className="mt-6 inline-flex rounded-2xl bg-[#c96a82] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#9e405a]"
+                  className="mt-6 inline-flex rounded-2xl bg-primary px-6 py-3 text-sm font-semibold text-white transition hover:bg-primary-dark"
                 >
                   View all fragrances
                 </Link>
@@ -258,34 +255,34 @@ export default async function ProductsPage({
               {query.page > 1 ? (
                 <Link
                   href={pageHref(query, query.page - 1)}
-                  className="rounded-2xl border border-[#dfd3d7] bg-white px-5 py-3 text-sm font-medium text-[#756b6e] transition hover:border-[#c96a82] hover:text-[#9e405a]"
+                  className="rounded-2xl border border-input bg-white px-5 py-3 text-sm font-medium text-muted transition hover:border-primary hover:text-primary-dark"
                 >
                   Previous
                 </Link>
               ) : (
                 <span
                   aria-disabled="true"
-                  className="cursor-not-allowed rounded-2xl border border-[#dfd3d7] bg-white px-5 py-3 text-sm font-medium text-[#756b6e] opacity-40"
+                  className="cursor-not-allowed rounded-2xl border border-input bg-white px-5 py-3 text-sm font-medium text-muted opacity-40"
                 >
                   Previous
                 </span>
               )}
 
-              <span className="rounded-2xl bg-[#f7e5e9] px-5 py-3 text-sm font-semibold text-[#9e405a]">
+              <span className="rounded-2xl bg-primary-light px-5 py-3 text-sm font-semibold text-primary-dark">
                 {query.page}
               </span>
 
               {query.page < totalPages ? (
                 <Link
                   href={pageHref(query, query.page + 1)}
-                  className="rounded-2xl border border-[#dfd3d7] bg-white px-5 py-3 text-sm font-medium text-[#756b6e] transition hover:border-[#c96a82] hover:text-[#9e405a]"
+                  className="rounded-2xl border border-input bg-white px-5 py-3 text-sm font-medium text-muted transition hover:border-primary hover:text-primary-dark"
                 >
                   Next
                 </Link>
               ) : (
                 <span
                   aria-disabled="true"
-                  className="cursor-not-allowed rounded-2xl border border-[#dfd3d7] bg-white px-5 py-3 text-sm font-medium text-[#756b6e] opacity-40"
+                  className="cursor-not-allowed rounded-2xl border border-input bg-white px-5 py-3 text-sm font-medium text-muted opacity-40"
                 >
                   Next
                 </span>
@@ -293,6 +290,8 @@ export default async function ProductsPage({
             </div>
           )}
         </section>
+
+        <StorefrontFooter />
       </div>
     </main>
   );
