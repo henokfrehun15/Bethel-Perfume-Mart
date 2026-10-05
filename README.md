@@ -159,6 +159,49 @@ fixtures.
 tests (with a PostgreSQL service container) and storefront lint, typecheck,
 tests and production build.
 
+## Deploying on a free tier
+
+The repo is wired for a zero-cost stack: **Render** (API), **Vercel**
+(storefront), **Neon** (PostgreSQL) and **Cloudflare R2** or **Backblaze B2**
+(image uploads). Free-tier hosts wipe the filesystem on every deploy and
+restart, so production must use `STORAGE_DRIVER=s3` — `render.yaml` (the
+Render Blueprint at the repo root) already sets that up.
+
+1. **Database (Neon):** create a project and copy the *pooled* connection
+   string. From your machine, apply migrations and create the admin:
+
+   ```bash
+   DATABASE_URL="<neon-pooled-url>" npm run db:migrate --prefix server
+   DATABASE_URL="<neon-pooled-url>" npm run create-admin --prefix server -- admin "<strong-password>"
+   ```
+
+2. **Images (R2 or B2):** create a bucket with public access (R2: enable the
+   r2.dev URL or attach a custom domain; B2: make the bucket public), then
+   create S3 API tokens. Collect the bucket name, endpoint, region (`auto`
+   for R2), access key id + secret, and the bucket's *public* URL — R2's S3
+   endpoint does not serve objects publicly, so `S3_PUBLIC_URL` must be the
+   r2.dev / custom-domain URL.
+3. **API (Render):** New → Blueprint → this repository. The blueprint defines
+   the free-plan service (root `server/`, build + migrations on every deploy,
+   `/api/health` health check). Fill in the prompted secrets: `DATABASE_URL`,
+   `CLIENT_URL` (your Vercel URL) and the `S3_*` values.
+4. **Storefront (Vercel):** import this repository, root directory `client`,
+   environment `NEXT_PUBLIC_API_URL=https://<api>.onrender.com/api` and
+   `NEXT_PUBLIC_SITE_URL=https://<app>.vercel.app`. After the first deploy,
+   paste the storefront URL back into Render's `CLIENT_URL` and redeploy so
+   CORS and the admin cookie accept it.
+5. **Keep-awake:** Render free services sleep after ~15 min idle, and the
+   storefront server-renders pages through the API, so a sleeping API means a
+   slow or erroring store. A free cron service (e.g. cron-job.org) hitting
+   `https://<api>.onrender.com/api/health` every 10 minutes avoids the cold
+   start. On Neon's free plan, consider `DB_KEEP_ALIVE_MS=0` to preserve
+   compute hours.
+
+Cross-domain notes: storefront and API live on different domains, so the
+admin cookie needs `COOKIE_SAME_SITE=none` (always Secure) and CORS needs
+`CLIENT_URL` — both are set in `render.yaml`. `TRUST_PROXY=1` lets rate
+limiting see real client IPs behind Render's proxy.
+
 ## Product images
 
 The admin product form uploads images straight to the API
