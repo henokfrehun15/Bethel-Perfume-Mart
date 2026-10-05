@@ -100,7 +100,14 @@ export async function apiRequest<T>(
     options.body !== undefined && options.body !== null;
 
   // Only send a JSON content type when there is actually a body.
-  if (hasBody && !headers.has("Content-Type")) {
+  // FormData is the exception: the browser must set the multipart
+  // header itself, because it carries the boundary the server needs
+  // to parse the file.
+  if (
+    hasBody &&
+    !headers.has("Content-Type") &&
+    !(options.body instanceof FormData)
+  ) {
     headers.set("Content-Type", "application/json");
   }
 
