@@ -1,5 +1,36 @@
 @import "tailwindcss";
 
+/*
+ * Design tokens. Every color and font the UI needs is defined once
+ * here; components use the generated utilities (text-primary,
+ * bg-primary-light, border-border, font-serif, ...) instead of
+ * hardcoded hex values, so the palette can evolve in one place.
+ */
+@theme {
+  --font-sans:
+    var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", sans-serif;
+  --font-serif:
+    var(--font-playfair), Georgia, "Times New Roman", serif;
+
+  --color-background: #fffcfa;
+  --color-foreground: #30272a;
+
+  --color-primary: #c96a82;
+  --color-primary-dark: #9e405a;
+  --color-primary-light: #f7e5e9;
+  --color-primary-soft: #fdf3f5;
+
+  --color-muted: #756b6e;
+  --color-muted-light: #9b9093;
+
+  --color-border: #eadfe2;
+  --color-input: #dfd3d7;
+
+  --color-success: #687565;
+  --color-danger: #b94a5c;
+}
+
 :root {
   --background: #fffcfa;
   --foreground: #30272a;
@@ -10,7 +41,7 @@
   --primary-soft: #fdf3f5;
 
   --muted: #756b6e;
-  --muted-light: #a69b9e;
+  --muted-light: #9b9093;
   --border: #eadcdf;
   --border-light: #f2e7e9;
 
@@ -40,7 +71,7 @@ body {
   margin: 0;
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -71,8 +102,10 @@ button:disabled {
 .bethel-page {
   position: relative;
   min-height: 100vh;
-  background: var(--background);
   isolation: isolate;
+  /* No background: the root layout's deco background shows
+     through, and admin routes cover it with their own opaque
+     shell. The body provides the cream base color. */
 }
 
 .bethel-container {
@@ -118,7 +151,7 @@ button:disabled {
 
 .bethel-heading {
   color: var(--foreground);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-serif);
   font-weight: 600;
   letter-spacing: -0.02em;
 }
@@ -388,6 +421,69 @@ button:disabled {
 }
 
 /* ========================================
+   CART DRAWER
+======================================== */
+
+@keyframes bethel-drawer-in {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+.bethel-drawer {
+  animation: bethel-drawer-in 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes bethel-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.bethel-fade-in {
+  animation: bethel-fade-in 0.2s ease-out;
+}
+
+/* ========================================
+   SKELETONS
+======================================== */
+
+.bethel-skeleton {
+  position: relative;
+  overflow: hidden;
+  background: #f2e7e9;
+  border-radius: var(--radius-sm);
+}
+
+.bethel-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.65),
+    transparent
+  );
+  animation: bethel-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes bethel-shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* ========================================
    SCROLLBAR
 ======================================== */
 
@@ -441,11 +537,15 @@ button:disabled {
     font-size: 52px;
   }
 }
+
 /* =========================================================
-   BETHEL BOTANICAL BACKGROUND
+   BETHEL DECO BACKGROUND
+   Art-deco line-work: fan rays, concentric arcs and a seal
+   medallion in bronze and sage. Mounted once in the root
+   layout so the draw-in plays a single time per visit.
 ========================================================= */
 
-.botanical-background {
+.deco-background {
   position: fixed;
   inset: 0;
   z-index: -1;
@@ -453,317 +553,193 @@ button:disabled {
   pointer-events: none;
 }
 
-.botanical-svg {
+.deco-svg {
   width: 100%;
   height: 100%;
   display: block;
 }
 
 /* ---------------------------------------------------------
-   Branches
+   Lines (drawn in via pathLength-normalised dash offset)
 --------------------------------------------------------- */
 
-.botanical-branches .branch {
+.deco-line {
   fill: none;
-  stroke: #c96a82;
-  stroke-width: 3;
+  stroke: #a98a68;
+  stroke-width: 1.5;
   stroke-linecap: round;
-  stroke-linejoin: round;
-
-  stroke-dasharray: 1600;
-  stroke-dashoffset: 1600;
-
-  opacity: 0.42;
-
-  animation: branch-grow 1.8s ease-out forwards;
-}
-
-.branch-1 { animation-delay: 0.05s; }
-.branch-2 { animation-delay: 0.20s; }
-.branch-3 { animation-delay: 0.35s; }
-.branch-4 { animation-delay: 0.50s; }
-.branch-5 { animation-delay: 0.65s; }
-.branch-6 { animation-delay: 0.80s; }
-.branch-7 { animation-delay: 0.95s; }
-.branch-8 { animation-delay: 1.10s; }
-.branch-9 { animation-delay: 1.20s; }
-.branch-10 { animation-delay: 1.30s; }
-
-@keyframes branch-grow {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-/* ---------------------------------------------------------
-   Offshoots
---------------------------------------------------------- */
-
-.botanical-offshoots .offshoot {
-  fill: none;
-  stroke: #c96a82;
-  stroke-width: 2;
-  stroke-linecap: round;
-
-  stroke-dasharray: 500;
-  stroke-dashoffset: 500;
 
   opacity: 0.34;
 
-  animation: offshoot-grow 1s ease-out forwards;
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+
+  animation: deco-draw 1.1s ease-out forwards;
 }
 
-.offshoot-1 { animation-delay: 0.9s; }
-.offshoot-2 { animation-delay: 1s; }
-.offshoot-3 { animation-delay: 1.1s; }
-.offshoot-4 { animation-delay: 1.2s; }
-.offshoot-5 { animation-delay: 1.3s; }
-.offshoot-6 { animation-delay: 1.4s; }
-.offshoot-7 { animation-delay: 1.5s; }
-.offshoot-8 { animation-delay: 1.6s; }
-.offshoot-9 { animation-delay: 1.7s; }
-.offshoot-10 { animation-delay: 1.8s; }
+.deco-line-sage {
+  stroke: #8a9a86;
+  opacity: 0.3;
+}
 
-@keyframes offshoot-grow {
+.deco-line-fine {
+  stroke-width: 1;
+  opacity: 0.26;
+}
+
+@keyframes deco-draw {
   to {
     stroke-dashoffset: 0;
   }
 }
 
+/* Draw-in stagger. */
+.deco-ray-1 { animation-delay: 0.05s; }
+.deco-ray-2 { animation-delay: 0.12s; }
+.deco-ray-3 { animation-delay: 0.19s; }
+.deco-ray-4 { animation-delay: 0.26s; }
+.deco-ray-5 { animation-delay: 0.33s; }
+.deco-ray-6 { animation-delay: 0.4s; }
+.deco-ray-7 { animation-delay: 0.47s; }
+
+.deco-fan-arc-1 { animation-delay: 0.3s; }
+.deco-fan-arc-2 { animation-delay: 0.45s; }
+.deco-fan-arc-3 { animation-delay: 0.6s; }
+
+.deco-corner-arc-1 { animation-delay: 0.15s; }
+.deco-corner-arc-2 { animation-delay: 0.3s; }
+.deco-corner-arc-3 { animation-delay: 0.45s; }
+.deco-corner-arc-4 { animation-delay: 0.6s; }
+
+.deco-stream-1 { animation-delay: 0.5s; }
+.deco-stream-2 { animation-delay: 0.65s; }
+
 /* ---------------------------------------------------------
-   Leaves
+   Fading elements (dotted orbits, medallion, accents)
 --------------------------------------------------------- */
 
-.botanical-leaves .leaf {
-  fill: #687565;
+.deco-dotted {
+  --deco-target: 0.38;
+
+  fill: none;
+  stroke: #a98a68;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-dasharray: 2 10;
+
+  opacity: 0;
+
+  animation: deco-fade 0.8s ease-out forwards;
+}
+
+.deco-medallion-ring {
+  --deco-target: 0.4;
+
+  fill: none;
+  stroke: #b39670;
+  stroke-width: 1.4;
+
+  opacity: 0;
+
+  animation: deco-fade 0.9s ease-out forwards;
+}
+
+.deco-medallion-dotted {
+  --deco-target: 0.35;
+
+  fill: none;
+  stroke: #8a9a86;
+  stroke-width: 1.4;
+  stroke-dasharray: 3 9;
+
   opacity: 0;
 
   transform-box: fill-box;
   transform-origin: center;
 
-  animation: leaf-appear 0.65s ease-out forwards;
+  animation:
+    deco-fade 0.9s ease-out 0.5s forwards,
+    deco-spin 90s linear infinite;
 }
 
-.leaf-1 { animation-delay: 1.25s; }
-.leaf-2 { animation-delay: 1.35s; }
-.leaf-3 { animation-delay: 1.45s; }
-.leaf-4 { animation-delay: 1.55s; }
-.leaf-5 { animation-delay: 1.65s; }
-.leaf-6 { animation-delay: 1.75s; }
-.leaf-7 { animation-delay: 1.85s; }
-.leaf-8 { animation-delay: 1.95s; }
-.leaf-9 { animation-delay: 2.05s; }
-.leaf-10 { animation-delay: 2.15s; }
-.leaf-11 { animation-delay: 2.25s; }
-.leaf-12 { animation-delay: 2.35s; }
-.leaf-13 { animation-delay: 2.45s; }
-.leaf-14 { animation-delay: 2.55s; }
-.leaf-15 { animation-delay: 2.65s; }
-.leaf-16 { animation-delay: 2.75s; }
-.leaf-17 { animation-delay: 2.85s; }
-.leaf-18 { animation-delay: 2.95s; }
-.leaf-19 { animation-delay: 3.05s; }
-.leaf-20 { animation-delay: 3.15s; }
+.deco-tick {
+  --deco-target: 0.34;
 
-@keyframes leaf-appear {
-  0% {
-    opacity: 0;
-    transform: scale(0);
-  }
+  stroke: #a98a68;
+  stroke-width: 1.4;
+  stroke-linecap: round;
 
-  70% {
-    opacity: 0.5;
-    transform: scale(1.08);
-  }
-
-  100% {
-    opacity: 0.32;
-    transform: scale(1);
-  }
-}
-
-/* ---------------------------------------------------------
-   Buds
---------------------------------------------------------- */
-
-.botanical-buds .bud {
-  fill: #df8298;
-  opacity: 0;
-  transform-box: fill-box;
-  transform-origin: center bottom;
-
-  animation: bud-appear 0.7s ease-out forwards;
-}
-
-.bud-1 { animation-delay: 2.1s; }
-.bud-2 { animation-delay: 2.25s; }
-.bud-3 { animation-delay: 2.4s; }
-.bud-4 { animation-delay: 2.55s; }
-.bud-5 { animation-delay: 2.7s; }
-.bud-6 { animation-delay: 2.85s; }
-.bud-7 { animation-delay: 3s; }
-.bud-8 { animation-delay: 3.15s; }
-
-@keyframes bud-appear {
-  0% {
-    opacity: 0;
-    transform: scaleY(0);
-  }
-
-  70% {
-    opacity: 0.7;
-    transform: scaleY(1.08);
-  }
-
-  100% {
-    opacity: 0.5;
-    transform: scaleY(1);
-  }
-}
-
-/* ---------------------------------------------------------
-   Central Flower
---------------------------------------------------------- */
-
-.central-flower {
-  opacity: 0;
-  transform-origin: 575px 390px;
-
-  animation: flower-bloom 1.5s cubic-bezier(0.22, 1, 0.36, 1)
-    3.2s forwards;
-}
-
-.flower-glow {
-  fill: #f7e5e9;
-  opacity: 0.45;
-  filter: blur(18px);
-}
-
-.central-flower .petal {
-  fill: #e99aaa;
-  opacity: 0.72;
-  stroke: #d77d91;
-  stroke-width: 1;
-}
-
-.flower-center {
-  fill: #c96a82;
-}
-
-.stamens circle {
-  fill: #9e405a;
-}
-
-@keyframes flower-bloom {
-  0% {
-    opacity: 0;
-    transform: scale(0.05);
-  }
-
-  55% {
-    opacity: 0.9;
-    transform: scale(1.08);
-  }
-
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* ---------------------------------------------------------
-   Floating Petals
---------------------------------------------------------- */
-
-.floating-petals {
   opacity: 0;
 
-  animation: petals-start 1s ease-out 4.2s forwards;
+  animation: deco-fade 0.5s ease-out forwards;
 }
 
-.floating-petal {
-  fill: #e99aaa;
-  opacity: 0.35;
+.deco-dot {
+  --deco-target: 0.45;
+
+  fill: #b39670;
+
+  opacity: 0;
+
+  animation: deco-fade 0.6s ease-out forwards;
 }
 
-.floating-petal-1 {
-  animation: petal-float-1 7s ease-in-out 4.2s infinite;
+.deco-diamond {
+  --deco-target: 0.34;
+
+  fill: none;
+  stroke: #a98a68;
+  stroke-width: 1.3;
+
+  opacity: 0;
+
+  animation: deco-fade 0.6s ease-out forwards;
 }
 
-.floating-petal-2 {
-  animation: petal-float-2 8s ease-in-out 4.5s infinite;
-}
-
-.floating-petal-3 {
-  animation: petal-float-3 9s ease-in-out 4.7s infinite;
-}
-
-.floating-petal-4 {
-  animation: petal-float-4 8s ease-in-out 4.9s infinite;
-}
-
-@keyframes petals-start {
+@keyframes deco-fade {
   to {
-    opacity: 1;
+    opacity: var(--deco-target, 0.32);
   }
 }
 
-@keyframes petal-float-1 {
-  0%,
-  100% {
-    transform: translate(0, 0) rotate(0deg);
-  }
-
-  50% {
-    transform: translate(25px, -35px) rotate(25deg);
+@keyframes deco-spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
-@keyframes petal-float-2 {
-  0%,
-  100% {
-    transform: translate(0, 0) rotate(0deg);
-  }
+/* Fade-in stagger. */
+.deco-corner-dotted { animation-delay: 0.7s; }
 
-  50% {
-    transform: translate(-30px, 30px) rotate(-30deg);
-  }
-}
+.deco-medallion-outer { animation-delay: 0.5s; }
+.deco-medallion-core { animation-delay: 0.65s; }
+.deco-medallion-center { animation-delay: 0.8s; }
 
-@keyframes petal-float-3 {
-  0%,
-  100% {
-    transform: translate(0, 0) rotate(0deg);
-  }
+.deco-tick-1 { animation-delay: 0.8s; }
+.deco-tick-2 { animation-delay: 0.85s; }
+.deco-tick-3 { animation-delay: 0.9s; }
+.deco-tick-4 { animation-delay: 0.95s; }
+.deco-tick-5 { animation-delay: 1s; }
+.deco-tick-6 { animation-delay: 1.05s; }
+.deco-tick-7 { animation-delay: 1.1s; }
+.deco-tick-8 { animation-delay: 1.15s; }
 
-  50% {
-    transform: translate(35px, -25px) rotate(35deg);
-  }
-}
+.deco-dot-1 { animation-delay: 0.9s; }
+.deco-dot-2 { animation-delay: 1s; }
+.deco-dot-3 { animation-delay: 1.1s; }
+.deco-dot-4 { animation-delay: 1.2s; }
+.deco-dot-5 { animation-delay: 1.3s; }
 
-@keyframes petal-float-4 {
-  0%,
-  100% {
-    transform: translate(0, 0) rotate(0deg);
-  }
-
-  50% {
-    transform: translate(-25px, -30px) rotate(-20deg);
-  }
-}
+.deco-diamond-1 { animation-delay: 1s; }
+.deco-diamond-2 { animation-delay: 1.15s; }
 
 /* ---------------------------------------------------------
    Mobile
 --------------------------------------------------------- */
 
 @media (max-width: 768px) {
-  .botanical-background {
-    opacity: 0.65;
-  }
-
-  .botanical-svg {
-    transform: scale(1.35);
-    transform-origin: bottom left;
+  .deco-background {
+    opacity: 0.7;
   }
 }
 
@@ -772,37 +748,26 @@ button:disabled {
 --------------------------------------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
-  .botanical-branches .branch,
-  .botanical-offshoots .offshoot,
-  .botanical-leaves .leaf,
-  .botanical-buds .bud,
-  .central-flower,
-  .floating-petals,
-  .floating-petal {
+  .deco-line,
+  .deco-dotted,
+  .deco-medallion-ring,
+  .deco-medallion-dotted,
+  .deco-tick,
+  .deco-dot,
+  .deco-diamond {
     animation: none !important;
   }
 
-  .botanical-branches .branch {
+  .deco-line {
     stroke-dashoffset: 0;
   }
 
-  .botanical-offshoots .offshoot {
-    stroke-dashoffset: 0;
-  }
-
-  .botanical-leaves .leaf {
-    opacity: 0.32;
-  }
-
-  .botanical-buds .bud {
-    opacity: 0.5;
-  }
-
-  .central-flower {
-    opacity: 1;
-  }
-
-  .floating-petals {
-    opacity: 1;
+  .deco-dotted,
+  .deco-medallion-ring,
+  .deco-medallion-dotted,
+  .deco-tick,
+  .deco-dot,
+  .deco-diamond {
+    opacity: var(--deco-target, 0.32);
   }
 }
