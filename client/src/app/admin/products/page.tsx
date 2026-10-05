@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 
+import Skeleton from "@/components/Skeleton";
 import ProductImage from "@/components/storefront/ProductImage";
 import { apiRequest } from "@/lib/api";
 
@@ -275,13 +276,13 @@ export default function AdminProductsPage() {
   return (
     <div className="bethel-page">
       {/* Decorative background */}
-      <div className="pointer-events-none absolute right-0 top-0 -z-0 h-72 w-72 rounded-full bg-[#f7e5e9] opacity-60 blur-3xl" />
+      <div className="pointer-events-none absolute right-0 top-0 -z-0 h-72 w-72 rounded-full bg-primary-light opacity-60 blur-3xl" />
 
       <div className="relative z-10">
         {/* Header */}
         <div className="mb-8">
           <div className="bethel-label mb-3 flex items-center gap-2">
-            <span className="h-px w-8 bg-[#c96a82]" />
+            <span className="h-px w-8 bg-primary" />
             Fragrance Catalog
           </div>
 
@@ -316,7 +317,7 @@ export default function AdminProductsPage() {
               Catalog Filters
             </p>
 
-            <h3 className="mt-1 text-lg font-semibold text-[#30272a]">
+            <h3 className="mt-1 text-lg font-semibold text-foreground">
               Find a fragrance
             </h3>
           </div>
@@ -471,8 +472,8 @@ export default function AdminProductsPage() {
         {/* Product count */}
         {!loading && total > 0 && (
           <div className="mb-3 flex items-center justify-between px-1">
-            <p className="text-sm text-[#756b6e]">
-              <span className="font-semibold text-[#30272a]">
+            <p className="text-sm text-muted">
+              <span className="font-semibold text-foreground">
                 {total}
               </span>{" "}
               {total === 1
@@ -487,7 +488,7 @@ export default function AdminProductsPage() {
         <div className="bethel-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px] text-left text-sm">
-              <thead className="border-b border-[#eadfe2] bg-[#fdf8f9]">
+              <thead className="border-b border-border bg-[#fdf8f9]">
                 <tr>
                   <th className="px-5 py-4 font-semibold text-[#574b4f]">
                     Product
@@ -517,20 +518,36 @@ export default function AdminProductsPage() {
 
               <tbody>
                 {loading ? (
-                  <tr>
-                    <td
-                      colSpan={6}
-                      className="px-5 py-16 text-center"
-                    >
-                      <div className="flex flex-col items-center justify-center">
-                        <div className="mb-3 h-8 w-8 animate-spin rounded-full border-2 border-[#f0d7de] border-t-[#c96a82]" />
-
-                        <p className="text-sm text-[#756b6e]">
-                          Loading your fragrances...
-                        </p>
-                      </div>
-                    </td>
-                  </tr>
+                  <>
+                    {[0, 1, 2, 3, 4].map((row) => (
+                      <tr
+                        key={row}
+                        className="border-b border-[#f0e7e9]"
+                      >
+                        <td className="px-5 py-4">
+                          <div className="flex items-center gap-3">
+                            <Skeleton className="h-14 w-14 rounded-xl" />
+                            <Skeleton className="h-4 w-32" />
+                          </div>
+                        </td>
+                        <td className="px-5 py-4">
+                          <Skeleton className="h-4 w-24" />
+                        </td>
+                        <td className="px-5 py-4">
+                          <Skeleton className="h-4 w-20" />
+                        </td>
+                        <td className="px-5 py-4">
+                          <Skeleton className="h-4 w-14" />
+                        </td>
+                        <td className="px-5 py-4">
+                          <Skeleton className="h-6 w-20 rounded-full" />
+                        </td>
+                        <td className="px-5 py-4">
+                          <Skeleton className="h-9 w-24 rounded-lg" />
+                        </td>
+                      </tr>
+                    ))}
+                  </>
                 ) : products.length === 0 ? (
                   <tr>
                     <td
@@ -538,7 +555,7 @@ export default function AdminProductsPage() {
                       className="px-5 py-16 text-center"
                     >
                       <div className="mx-auto flex max-w-sm flex-col items-center">
-                        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#f7e5e9] text-[#c96a82]">
+                        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary-light text-primary">
                           <svg
                             viewBox="0 0 24 24"
                             fill="none"
@@ -559,11 +576,11 @@ export default function AdminProductsPage() {
                           </svg>
                         </div>
 
-                        <h3 className="text-lg font-semibold text-[#30272a]">
+                        <h3 className="text-lg font-semibold text-foreground">
                           No products found
                         </h3>
 
-                        <p className="mt-1 text-sm text-[#756b6e]">
+                        <p className="mt-1 text-sm text-muted">
                           Try changing your filters or add
                           your first fragrance.
                         </p>
@@ -591,9 +608,9 @@ export default function AdminProductsPage() {
                           <ProductImage
                             src={product.image}
                             alt={product.name}
-                            className="h-14 w-14 shrink-0 rounded-xl border border-[#eadfe2] object-cover shadow-sm"
+                            className="h-14 w-14 shrink-0 rounded-xl border border-border object-cover shadow-sm"
                           >
-                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-[#eadfe2] bg-[#fdf5f7] text-[#c96a82]">
+                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-border bg-[#fdf5f7] text-primary">
                               <svg
                                 viewBox="0 0 24 24"
                                 fill="none"
@@ -616,12 +633,12 @@ export default function AdminProductsPage() {
                           </ProductImage>
 
                           <div className="min-w-0">
-                            <p className="truncate font-semibold text-[#30272a]">
+                            <p className="truncate font-semibold text-foreground">
                               {product.name}
                             </p>
 
                             {product.brand && (
-                              <p className="mt-0.5 text-xs text-[#756b6e]">
+                              <p className="mt-0.5 text-xs text-muted">
                                 {product.brand}
                                 {product.size
                                   ? ` · ${product.size}`
@@ -634,7 +651,7 @@ export default function AdminProductsPage() {
 
                       {/* Category */}
                       <td className="px-5 py-4">
-                        <span className="inline-flex rounded-full border border-[#eadfe2] bg-[#fffcfa] px-3 py-1 text-xs font-medium text-[#756b6e]">
+                        <span className="inline-flex rounded-full border border-border bg-background px-3 py-1 text-xs font-medium text-muted">
                           {product.category_name}
                         </span>
                       </td>
@@ -642,7 +659,7 @@ export default function AdminProductsPage() {
                       {/* Price */}
                       <td className="px-5 py-4">
                         <div>
-                          <span className="font-semibold text-[#30272a]">
+                          <span className="font-semibold text-foreground">
                             {product.price}{" "}
                             {product.currency}
                           </span>
@@ -660,11 +677,11 @@ export default function AdminProductsPage() {
 
                       {/* Stock */}
                       <td className="px-5 py-4">
-                        <span className="font-medium text-[#30272a]">
+                        <span className="font-medium text-foreground">
                           {product.stock_qty}
                         </span>
 
-                        <span className="ml-1 text-xs text-[#756b6e]">
+                        <span className="ml-1 text-xs text-muted">
                           units
                         </span>
                       </td>
@@ -684,7 +701,7 @@ export default function AdminProductsPage() {
                           </span>
 
                           {product.is_featured && (
-                            <span className="inline-flex rounded-full border border-[#e8c2cc] bg-[#f7e5e9] px-2.5 py-1 text-xs font-medium text-[#9e405a]">
+                            <span className="inline-flex rounded-full border border-[#e8c2cc] bg-primary-light px-2.5 py-1 text-xs font-medium text-primary-dark">
                               Featured
                             </span>
                           )}
@@ -696,7 +713,7 @@ export default function AdminProductsPage() {
                           )}
 
                           {!product.is_active && (
-                            <span className="inline-flex rounded-full border border-[#e5dadd] bg-[#f4eff0] px-2.5 py-1 text-xs font-medium text-[#756b6e]">
+                            <span className="inline-flex rounded-full border border-[#e5dadd] bg-[#f4eff0] px-2.5 py-1 text-xs font-medium text-muted">
                               Hidden
                             </span>
                           )}
@@ -708,7 +725,7 @@ export default function AdminProductsPage() {
                         <div className="flex gap-2">
                           <Link
                             href={`/admin/products/${product.id}/edit`}
-                            className="inline-flex items-center rounded-lg border border-[#e5dadd] bg-white px-3 py-2 text-xs font-semibold text-[#574b4f] transition-colors hover:border-[#d7a7b3] hover:bg-[#fdf5f7] hover:text-[#9e405a]"
+                            className="inline-flex items-center rounded-lg border border-[#e5dadd] bg-white px-3 py-2 text-xs font-semibold text-[#574b4f] transition-colors hover:border-[#d7a7b3] hover:bg-[#fdf5f7] hover:text-primary-dark"
                           >
                             Edit
                           </Link>
@@ -718,7 +735,7 @@ export default function AdminProductsPage() {
                             onClick={() =>
                               handleToggleVisibility(product)
                             }
-                            className="inline-flex items-center rounded-lg border border-[#e5dadd] bg-white px-3 py-2 text-xs font-semibold text-[#574b4f] transition-colors hover:border-[#d7a7b3] hover:bg-[#fdf5f7] hover:text-[#9e405a]"
+                            className="inline-flex items-center rounded-lg border border-[#e5dadd] bg-white px-3 py-2 text-xs font-semibold text-[#574b4f] transition-colors hover:border-[#d7a7b3] hover:bg-[#fdf5f7] hover:text-primary-dark"
                           >
                             {product.is_active
                               ? "Hide"
@@ -745,15 +762,15 @@ export default function AdminProductsPage() {
 
           {/* Pagination */}
           {!loading && total > 0 && (
-            <div className="flex flex-col gap-4 border-t border-[#eadfe2] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-[#756b6e]">
+            <div className="flex flex-col gap-4 border-t border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-muted">
                 Showing{" "}
-                <span className="font-medium text-[#30272a]">
+                <span className="font-medium text-foreground">
                   {(page - 1) * limit + 1}–
                   {Math.min(page * limit, total)}
                 </span>{" "}
                 of{" "}
-                <span className="font-medium text-[#30272a]">
+                <span className="font-medium text-foreground">
                   {total}
                 </span>
               </p>
@@ -772,7 +789,7 @@ export default function AdminProductsPage() {
                   ← Previous
                 </button>
 
-                <span className="rounded-lg bg-[#f7e5e9] px-3 py-2 text-xs font-semibold text-[#9e405a]">
+                <span className="rounded-lg bg-primary-light px-3 py-2 text-xs font-semibold text-primary-dark">
                   {page} / {totalPages}
                 </span>
 

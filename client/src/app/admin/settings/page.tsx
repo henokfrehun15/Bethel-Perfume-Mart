@@ -5,6 +5,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import Skeleton from "@/components/Skeleton";
 
 import { apiRequest } from "@/lib/api";
 
@@ -217,13 +218,14 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div>
-        <h2 className="text-2xl font-bold">
-          Store Settings
-        </h2>
+        <Skeleton className="h-8 w-44" />
 
-        <p className="mt-2 text-gray-500">
-          Loading settings...
-        </p>
+        <Skeleton className="mt-3 h-4 w-72" />
+
+        <div className="mt-8 space-y-6">
+          <Skeleton className="h-64 rounded-2xl" />
+          <Skeleton className="h-40 rounded-2xl" />
+        </div>
       </div>
     );
   }
@@ -231,24 +233,24 @@ export default function SettingsPage() {
   return (
     <div>
       <div className="mb-8">
-        <h2 className="text-2xl font-bold">
+        <h2 className="bethel-title text-2xl">
           Store Settings
         </h2>
 
-        <p className="mt-1 text-gray-500">
+        <p className="bethel-muted mt-1">
           Manage your store information and
           contact details.
         </p>
       </div>
 
       {error && (
-        <div className="mb-6 rounded-lg bg-red-50 p-4 text-sm text-red-600">
+        <div className="bethel-alert bethel-alert-error mb-6">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="mb-6 rounded-lg bg-green-50 p-4 text-sm text-green-700">
+        <div className="bethel-alert bethel-alert-success mb-6">
           {success}
         </div>
       )}
@@ -257,14 +259,14 @@ export default function SettingsPage() {
         onSubmit={handleSubmit}
         className="space-y-6"
       >
-        <section className="rounded-xl bg-white p-6 shadow-sm">
-          <h3 className="mb-6 text-lg font-semibold">
+        <section className="bethel-card p-6">
+          <h3 className="bethel-title mb-6 text-lg">
             Store information
           </h3>
 
           <div className="space-y-5">
             <div>
-              <label className="mb-2 block text-sm font-medium">
+              <label className="bethel-label">
                 Store name *
               </label>
 
@@ -277,13 +279,13 @@ export default function SettingsPage() {
                   )
                 }
                 required
-                className="w-full rounded-lg border px-4 py-3 outline-none focus:ring-2"
+                className="bethel-input"
                 placeholder="Bethel Perfume"
               />
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium">
+              <label className="bethel-label">
                 Delivery fee (ETB)
               </label>
 
@@ -298,18 +300,18 @@ export default function SettingsPage() {
                     event.target.value
                   )
                 }
-                className="w-full rounded-lg border px-4 py-3 outline-none focus:ring-2"
+                className="bethel-input"
                 placeholder="0"
               />
 
-              <p className="mt-2 text-xs text-gray-500">
+              <p className="mt-2 text-xs bethel-muted">
                 Added to every order at checkout. Use 0
                 for free delivery.
               </p>
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium">
+              <label className="bethel-label">
                 WhatsApp number
               </label>
 
@@ -323,18 +325,18 @@ export default function SettingsPage() {
                     event.target.value
                   )
                 }
-                className="w-full rounded-lg border px-4 py-3 outline-none focus:ring-2"
+                className="bethel-input"
                 placeholder="+251 9XX XXX XXX"
               />
 
-              <p className="mt-2 text-xs text-gray-500">
+              <p className="mt-2 text-xs bethel-muted">
                 Include the country code, for
                 example +251.
               </p>
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium">
+              <label className="bethel-label">
                 Store description
               </label>
 
@@ -347,21 +349,21 @@ export default function SettingsPage() {
                   )
                 }
                 rows={5}
-                className="w-full rounded-lg border px-4 py-3 outline-none focus:ring-2"
+                className="bethel-input"
                 placeholder="Premium perfumes for every occasion..."
               />
             </div>
           </div>
         </section>
 
-        <section className="rounded-xl bg-white p-6 shadow-sm">
-          <h3 className="mb-6 text-lg font-semibold">
+        <section className="bethel-card p-6">
+          <h3 className="bethel-title mb-6 text-lg">
             Contact information
           </h3>
 
           <div className="space-y-5">
             <div>
-              <label className="mb-2 block text-sm font-medium">
+              <label className="bethel-label">
                 Contact email
               </label>
 
@@ -376,13 +378,13 @@ export default function SettingsPage() {
                     event.target.value
                   )
                 }
-                className="w-full rounded-lg border px-4 py-3 outline-none focus:ring-2"
+                className="bethel-input"
                 placeholder="info@example.com"
               />
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium">
+              <label className="bethel-label">
                 Contact address
               </label>
 
@@ -397,7 +399,7 @@ export default function SettingsPage() {
                   )
                 }
                 rows={3}
-                className="w-full rounded-lg border px-4 py-3 outline-none focus:ring-2"
+                className="bethel-input"
                 placeholder="Addis Ababa, Ethiopia"
               />
             </div>
@@ -407,7 +409,7 @@ export default function SettingsPage() {
         <button
           type="submit"
           disabled={saving}
-          className="rounded-lg bg-black px-6 py-3 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+          className="bethel-button bethel-button-primary disabled:opacity-50"
         >
           {saving
             ? "Saving..."
@@ -415,12 +417,12 @@ export default function SettingsPage() {
         </button>
       </form>
 
-      <section className="mt-10 rounded-2xl border border-gray-200 bg-white p-6">
-        <h2 className="text-lg font-semibold text-gray-900">
+      <section className="bethel-card mt-10 p-6">
+        <h2 className="bethel-title text-lg">
           Admin account
         </h2>
 
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm bethel-muted">
           Changing your password signs out every other
           session, including this browser.
         </p>
@@ -432,7 +434,7 @@ export default function SettingsPage() {
           <div>
             <label
               htmlFor="currentPassword"
-              className="block text-sm font-medium text-gray-700"
+              className="bethel-label"
             >
               Current password
             </label>
@@ -446,14 +448,14 @@ export default function SettingsPage() {
               onChange={(event) =>
                 setCurrentPassword(event.target.value)
               }
-              className="mt-1 w-full rounded-lg border px-4 py-3 text-sm outline-none focus:ring-2"
+              className="bethel-input mt-1"
             />
           </div>
 
           <div>
             <label
               htmlFor="newPassword"
-              className="block text-sm font-medium text-gray-700"
+              className="bethel-label"
             >
               New password
             </label>
@@ -468,10 +470,10 @@ export default function SettingsPage() {
               onChange={(event) =>
                 setNewPassword(event.target.value)
               }
-              className="mt-1 w-full rounded-lg border px-4 py-3 text-sm outline-none focus:ring-2"
+              className="bethel-input mt-1"
             />
 
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs bethel-muted">
               At least 8 characters.
             </p>
           </div>
@@ -479,7 +481,7 @@ export default function SettingsPage() {
           <div>
             <label
               htmlFor="confirmPassword"
-              className="block text-sm font-medium text-gray-700"
+              className="bethel-label"
             >
               Confirm new password
             </label>
@@ -493,18 +495,18 @@ export default function SettingsPage() {
               onChange={(event) =>
                 setConfirmPassword(event.target.value)
               }
-              className="mt-1 w-full rounded-lg border px-4 py-3 text-sm outline-none focus:ring-2"
+              className="bethel-input mt-1"
             />
           </div>
 
           {passwordError && (
-            <p className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+            <p className="bethel-alert bethel-alert-error">
               {passwordError}
             </p>
           )}
 
           {passwordSuccess && (
-            <p className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+            <p className="bethel-alert bethel-alert-success">
               {passwordSuccess}
             </p>
           )}
@@ -512,7 +514,7 @@ export default function SettingsPage() {
           <button
             type="submit"
             disabled={changingPassword}
-            className="rounded-lg bg-black px-6 py-3 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+            className="bethel-button bethel-button-primary disabled:opacity-50"
           >
             {changingPassword
               ? "Updating..."

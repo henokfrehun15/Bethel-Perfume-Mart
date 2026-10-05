@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import ProductForm from "@/components/admin/ProductForm";
+import Skeleton from "@/components/Skeleton";
 import { apiRequest } from "@/lib/api";
 
 interface ProductImage {
@@ -84,14 +85,12 @@ export default function EditProductPage() {
     return (
       <div className="bethel-page">
         <div className="bethel-container">
-          <div className="bethel-card flex min-h-[280px] items-center justify-center">
-            <div className="text-center">
-              <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-[#f3dce2] border-t-[#c96a82]" />
+          <Skeleton className="h-12 w-72 rounded-2xl" />
 
-              <p className="text-sm font-medium text-[#756b6e]">
-                Loading product...
-              </p>
-            </div>
+          <div className="mt-6 space-y-6">
+            <Skeleton className="h-72 rounded-[24px]" />
+            <Skeleton className="h-48 rounded-[24px]" />
+            <Skeleton className="h-48 rounded-[24px]" />
           </div>
         </div>
       </div>
@@ -124,7 +123,7 @@ export default function EditProductPage() {
         <div className="bethel-container">
           <div className="bethel-card flex min-h-[280px] items-center justify-center">
             <div className="text-center">
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#f7e5e9] text-[#9e405a]">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary-light text-primary-dark">
                 <svg
                   viewBox="0 0 24 24"
                   fill="none"
@@ -149,7 +148,7 @@ export default function EditProductPage() {
                 Product not found
               </h2>
 
-              <p className="mt-2 text-sm text-[#756b6e]">
+              <p className="mt-2 text-sm text-muted">
                 The product you are trying to edit could not be found.
               </p>
             </div>
@@ -163,15 +162,15 @@ export default function EditProductPage() {
     <div className="bethel-page">
       <div className="bethel-container">
         <div className="relative mb-8 overflow-hidden rounded-3xl border border-[#f3dce2] bg-gradient-to-br from-white via-[#fffafa] to-[#f8e7eb] px-6 py-8 shadow-sm sm:px-8">
-          <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[#f7e5e9] opacity-70" />
+          <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-primary-light opacity-70" />
 
-          <div className="pointer-events-none absolute -bottom-20 right-1/3 h-32 w-32 rounded-full bg-[#f7e5e9] opacity-40" />
+          <div className="pointer-events-none absolute -bottom-20 right-1/3 h-32 w-32 rounded-full bg-primary-light opacity-40" />
 
           <div className="relative">
             <div className="mb-3 flex items-center gap-3">
-              <span className="h-px w-8 bg-[#c96a82]" />
+              <span className="h-px w-8 bg-primary" />
 
-              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9e405a]">
+              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-dark">
                 Product Catalog
               </span>
             </div>
@@ -182,16 +181,16 @@ export default function EditProductPage() {
                   Edit Product
                 </h2>
 
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-[#756b6e] sm:text-base">
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-muted sm:text-base">
                   Update the details of{" "}
-                  <span className="font-semibold text-[#30272a]">
+                  <span className="font-semibold text-foreground">
                     {product.name}
                   </span>
                   .
                 </p>
               </div>
 
-              <div className="inline-flex w-fit items-center rounded-full border border-[#efd0d8] bg-white/80 px-4 py-2 text-xs font-semibold text-[#9e405a] shadow-sm">
+              <div className="inline-flex w-fit items-center rounded-full border border-[#efd0d8] bg-white/80 px-4 py-2 text-xs font-semibold text-primary-dark shadow-sm">
                 Product #{product.id}
               </div>
             </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Skeleton from "@/components/Skeleton";
 import { apiRequest } from "@/lib/api";
 
 interface ProductsResponse {
@@ -117,14 +118,14 @@ export default function AdminDashboard() {
   return (
     <div className="bethel-page">
       {/* Decorative background */}
-      <div className="pointer-events-none absolute right-0 top-0 -z-0 h-64 w-64 rounded-full bg-[#f7e5e9] opacity-60 blur-3xl" />
-      <div className="pointer-events-none absolute left-0 top-80 -z-0 h-48 w-48 rounded-full bg-[#f7e5e9] opacity-40 blur-3xl" />
+      <div className="pointer-events-none absolute right-0 top-0 -z-0 h-64 w-64 rounded-full bg-primary-light opacity-60 blur-3xl" />
+      <div className="pointer-events-none absolute left-0 top-80 -z-0 h-48 w-48 rounded-full bg-primary-light opacity-40 blur-3xl" />
 
       <div className="relative z-10">
         {/* Page heading */}
         <div className="mb-8">
           <div className="bethel-label mb-3 flex items-center gap-2">
-            <span className="h-px w-8 bg-[#c96a82]" />
+            <span className="h-px w-8 bg-primary" />
             Admin Overview
           </div>
 
@@ -145,7 +146,7 @@ export default function AdminDashboard() {
                 <svg
                   viewBox="0 0 24 24"
                   fill="none"
-                  className="h-6 w-6 text-[#c96a82]"
+                  className="h-6 w-6 text-primary"
                   stroke="currentColor"
                   strokeWidth="1.5"
                 >
@@ -196,11 +197,11 @@ export default function AdminDashboard() {
           <div className="bethel-card p-5">
             <p className="bethel-label">Orders</p>
 
-            <p className="mt-2 text-3xl font-semibold tracking-tight text-[#30272a]">
-              {stats ? stats.total_orders : "..."}
+            <p className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
+              {stats ? stats.total_orders : <Skeleton className="h-9 w-16" />}
             </p>
 
-            <p className="mt-1 text-sm text-[#756b6e]">
+            <p className="mt-1 text-sm text-muted">
               All customer orders
             </p>
           </div>
@@ -208,11 +209,11 @@ export default function AdminDashboard() {
           <div className="bethel-card p-5">
             <p className="bethel-label">Pending</p>
 
-            <p className="mt-2 text-3xl font-semibold tracking-tight text-[#30272a]">
-              {stats ? stats.pending_orders : "..."}
+            <p className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
+              {stats ? stats.pending_orders : <Skeleton className="h-9 w-16" />}
             </p>
 
-            <p className="mt-1 text-sm text-[#756b6e]">
+            <p className="mt-1 text-sm text-muted">
               Waiting to be confirmed
             </p>
           </div>
@@ -220,18 +221,22 @@ export default function AdminDashboard() {
           <div className="bethel-card p-5">
             <p className="bethel-label">Revenue</p>
 
-            <p className="mt-2 text-3xl font-semibold tracking-tight text-[#30272a]">
-              {stats
-                ? stats.revenue.length > 0
-                  ? formatPrice(
-                      stats.revenue[0].revenue,
-                      stats.revenue[0].currency
-                    )
-                  : formatPrice(0, "ETB")
-                : "..."}
+            <p className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
+              {stats ? (
+                stats.revenue.length > 0 ? (
+                  formatPrice(
+                    stats.revenue[0].revenue,
+                    stats.revenue[0].currency
+                  )
+                ) : (
+                  formatPrice(0, "ETB")
+                )
+              ) : (
+                <Skeleton className="h-9 w-24" />
+              )}
             </p>
 
-            <p className="mt-1 text-sm text-[#756b6e]">
+            <p className="mt-1 text-sm text-muted">
               Excludes cancelled orders
             </p>
           </div>
@@ -239,11 +244,11 @@ export default function AdminDashboard() {
           <div className="bethel-card p-5">
             <p className="bethel-label">Low stock</p>
 
-            <p className="mt-2 text-3xl font-semibold tracking-tight text-[#30272a]">
-              {stats ? stats.low_stock : "..."}
+            <p className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
+              {stats ? stats.low_stock : <Skeleton className="h-9 w-16" />}
             </p>
 
-            <p className="mt-1 text-sm text-[#756b6e]">
+            <p className="mt-1 text-sm text-muted">
               Active products at 5 units or fewer
             </p>
           </div>
@@ -253,18 +258,18 @@ export default function AdminDashboard() {
         <div className="grid gap-6 sm:grid-cols-2">
           {/* Products */}
           <div className="bethel-card bethel-card-hover group relative overflow-hidden p-6 sm:p-7">
-            <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-[#f7e5e9] opacity-70 transition-transform duration-500 group-hover:scale-125" />
+            <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-primary-light opacity-70 transition-transform duration-500 group-hover:scale-125" />
 
             <div className="relative">
               <div className="mb-6 flex items-center justify-between">
                 <div>
                   <p className="bethel-label">Catalog</p>
-                  <h3 className="mt-1 text-lg font-semibold text-[#30272a]">
+                  <h3 className="mt-1 text-lg font-semibold text-foreground">
                     Products
                   </h3>
                 </div>
 
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#f7e5e9] text-[#c96a82]">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-light text-primary">
                   <svg
                     viewBox="0 0 24 24"
                     fill="none"
@@ -286,17 +291,17 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              <p className="text-4xl font-semibold tracking-tight text-[#30272a] sm:text-5xl">
-                {products ?? "..."}
+              <p className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+                {products ?? <Skeleton className="h-12 w-24" />}
               </p>
 
-              <p className="mt-2 text-sm text-[#756b6e]">
+              <p className="mt-2 text-sm text-muted">
                 Products currently in your catalog
               </p>
 
               <a
                 href="/admin/products"
-                className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[#9e405a] transition-colors hover:text-[#c96a82]"
+                className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-primary-dark transition-colors hover:text-primary"
               >
                 Manage products
                 <span className="transition-transform group-hover:translate-x-1">
@@ -308,18 +313,18 @@ export default function AdminDashboard() {
 
           {/* Categories */}
           <div className="bethel-card bethel-card-hover group relative overflow-hidden p-6 sm:p-7">
-            <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-[#f7e5e9] opacity-70 transition-transform duration-500 group-hover:scale-125" />
+            <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-primary-light opacity-70 transition-transform duration-500 group-hover:scale-125" />
 
             <div className="relative">
               <div className="mb-6 flex items-center justify-between">
                 <div>
                   <p className="bethel-label">Collections</p>
-                  <h3 className="mt-1 text-lg font-semibold text-[#30272a]">
+                  <h3 className="mt-1 text-lg font-semibold text-foreground">
                     Categories
                   </h3>
                 </div>
 
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#f7e5e9] text-[#c96a82]">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-light text-primary">
                   <svg
                     viewBox="0 0 24 24"
                     fill="none"
@@ -341,17 +346,17 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              <p className="text-4xl font-semibold tracking-tight text-[#30272a] sm:text-5xl">
-                {categories ?? "..."}
+              <p className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+                {categories ?? <Skeleton className="h-12 w-24" />}
               </p>
 
-              <p className="mt-2 text-sm text-[#756b6e]">
+              <p className="mt-2 text-sm text-muted">
                 Fragrance collections available
               </p>
 
               <a
                 href="/admin/categories"
-                className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[#9e405a] transition-colors hover:text-[#c96a82]"
+                className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-primary-dark transition-colors hover:text-primary"
               >
                 Manage categories
                 <span className="transition-transform group-hover:translate-x-1">
@@ -364,28 +369,32 @@ export default function AdminDashboard() {
 
         {/* Recent orders */}
         <div className="bethel-card mt-8 overflow-hidden">
-          <div className="flex items-center justify-between border-b border-[#eadfe2] px-6 py-5">
+          <div className="flex items-center justify-between border-b border-border px-6 py-5">
             <div>
               <p className="bethel-label">Latest activity</p>
 
-              <h3 className="mt-1 text-lg font-semibold text-[#30272a]">
+              <h3 className="mt-1 text-lg font-semibold text-foreground">
                 Recent orders
               </h3>
             </div>
 
             <a
               href="/admin/orders"
-              className="text-sm font-semibold text-[#9e405a] transition-colors hover:text-[#c96a82]"
+              className="text-sm font-semibold text-primary-dark transition-colors hover:text-primary"
             >
               View all →
             </a>
           </div>
 
-          {!stats || stats.recent_orders.length === 0 ? (
-            <p className="px-6 py-8 text-sm text-[#756b6e]">
-              {stats
-                ? "No orders yet. New orders will appear here."
-                : "Loading recent orders..."}
+          {!stats ? (
+            <div className="space-y-4 px-6 py-6">
+              {[0, 1, 2].map((row) => (
+                <Skeleton key={row} className="h-10" />
+              ))}
+            </div>
+          ) : stats.recent_orders.length === 0 ? (
+            <p className="px-6 py-8 text-sm text-muted">
+              No orders yet. New orders will appear here.
             </p>
           ) : (
             <ul className="divide-y divide-[#f0e7e9]">
@@ -395,18 +404,18 @@ export default function AdminDashboard() {
                   className="flex flex-wrap items-center justify-between gap-3 px-6 py-4"
                 >
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-[#30272a]">
+                    <p className="truncate text-sm font-semibold text-foreground">
                       {order.order_number}
                     </p>
 
-                    <p className="mt-0.5 truncate text-xs text-[#756b6e]">
+                    <p className="mt-0.5 truncate text-xs text-muted">
                       {order.customer_name} ·{" "}
                       {formatDateTime(order.created_at)}
                     </p>
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <span className="text-sm font-semibold text-[#30272a]">
+                    <span className="text-sm font-semibold text-foreground">
                       {formatPrice(order.total, order.currency)}
                     </span>
 
@@ -434,76 +443,76 @@ export default function AdminDashboard() {
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <a
               href="/admin/orders"
-              className="group rounded-xl border border-[#eadfe2] bg-[#fffcfa] p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#e8c2cc] hover:bg-[#fdf5f7]"
+              className="group rounded-xl border border-border bg-background p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#e8c2cc] hover:bg-[#fdf5f7]"
             >
               <div className="flex items-center justify-between">
-                <span className="font-medium text-[#30272a]">
+                <span className="font-medium text-foreground">
                   Orders
                 </span>
 
-                <span className="text-[#c96a82] transition-transform group-hover:translate-x-1">
+                <span className="text-primary transition-transform group-hover:translate-x-1">
                   →
                 </span>
               </div>
 
-              <p className="mt-1 text-sm text-[#756b6e]">
+              <p className="mt-1 text-sm text-muted">
                 Review and manage customer orders
               </p>
             </a>
 
             <a
               href="/admin/products"
-              className="group rounded-xl border border-[#eadfe2] bg-[#fffcfa] p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#e8c2cc] hover:bg-[#fdf5f7]"
+              className="group rounded-xl border border-border bg-background p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#e8c2cc] hover:bg-[#fdf5f7]"
             >
               <div className="flex items-center justify-between">
-                <span className="font-medium text-[#30272a]">
+                <span className="font-medium text-foreground">
                   Products
                 </span>
 
-                <span className="text-[#c96a82] transition-transform group-hover:translate-x-1">
+                <span className="text-primary transition-transform group-hover:translate-x-1">
                   →
                 </span>
               </div>
 
-              <p className="mt-1 text-sm text-[#756b6e]">
+              <p className="mt-1 text-sm text-muted">
                 Add and manage fragrances
               </p>
             </a>
 
             <a
               href="/admin/categories"
-              className="group rounded-xl border border-[#eadfe2] bg-[#fffcfa] p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#e8c2cc] hover:bg-[#fdf5f7]"
+              className="group rounded-xl border border-border bg-background p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#e8c2cc] hover:bg-[#fdf5f7]"
             >
               <div className="flex items-center justify-between">
-                <span className="font-medium text-[#30272a]">
+                <span className="font-medium text-foreground">
                   Categories
                 </span>
 
-                <span className="text-[#c96a82] transition-transform group-hover:translate-x-1">
+                <span className="text-primary transition-transform group-hover:translate-x-1">
                   →
                 </span>
               </div>
 
-              <p className="mt-1 text-sm text-[#756b6e]">
+              <p className="mt-1 text-sm text-muted">
                 Organize fragrance collections
               </p>
             </a>
 
             <a
               href="/admin/settings"
-              className="group rounded-xl border border-[#eadfe2] bg-[#fffcfa] p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#e8c2cc] hover:bg-[#fdf5f7]"
+              className="group rounded-xl border border-border bg-background p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#e8c2cc] hover:bg-[#fdf5f7]"
             >
               <div className="flex items-center justify-between">
-                <span className="font-medium text-[#30272a]">
+                <span className="font-medium text-foreground">
                   Store Settings
                 </span>
 
-                <span className="text-[#c96a82] transition-transform group-hover:translate-x-1">
+                <span className="text-primary transition-transform group-hover:translate-x-1">
                   →
                 </span>
               </div>
 
-              <p className="mt-1 text-sm text-[#756b6e]">
+              <p className="mt-1 text-sm text-muted">
                 Update your store information
               </p>
             </a>

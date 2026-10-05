@@ -68,15 +68,23 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
-      <div className="w-full max-w-md rounded-xl bg-white p-8 shadow">
+    <main className="bethel-page flex min-h-screen items-center justify-center bg-background px-4 py-12">
+      {/* Decorative background */}
+      <div className="pointer-events-none absolute right-0 top-0 h-72 w-72 rounded-full bg-primary-light opacity-60 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 left-0 h-56 w-56 rounded-full bg-primary-light opacity-40 blur-3xl" />
+
+      <div className="bethel-card relative w-full max-w-md p-8 sm:p-10">
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary-dark">
             Bethel Perfume
+          </p>
+
+          <h1 className="bethel-heading mt-2 text-3xl">
+            Admin sign in
           </h1>
 
-          <p className="mt-2 text-sm text-gray-500">
-            Admin Login
+          <p className="bethel-muted mt-2 text-sm">
+            Manage your store
           </p>
         </div>
 
@@ -87,7 +95,7 @@ export default function AdminLoginPage() {
           <div>
             <label
               htmlFor="username"
-              className="mb-2 block text-sm font-medium"
+              className="bethel-label"
             >
               Username
             </label>
@@ -100,7 +108,8 @@ export default function AdminLoginPage() {
                 setUsername(event.target.value)
               }
               required
-              className="w-full rounded-lg border px-4 py-3 outline-none focus:ring-2"
+              autoComplete="username"
+              className="bethel-input"
               placeholder="Enter username"
             />
           </div>
@@ -108,7 +117,7 @@ export default function AdminLoginPage() {
           <div>
             <label
               htmlFor="password"
-              className="mb-2 block text-sm font-medium"
+              className="bethel-label"
             >
               Password
             </label>
@@ -121,13 +130,14 @@ export default function AdminLoginPage() {
                 setPassword(event.target.value)
               }
               required
-              className="w-full rounded-lg border px-4 py-3 outline-none focus:ring-2"
+              autoComplete="current-password"
+              className="bethel-input"
               placeholder="Enter password"
             />
           </div>
 
           {error && (
-            <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
+            <div className="bethel-alert bethel-alert-error">
               {error}
             </div>
           )}
@@ -135,7 +145,7 @@ export default function AdminLoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-black px-4 py-3 font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+            className="bethel-button bethel-button-primary w-full"
           >
             {loading
               ? "Signing in..."

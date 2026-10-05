@@ -51,11 +51,11 @@ export default function AdminLayout({
 
   if (checkingAuth && !isLoginPage) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#fffcfa]">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-center">
-          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-[#f7e5e9] border-t-[#c96a82]" />
+          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-primary-light border-t-primary" />
 
-          <p className="text-sm text-[#756b6e]">
+          <p className="text-sm text-muted">
             Checking authentication...
           </p>
         </div>
@@ -91,24 +91,24 @@ export default function AdminLayout({
   ];
 
   return (
-    <div className="min-h-screen bg-[#fffcfa] text-[#30272a]">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-[#eadcdf] bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
           {/* Brand */}
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#f7e5e9]">
-              <span className="text-xl text-[#c96a82]">
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary-light">
+              <span className="text-xl text-primary">
                 ✿
               </span>
             </div>
 
             <div>
-              <h1 className="text-lg font-semibold tracking-tight text-[#30272a] sm:text-xl">
-                Bethel <span className="text-[#c96a82]">Perfume</span>
+              <h1 className="text-lg font-semibold tracking-tight text-foreground sm:text-xl">
+                Bethel <span className="text-primary">Perfume</span>
               </h1>
 
-              <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[#756b6e]">
+              <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-muted">
                 Administration
               </p>
             </div>
@@ -118,18 +118,18 @@ export default function AdminLayout({
           <div className="flex items-center gap-3">
             {username && (
               <div className="hidden items-center gap-3 sm:flex">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f7e5e9]">
-                  <span className="text-sm font-semibold text-[#9e405a]">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-light">
+                  <span className="text-sm font-semibold text-primary-dark">
                     {username.charAt(0).toUpperCase()}
                   </span>
                 </div>
 
                 <div className="leading-tight">
-                  <p className="text-xs text-[#756b6e]">
+                  <p className="text-xs text-muted">
                     Signed in as
                   </p>
 
-                  <p className="text-sm font-medium text-[#30272a]">
+                  <p className="text-sm font-medium text-foreground">
                     {username}
                   </p>
                 </div>
@@ -138,7 +138,7 @@ export default function AdminLayout({
 
             <button
               onClick={handleLogout}
-              className="rounded-xl border border-[#eadcdf] bg-white px-3 py-2 text-sm font-medium text-[#756b6e] transition hover:border-[#d8aab6] hover:bg-[#fdf3f5] hover:text-[#9e405a]"
+              className="rounded-xl border border-[#eadcdf] bg-white px-3 py-2 text-sm font-medium text-muted transition hover:border-[#d8aab6] hover:bg-[#fdf3f5] hover:text-primary-dark"
             >
               Logout
             </button>
@@ -161,14 +161,14 @@ export default function AdminLayout({
                 href={item.href}
                 className={`relative whitespace-nowrap px-4 py-4 text-sm font-medium transition ${
                   isActive
-                    ? "text-[#9e405a]"
-                    : "text-[#756b6e] hover:text-[#9e405a]"
+                    ? "text-primary-dark"
+                    : "text-muted hover:text-primary-dark"
                 }`}
               >
                 {item.label}
 
                 {isActive && (
-                  <span className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-[#c96a82]" />
+                  <span className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-primary" />
                 )}
               </Link>
             );

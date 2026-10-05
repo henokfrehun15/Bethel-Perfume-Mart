@@ -320,10 +320,10 @@ export default function ProductForm({
   };
 
   const inputClass =
-    "w-full rounded-2xl border border-[#ead7dc] bg-[#fffdfc] px-4 py-3.5 text-sm text-[#30272A] outline-none transition placeholder:text-[#a69a9e] focus:border-[#C96A82] focus:ring-4 focus:ring-[#C96A82]/10";
+    "w-full rounded-2xl border border-[#ead7dc] bg-[#fffdfc] px-4 py-3.5 text-sm text-foreground outline-none transition placeholder:text-muted-light focus:border-primary focus:ring-4 focus:ring-primary/10";
 
   const selectClass =
-    "w-full rounded-2xl border border-[#ead7dc] bg-[#fffdfc] px-4 py-3.5 text-sm text-[#30272A] outline-none transition focus:border-[#C96A82] focus:ring-4 focus:ring-[#C96A82]/10";
+    "w-full rounded-2xl border border-[#ead7dc] bg-[#fffdfc] px-4 py-3.5 text-sm text-foreground outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10";
 
   const labelClass =
     "mb-2 block text-[13px] font-semibold tracking-wide text-[#594d51]";
@@ -335,25 +335,25 @@ export default function ProductForm({
     >
       {/* Header */}
       <div className="relative overflow-hidden rounded-[28px] border border-[#f0dce1] bg-gradient-to-br from-[#fffdfc] via-[#fff8fa] to-[#f9e9ed] p-6 sm:p-8">
-        <div className="pointer-events-none absolute -right-8 -top-12 text-[130px] leading-none text-[#C96A82]/10">
+        <div className="pointer-events-none absolute -right-8 -top-12 text-[130px] leading-none text-primary/10">
           ❀
         </div>
 
         <div className="relative">
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-[#f7e5e9] px-3 py-1.5 text-xs font-semibold text-[#9E405A]">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-primary-light px-3 py-1.5 text-xs font-semibold text-primary-dark">
             <span>✦</span>
             {isEditing
               ? "Product Collection"
               : "New Collection"}
           </div>
 
-          <h2 className="font-serif text-3xl font-semibold tracking-tight text-[#30272A] sm:text-4xl">
+          <h2 className="font-serif text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
             {isEditing
               ? "Refine your fragrance"
               : "Add a new fragrance"}
           </h2>
 
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-[#756B6E]">
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
             {isEditing
               ? `Update the details for ${product?.name}.`
               : "Create a beautifully presented product for the Bethel Perfume collection."}
@@ -363,7 +363,7 @@ export default function ProductForm({
 
       {/* Error */}
       {error && (
-        <div className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div className="flex items-start gap-3 rounded-2xl border border-[#edcbd1] bg-[#fdf0f2] p-4 text-sm text-[#9e405a]">
           <span className="mt-0.5">!</span>
           <div>
             <p className="font-semibold">
@@ -378,12 +378,12 @@ export default function ProductForm({
       <section className="overflow-hidden rounded-[24px] border border-[#eee1e4] bg-white shadow-[0_10px_35px_rgba(92,52,61,0.05)]">
         <div className="border-b border-[#f2e7e9] px-5 py-5 sm:px-7">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f7e5e9] text-[#C96A82]">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary-light text-primary">
               ✿
             </div>
 
             <div>
-              <h3 className="font-serif text-xl font-semibold text-[#30272A]">
+              <h3 className="font-serif text-xl font-semibold text-foreground">
                 Basic Information
               </h3>
               <p className="mt-0.5 text-xs text-[#8b7e82]">
@@ -429,7 +429,7 @@ export default function ProductForm({
               <button
                 type="button"
                 onClick={generateSlug}
-                className="shrink-0 rounded-2xl border border-[#e7c8d0] bg-[#fff8fa] px-4 text-xs font-semibold text-[#9E405A] transition hover:bg-[#f7e5e9]"
+                className="shrink-0 rounded-2xl border border-[#e7c8d0] bg-[#fff8fa] px-4 text-xs font-semibold text-primary-dark transition hover:bg-primary-light"
               >
                 Generate
               </button>
@@ -488,12 +488,12 @@ export default function ProductForm({
       <section className="overflow-hidden rounded-[24px] border border-[#eee1e4] bg-white shadow-[0_10px_35px_rgba(92,52,61,0.05)]">
         <div className="border-b border-[#f2e7e9] px-5 py-5 sm:px-7">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f7e5e9] text-[#C96A82]">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary-light text-primary">
               ◇
             </div>
 
             <div>
-              <h3 className="font-serif text-xl font-semibold text-[#30272A]">
+              <h3 className="font-serif text-xl font-semibold text-foreground">
                 Pricing
               </h3>
               <p className="mt-0.5 text-xs text-[#8b7e82]">
@@ -522,7 +522,7 @@ export default function ProductForm({
                 className={`${inputClass} pr-16`}
               />
 
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#9E405A]">
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary-dark">
                 {currency || "ETB"}
               </span>
             </div>
@@ -549,12 +549,12 @@ export default function ProductForm({
       <section className="overflow-hidden rounded-[24px] border border-[#eee1e4] bg-white shadow-[0_10px_35px_rgba(92,52,61,0.05)]">
         <div className="border-b border-[#f2e7e9] px-5 py-5 sm:px-7">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f7e5e9] text-[#C96A82]">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary-light text-primary">
               ♢
             </div>
 
             <div>
-              <h3 className="font-serif text-xl font-semibold text-[#30272A]">
+              <h3 className="font-serif text-xl font-semibold text-foreground">
                 Category & Stock
               </h3>
               <p className="mt-0.5 text-xs text-[#8b7e82]">
@@ -646,12 +646,12 @@ export default function ProductForm({
       <section className="overflow-hidden rounded-[24px] border border-[#eee1e4] bg-white shadow-[0_10px_35px_rgba(92,52,61,0.05)]">
         <div className="border-b border-[#f2e7e9] px-5 py-5 sm:px-7">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f7e5e9] text-[#C96A82]">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary-light text-primary">
               ♡
             </div>
 
             <div>
-              <h3 className="font-serif text-xl font-semibold text-[#30272A]">
+              <h3 className="font-serif text-xl font-semibold text-foreground">
                 Promotion
               </h3>
               <p className="mt-0.5 text-xs text-[#8b7e82]">
@@ -664,7 +664,7 @@ export default function ProductForm({
         <div className="p-5 sm:p-7">
           <label className="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-[#ead7dc] bg-[#fff9fa] p-4 transition hover:border-[#dca7b5]">
             <div>
-              <p className="text-sm font-semibold text-[#30272A]">
+              <p className="text-sm font-semibold text-foreground">
                 This product is on promotion
               </p>
               <p className="mt-1 text-xs text-[#817478]">
@@ -682,7 +682,7 @@ export default function ProductForm({
                 className="peer sr-only"
               />
 
-              <div className="h-7 w-12 rounded-full bg-[#ddcdd1] transition peer-checked:bg-[#C96A82]" />
+              <div className="h-7 w-12 rounded-full bg-[#ddcdd1] transition peer-checked:bg-primary" />
 
               <div className="absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow-sm transition peer-checked:translate-x-5" />
             </div>
@@ -735,12 +735,12 @@ export default function ProductForm({
       <section className="overflow-hidden rounded-[24px] border border-[#eee1e4] bg-white shadow-[0_10px_35px_rgba(92,52,61,0.05)]">
         <div className="border-b border-[#f2e7e9] px-5 py-5 sm:px-7">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f7e5e9] text-[#C96A82]">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary-light text-primary">
               ◉
             </div>
 
             <div>
-              <h3 className="font-serif text-xl font-semibold text-[#30272A]">
+              <h3 className="font-serif text-xl font-semibold text-foreground">
                 Store visibility
               </h3>
               <p className="mt-0.5 text-xs text-[#8b7e82]">
@@ -753,7 +753,7 @@ export default function ProductForm({
         <div className="p-5 sm:p-7">
           <label className="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-[#ead7dc] bg-[#fff9fa] p-4 transition hover:border-[#dca7b5]">
             <div>
-              <p className="text-sm font-semibold text-[#30272A]">
+              <p className="text-sm font-semibold text-foreground">
                 {active
                   ? "Published in the store"
                   : "Hidden from the store"}
@@ -776,7 +776,7 @@ export default function ProductForm({
                 className="peer sr-only"
               />
 
-              <div className="h-7 w-12 rounded-full bg-[#ddcdd1] transition peer-checked:bg-[#C96A82]" />
+              <div className="h-7 w-12 rounded-full bg-[#ddcdd1] transition peer-checked:bg-primary" />
 
               <div className="absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow-sm transition peer-checked:translate-x-5" />
             </div>
@@ -789,12 +789,12 @@ export default function ProductForm({
         <div className="p-5 sm:p-7">
           <label className="flex cursor-pointer items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#f7e5e9] text-lg text-[#C96A82]">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary-light text-lg text-primary">
                 ★
               </div>
 
               <div>
-                <p className="text-sm font-semibold text-[#30272A]">
+                <p className="text-sm font-semibold text-foreground">
                   Featured product
                 </p>
                 <p className="mt-1 text-xs text-[#817478]">
@@ -813,7 +813,7 @@ export default function ProductForm({
                 className="peer sr-only"
               />
 
-              <div className="h-7 w-12 rounded-full bg-[#ddcdd1] transition peer-checked:bg-[#C96A82]" />
+              <div className="h-7 w-12 rounded-full bg-[#ddcdd1] transition peer-checked:bg-primary" />
 
               <div className="absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow-sm transition peer-checked:translate-x-5" />
             </div>
@@ -826,12 +826,12 @@ export default function ProductForm({
         <div className="border-b border-[#f2e7e9] px-5 py-5 sm:px-7">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f7e5e9] text-[#C96A82]">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary-light text-primary">
                 ◌
               </div>
 
               <div>
-                <h3 className="font-serif text-xl font-semibold text-[#30272A]">
+                <h3 className="font-serif text-xl font-semibold text-foreground">
                   Product Images
                 </h3>
                 <p className="mt-0.5 text-xs text-[#8b7e82]">
@@ -842,7 +842,7 @@ export default function ProductForm({
 
             <div className="flex flex-wrap items-center gap-2">
               <label
-                className={`cursor-pointer rounded-2xl bg-[#C96A82] px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-[#b95770] ${
+                className={`cursor-pointer rounded-2xl bg-primary px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-[#b95770] ${
                   uploading
                     ? "pointer-events-none opacity-60"
                     : ""
@@ -862,7 +862,7 @@ export default function ProductForm({
               <button
                 type="button"
                 onClick={addImage}
-                className="rounded-2xl bg-[#fff3f6] px-4 py-2.5 text-xs font-semibold text-[#9E405A] transition hover:bg-[#f7e5e9]"
+                className="rounded-2xl bg-[#fff3f6] px-4 py-2.5 text-xs font-semibold text-primary-dark transition hover:bg-primary-light"
               >
                 + Add image
               </button>
@@ -874,9 +874,9 @@ export default function ProductForm({
           {images.map((image, index) => (
             <div
               key={index}
-              className="group flex flex-col gap-2 rounded-2xl border border-[#eadfe2] bg-[#fffdfc] p-3 sm:flex-row sm:items-center"
+              className="group flex flex-col gap-2 rounded-2xl border border-border bg-[#fffdfc] p-3 sm:flex-row sm:items-center"
             >
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#f7e5e9] text-sm text-[#C96A82]">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-primary-light text-sm text-primary">
                 <ProductImage
                   src={image}
                   alt=""
@@ -896,7 +896,7 @@ export default function ProductForm({
                   )
                 }
                 placeholder="https://example.com/image.jpg or /uploads/photo.png"
-                className={`min-w-0 flex-1 border-0 bg-transparent px-2 py-2.5 text-sm text-[#30272A] outline-none placeholder:text-[#aaa0a3] focus:ring-0`}
+                className={`min-w-0 flex-1 border-0 bg-transparent px-2 py-2.5 text-sm text-foreground outline-none placeholder:text-[#aaa0a3] focus:ring-0`}
               />
 
               {images.length > 1 && (
@@ -905,7 +905,7 @@ export default function ProductForm({
                   onClick={() =>
                     removeImage(index)
                   }
-                  className="rounded-xl border border-red-100 px-3 py-2 text-xs font-semibold text-red-500 transition hover:bg-red-50"
+                  className="rounded-xl border border-[#f3d5db] px-3 py-2 text-xs font-semibold text-danger transition hover:bg-[#fdf0f2]"
                 >
                   Remove
                 </button>
@@ -914,7 +914,7 @@ export default function ProductForm({
           ))}
 
           {uploadError && (
-            <p className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-xs font-medium text-red-600">
+            <p className="rounded-2xl border border-[#f3d5db] bg-[#fdf0f2] px-4 py-3 text-xs font-medium text-[#9e405a]">
               {uploadError}
             </p>
           )}
@@ -927,7 +927,7 @@ export default function ProductForm({
       </section>
 
       {/* Actions */}
-      <div className="sticky bottom-4 z-10 flex flex-col-reverse gap-3 rounded-[24px] border border-[#eadfe2] bg-white/95 p-3 shadow-[0_12px_40px_rgba(70,40,48,0.12)] backdrop-blur sm:flex-row sm:justify-end">
+      <div className="sticky bottom-4 z-10 flex flex-col-reverse gap-3 rounded-[24px] border border-border bg-white/95 p-3 shadow-[0_12px_40px_rgba(70,40,48,0.12)] backdrop-blur sm:flex-row sm:justify-end">
         <button
           type="button"
           onClick={() =>
@@ -941,7 +941,7 @@ export default function ProductForm({
         <button
           type="submit"
           disabled={loading}
-          className="rounded-2xl bg-[#C96A82] px-7 py-3.5 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(201,106,130,0.25)] transition hover:bg-[#b95770] hover:shadow-[0_10px_24px_rgba(201,106,130,0.32)] disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-2xl bg-primary px-7 py-3.5 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(201,106,130,0.25)] transition hover:bg-[#b95770] hover:shadow-[0_10px_24px_rgba(201,106,130,0.32)] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading
             ? "Saving..."

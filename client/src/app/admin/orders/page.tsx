@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import Skeleton from "@/components/Skeleton";
 import { apiRequest } from "@/lib/api";
 
 type OrderStatus =
@@ -267,13 +268,13 @@ export default function AdminOrdersPage() {
   return (
     <div className="bethel-page">
       {/* Decorative background */}
-      <div className="pointer-events-none absolute right-0 top-0 -z-0 h-72 w-72 rounded-full bg-[#f7e5e9] opacity-60 blur-3xl" />
+      <div className="pointer-events-none absolute right-0 top-0 -z-0 h-72 w-72 rounded-full bg-primary-light opacity-60 blur-3xl" />
 
       <div className="relative z-10">
         {/* Header */}
         <div className="mb-8">
           <div className="bethel-label mb-3 flex items-center gap-2">
-            <span className="h-px w-8 bg-[#c96a82]" />
+            <span className="h-px w-8 bg-primary" />
             Order Management
           </div>
 
@@ -287,7 +288,7 @@ export default function AdminOrdersPage() {
               </p>
             </div>
 
-            <div className="flex h-10 w-fit items-center rounded-full bg-[#f7e5e9] px-4 text-sm font-medium text-[#9e405a]">
+            <div className="flex h-10 w-fit items-center rounded-full bg-primary-light px-4 text-sm font-medium text-primary-dark">
               {total} {total === 1 ? "order" : "orders"}
             </div>
           </div>
@@ -298,7 +299,7 @@ export default function AdminOrdersPage() {
           <div className="mb-4">
             <p className="bethel-label">Order Filters</p>
 
-            <h3 className="mt-1 text-lg font-semibold text-[#30272a]">
+            <h3 className="mt-1 text-lg font-semibold text-foreground">
               Find an order
             </h3>
           </div>
@@ -365,7 +366,7 @@ export default function AdminOrdersPage() {
         <div className="bethel-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px] text-left text-sm">
-              <thead className="border-b border-[#eadfe2] bg-[#fdf8f9]">
+              <thead className="border-b border-border bg-[#fdf8f9]">
                 <tr>
                   <th className="px-5 py-4 font-semibold text-[#574b4f]">
                     Order
@@ -399,30 +400,49 @@ export default function AdminOrdersPage() {
 
               <tbody>
                 {loading ? (
-                  <tr>
-                    <td colSpan={7} className="px-5 py-16 text-center">
-                      <div className="flex flex-col items-center justify-center">
-                        <div className="bethel-spinner mb-3 h-8 w-8 border-2" />
-
-                        <p className="text-sm text-[#756b6e]">
-                          Loading orders...
-                        </p>
-                      </div>
-                    </td>
-                  </tr>
+                  <>
+                    {[0, 1, 2, 3, 4].map((row) => (
+                      <tr
+                        key={row}
+                        className="border-b border-[#f0e7e9]"
+                      >
+                        <td className="px-5 py-4">
+                          <Skeleton className="h-4 w-24" />
+                        </td>
+                        <td className="px-5 py-4">
+                          <Skeleton className="h-4 w-32" />
+                        </td>
+                        <td className="px-5 py-4">
+                          <Skeleton className="h-4 w-14" />
+                        </td>
+                        <td className="px-5 py-4">
+                          <Skeleton className="h-4 w-20" />
+                        </td>
+                        <td className="px-5 py-4">
+                          <Skeleton className="h-6 w-20 rounded-full" />
+                        </td>
+                        <td className="px-5 py-4">
+                          <Skeleton className="h-4 w-24" />
+                        </td>
+                        <td className="px-5 py-4">
+                          <Skeleton className="h-9 w-20 rounded-lg" />
+                        </td>
+                      </tr>
+                    ))}
+                  </>
                 ) : orders.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-5 py-16 text-center">
                       <div className="mx-auto flex max-w-sm flex-col items-center">
-                        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#f7e5e9] text-2xl text-[#c96a82]">
+                        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary-light text-2xl text-primary">
                           ✿
                         </div>
 
-                        <h3 className="text-lg font-semibold text-[#30272a]">
+                        <h3 className="text-lg font-semibold text-foreground">
                           No orders found
                         </h3>
 
-                        <p className="mt-1 text-sm text-[#756b6e]">
+                        <p className="mt-1 text-sm text-muted">
                           {search || statusFilter
                             ? "Try changing your filters."
                             : "New customer orders will appear here."}
@@ -438,35 +458,35 @@ export default function AdminOrdersPage() {
                     >
                       {/* Order number */}
                       <td className="px-5 py-4">
-                        <p className="font-semibold text-[#30272a]">
+                        <p className="font-semibold text-foreground">
                           {order.order_number}
                         </p>
 
-                        <p className="mt-0.5 text-xs text-[#756b6e]">
+                        <p className="mt-0.5 text-xs text-muted">
                           {order.customer_email || "No email"}
                         </p>
                       </td>
 
                       {/* Customer */}
                       <td className="px-5 py-4">
-                        <p className="font-medium text-[#30272a]">
+                        <p className="font-medium text-foreground">
                           {order.customer_name}
                         </p>
 
-                        <p className="mt-0.5 text-xs text-[#756b6e]">
+                        <p className="mt-0.5 text-xs text-muted">
                           {order.customer_phone}
                         </p>
                       </td>
 
                       {/* Items */}
-                      <td className="px-5 py-4 text-[#756b6e]">
+                      <td className="px-5 py-4 text-muted">
                         {order.item_count}{" "}
                         {order.item_count === 1 ? "product" : "products"} ·{" "}
                         {order.total_quantity} units
                       </td>
 
                       {/* Total */}
-                      <td className="px-5 py-4 font-semibold text-[#30272a]">
+                      <td className="px-5 py-4 font-semibold text-foreground">
                         {formatPrice(order.total, order.currency)}
                       </td>
 
@@ -482,7 +502,7 @@ export default function AdminOrdersPage() {
                       </td>
 
                       {/* Placed */}
-                      <td className="px-5 py-4 text-xs text-[#756b6e]">
+                      <td className="px-5 py-4 text-xs text-muted">
                         {formatDateTime(order.created_at)}
                       </td>
 
@@ -491,7 +511,7 @@ export default function AdminOrdersPage() {
                         <button
                           type="button"
                           onClick={() => openOrderDetail(order.order_number)}
-                          className="inline-flex items-center rounded-lg border border-[#e5dadd] bg-white px-3 py-2 text-xs font-semibold text-[#574b4f] transition-colors hover:border-[#d7a7b3] hover:bg-[#fdf5f7] hover:text-[#9e405a]"
+                          className="inline-flex items-center rounded-lg border border-[#e5dadd] bg-white px-3 py-2 text-xs font-semibold text-[#574b4f] transition-colors hover:border-[#d7a7b3] hover:bg-[#fdf5f7] hover:text-primary-dark"
                         >
                           View
                         </button>
@@ -505,13 +525,13 @@ export default function AdminOrdersPage() {
 
           {/* Pagination */}
           {!loading && total > 0 && (
-            <div className="flex flex-col gap-4 border-t border-[#eadfe2] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-[#756b6e]">
+            <div className="flex flex-col gap-4 border-t border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-muted">
                 Showing{" "}
-                <span className="font-medium text-[#30272a]">
+                <span className="font-medium text-foreground">
                   {(page - 1) * limit + 1}–{Math.min(page * limit, total)}
                 </span>{" "}
-                of <span className="font-medium text-[#30272a]">{total}</span>
+                of <span className="font-medium text-foreground">{total}</span>
                 {search && (
                   <span className="ml-1 text-[#a69b9e]">
                     (search filters the current page)
@@ -531,7 +551,7 @@ export default function AdminOrdersPage() {
                   ← Previous
                 </button>
 
-                <span className="rounded-lg bg-[#f7e5e9] px-3 py-2 text-xs font-semibold text-[#9e405a]">
+                <span className="rounded-lg bg-primary-light px-3 py-2 text-xs font-semibold text-primary-dark">
                   {page} / {totalPages}
                 </span>
 
@@ -552,7 +572,7 @@ export default function AdminOrdersPage() {
 
         {/* Status summary chips (current page) */}
         {!loading && orders.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-2 px-1 text-xs text-[#756b6e]">
+          <div className="mt-4 flex flex-wrap gap-2 px-1 text-xs text-muted">
             {ORDER_STATUSES.filter((status) => statusCounts[status]).map(
               (status) => (
                 <span
@@ -579,17 +599,17 @@ export default function AdminOrdersPage() {
             type="button"
             aria-label="Close order details"
             onClick={closeOrderDetail}
-            className="absolute inset-0 bg-[#30272a]/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-foreground/40 backdrop-blur-sm"
           />
 
           {/* Panel */}
           <aside className="relative flex h-full w-full max-w-xl flex-col overflow-y-auto bg-white shadow-2xl">
-            <div className="sticky top-0 z-10 border-b border-[#eadfe2] bg-white/95 px-6 py-5 backdrop-blur">
+            <div className="sticky top-0 z-10 border-b border-border bg-white/95 px-6 py-5 backdrop-blur">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="bethel-label mb-1">Order Details</p>
 
-                  <h3 className="font-serif text-2xl text-[#30272a]">
+                  <h3 className="font-serif text-2xl text-foreground">
                     {detailLoading
                       ? "Loading..."
                       : selectedOrder?.order_number}
@@ -599,7 +619,7 @@ export default function AdminOrdersPage() {
                 <button
                   type="button"
                   onClick={closeOrderDetail}
-                  className="rounded-xl border border-[#eadcdf] bg-white px-3 py-2 text-sm font-medium text-[#756b6e] transition hover:border-[#d8aab6] hover:bg-[#fdf3f5] hover:text-[#9e405a]"
+                  className="rounded-xl border border-[#eadcdf] bg-white px-3 py-2 text-sm font-medium text-muted transition hover:border-[#d8aab6] hover:bg-[#fdf3f5] hover:text-primary-dark"
                 >
                   Close
                 </button>
@@ -622,7 +642,7 @@ export default function AdminOrdersPage() {
               {selectedOrder && !detailLoading && (
                 <div className="space-y-6">
                   {/* Status management */}
-                  <section className="rounded-2xl border border-[#eadfe2] bg-[#fffcfa] p-5">
+                  <section className="rounded-2xl border border-border bg-background p-5">
                     <div className="flex items-center justify-between gap-4">
                       <div>
                         <p className="bethel-label mb-1">Status</p>
@@ -682,26 +702,26 @@ export default function AdminOrdersPage() {
 
                   {/* Customer */}
                   <section>
-                    <h4 className="mb-3 font-serif text-lg text-[#30272a]">
+                    <h4 className="mb-3 font-serif text-lg text-foreground">
                       Customer
                     </h4>
 
                     <dl className="space-y-2 text-sm">
                       <div className="flex justify-between gap-4">
-                        <dt className="text-[#756b6e]">Name</dt>
+                        <dt className="text-muted">Name</dt>
 
-                        <dd className="text-right font-medium text-[#30272a]">
+                        <dd className="text-right font-medium text-foreground">
                           {selectedOrder.customer_name}
                         </dd>
                       </div>
 
                       <div className="flex justify-between gap-4">
-                        <dt className="text-[#756b6e]">Phone</dt>
+                        <dt className="text-muted">Phone</dt>
 
-                        <dd className="text-right font-medium text-[#30272a]">
+                        <dd className="text-right font-medium text-foreground">
                           <a
                             href={`tel:${selectedOrder.customer_phone}`}
-                            className="hover:text-[#9e405a] hover:underline"
+                            className="hover:text-primary-dark hover:underline"
                           >
                             {selectedOrder.customer_phone}
                           </a>
@@ -710,12 +730,12 @@ export default function AdminOrdersPage() {
 
                       {selectedOrder.customer_email && (
                         <div className="flex justify-between gap-4">
-                          <dt className="text-[#756b6e]">Email</dt>
+                          <dt className="text-muted">Email</dt>
 
-                          <dd className="text-right font-medium text-[#30272a]">
+                          <dd className="text-right font-medium text-foreground">
                             <a
                               href={`mailto:${selectedOrder.customer_email}`}
-                              className="hover:text-[#9e405a] hover:underline"
+                              className="hover:text-primary-dark hover:underline"
                             >
                               {selectedOrder.customer_email}
                             </a>
@@ -724,9 +744,9 @@ export default function AdminOrdersPage() {
                       )}
 
                       <div className="flex justify-between gap-4">
-                        <dt className="text-[#756b6e]">Placed</dt>
+                        <dt className="text-muted">Placed</dt>
 
-                        <dd className="text-right font-medium text-[#30272a]">
+                        <dd className="text-right font-medium text-foreground">
                           {formatDateTime(selectedOrder.created_at)}
                         </dd>
                       </div>
@@ -735,11 +755,11 @@ export default function AdminOrdersPage() {
 
                   {/* Delivery */}
                   <section>
-                    <h4 className="mb-3 font-serif text-lg text-[#30272a]">
+                    <h4 className="mb-3 font-serif text-lg text-foreground">
                       Delivery
                     </h4>
 
-                    <div className="rounded-2xl bg-[#fffcfa] p-4 text-sm leading-6 text-[#30272a]">
+                    <div className="rounded-2xl bg-background p-4 text-sm leading-6 text-foreground">
                       {selectedOrder.delivery_address}
                     </div>
 
@@ -753,7 +773,7 @@ export default function AdminOrdersPage() {
 
                   {/* Items */}
                   <section>
-                    <h4 className="mb-3 font-serif text-lg text-[#30272a]">
+                    <h4 className="mb-3 font-serif text-lg text-foreground">
                       Items
                     </h4>
 
@@ -761,14 +781,14 @@ export default function AdminOrdersPage() {
                       {selectedOrder.items.map((item) => (
                         <div
                           key={item.id}
-                          className="flex items-start justify-between gap-4 rounded-2xl border border-[#eadfe2] bg-white p-4"
+                          className="flex items-start justify-between gap-4 rounded-2xl border border-border bg-white p-4"
                         >
                           <div className="min-w-0">
-                            <p className="font-medium text-[#30272a]">
+                            <p className="font-medium text-foreground">
                               {item.product_name}
                             </p>
 
-                            <p className="mt-0.5 text-xs text-[#756b6e]">
+                            <p className="mt-0.5 text-xs text-muted">
                               {item.quantity} ×{" "}
                               {formatPrice(
                                 item.unit_price,
@@ -780,7 +800,7 @@ export default function AdminOrdersPage() {
                             </p>
                           </div>
 
-                          <p className="shrink-0 font-semibold text-[#30272a]">
+                          <p className="shrink-0 font-semibold text-foreground">
                             {formatPrice(item.subtotal, selectedOrder.currency)}
                           </p>
                         </div>
@@ -789,12 +809,12 @@ export default function AdminOrdersPage() {
                   </section>
 
                   {/* Totals */}
-                  <section className="rounded-2xl border border-[#eadfe2] bg-[#fffcfa] p-5">
+                  <section className="rounded-2xl border border-border bg-background p-5">
                     <dl className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <dt className="text-[#756b6e]">Subtotal</dt>
+                        <dt className="text-muted">Subtotal</dt>
 
-                        <dd className="font-medium text-[#30272a]">
+                        <dd className="font-medium text-foreground">
                           {formatPrice(
                             selectedOrder.subtotal,
                             selectedOrder.currency
@@ -803,9 +823,9 @@ export default function AdminOrdersPage() {
                       </div>
 
                       <div className="flex justify-between">
-                        <dt className="text-[#756b6e]">Delivery</dt>
+                        <dt className="text-muted">Delivery</dt>
 
-                        <dd className="font-medium text-[#30272a]">
+                        <dd className="font-medium text-foreground">
                           {formatPrice(
                             selectedOrder.delivery_fee,
                             selectedOrder.currency
@@ -813,12 +833,12 @@ export default function AdminOrdersPage() {
                         </dd>
                       </div>
 
-                      <div className="flex justify-between border-t border-[#eadfe2] pt-3">
-                        <dt className="font-serif text-base text-[#30272a]">
+                      <div className="flex justify-between border-t border-border pt-3">
+                        <dt className="font-serif text-base text-foreground">
                           Total
                         </dt>
 
-                        <dd className="text-lg font-semibold text-[#9e405a]">
+                        <dd className="text-lg font-semibold text-primary-dark">
                           {formatPrice(
                             selectedOrder.total,
                             selectedOrder.currency

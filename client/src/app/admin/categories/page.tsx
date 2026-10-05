@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
+import Skeleton from "@/components/Skeleton";
 import { apiRequest } from "@/lib/api";
 
 interface Category {
@@ -193,33 +194,33 @@ export default function CategoriesPage() {
   return (
     <div className="relative min-h-screen overflow-hidden">
       {/* Decorative background */}
-      <div className="pointer-events-none absolute -right-32 -top-32 h-80 w-80 rounded-full bg-[#f7e5e9] opacity-60 blur-3xl" />
+      <div className="pointer-events-none absolute -right-32 -top-32 h-80 w-80 rounded-full bg-primary-light opacity-60 blur-3xl" />
       <div className="pointer-events-none absolute -left-40 top-96 h-72 w-72 rounded-full bg-[#fdf3f5] blur-3xl" />
 
       <div className="relative">
         {/* Page Header */}
         <div className="mb-8">
           <div className="mb-3 flex items-center gap-2">
-            <span className="text-lg text-[#c96a82]">✿</span>
+            <span className="text-lg text-primary">✿</span>
 
-            <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#c96a82]">
+            <span className="text-xs font-semibold uppercase tracking-[0.22em] text-primary-dark">
               Fragrance Collections
             </span>
           </div>
 
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
             <div>
-              <h2 className="text-3xl font-semibold tracking-tight text-[#30272a] sm:text-4xl">
+              <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                 Categories
               </h2>
 
-              <p className="mt-2 max-w-xl text-sm leading-6 text-[#756b6e]">
+              <p className="mt-2 max-w-xl text-sm leading-6 text-muted">
                 Create and organize the fragrance collections
                 available throughout your store.
               </p>
             </div>
 
-            <div className="flex h-10 items-center rounded-full bg-[#f7e5e9] px-4 text-sm font-medium text-[#9e405a]">
+            <div className="flex h-10 items-center rounded-full bg-primary-light px-4 text-sm font-medium text-primary-dark">
               {categories.length}{" "}
               {categories.length === 1
                 ? "category"
@@ -249,20 +250,20 @@ export default function CategoriesPage() {
             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
               <div>
                 <div className="flex items-center gap-2">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f7e5e9]">
-                    <span className="text-[#c96a82]">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-light">
+                    <span className="text-primary">
                       {editingId ? "✎" : "+"}
                     </span>
                   </div>
 
-                  <h3 className="text-lg font-semibold text-[#30272a]">
+                  <h3 className="text-lg font-semibold text-foreground">
                     {editingId
                       ? "Edit category"
                       : "Create category"}
                   </h3>
                 </div>
 
-                <p className="mt-2 text-sm text-[#756b6e]">
+                <p className="mt-2 text-sm text-muted">
                   {editingId
                     ? "Update the selected fragrance collection."
                     : "Add a new fragrance collection to your store."}
@@ -385,11 +386,11 @@ export default function CategoriesPage() {
         <section className="bethel-card overflow-hidden">
           <div className="flex flex-col justify-between gap-3 border-b border-[#eadcdf] px-6 py-6 sm:flex-row sm:items-center sm:px-8">
             <div>
-              <h3 className="text-lg font-semibold text-[#30272a]">
+              <h3 className="text-lg font-semibold text-foreground">
                 All categories
               </h3>
 
-              <p className="mt-1 text-sm text-[#756b6e]">
+              <p className="mt-1 text-sm text-muted">
                 Your current fragrance collections.
               </p>
             </div>
@@ -400,28 +401,27 @@ export default function CategoriesPage() {
           </div>
 
           {loading ? (
-            <div className="flex items-center justify-center px-6 py-16">
-              <div className="text-center">
-                <div className="mx-auto mb-4 h-9 w-9 animate-spin rounded-full border-2 border-[#f7e5e9] border-t-[#c96a82]" />
-
-                <p className="text-sm text-[#756b6e]">
-                  Loading categories...
-                </p>
-              </div>
+            <div className="grid gap-3 px-6 py-6 sm:grid-cols-2 sm:px-8 lg:grid-cols-3">
+              {[0, 1, 2, 3, 4, 5].map((card) => (
+                <Skeleton
+                  key={card}
+                  className="h-24 rounded-2xl"
+                />
+              ))}
             </div>
           ) : categories.length === 0 ? (
             <div className="px-6 py-16 text-center sm:px-8">
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#fdf3f5]">
-                <span className="text-2xl text-[#c96a82]">
+                <span className="text-2xl text-primary">
                   ✿
                 </span>
               </div>
 
-              <h4 className="text-base font-semibold text-[#30272a]">
+              <h4 className="text-base font-semibold text-foreground">
                 No categories yet
               </h4>
 
-              <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-[#756b6e]">
+              <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-muted">
                 Create your first fragrance collection using
                 the form above.
               </p>
@@ -435,13 +435,13 @@ export default function CategoriesPage() {
                 >
                   <div className="flex min-w-0 items-start gap-4">
                     {/* Number */}
-                    <div className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#fdf3f5] text-sm font-semibold text-[#c96a82] sm:flex">
+                    <div className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#fdf3f5] text-sm font-semibold text-primary sm:flex">
                       {String(index + 1).padStart(2, "0")}
                     </div>
 
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h4 className="font-semibold text-[#30272a]">
+                        <h4 className="font-semibold text-foreground">
                           {category.name}
                         </h4>
 
@@ -450,12 +450,12 @@ export default function CategoriesPage() {
                         </span>
                       </div>
 
-                      <p className="mt-1 text-sm text-[#c96a82]">
+                      <p className="mt-1 text-sm text-primary">
                         /{category.slug}
                       </p>
 
                       {category.description && (
-                        <p className="mt-2 max-w-2xl text-sm leading-6 text-[#756b6e]">
+                        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
                           {category.description}
                         </p>
                       )}
