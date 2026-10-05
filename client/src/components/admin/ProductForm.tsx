@@ -887,7 +887,7 @@ export default function ProductForm({
               </div>
 
               <input
-                type="url"
+                type="text"
                 value={image}
                 onChange={(event) =>
                   updateImage(
@@ -895,7 +895,7 @@ export default function ProductForm({
                     event.target.value
                   )
                 }
-                placeholder="https://example.com/image.jpg"
+                placeholder="https://example.com/image.jpg or /uploads/photo.png"
                 className={`min-w-0 flex-1 border-0 bg-transparent px-2 py-2.5 text-sm text-[#30272A] outline-none placeholder:text-[#aaa0a3] focus:ring-0`}
               />
 
