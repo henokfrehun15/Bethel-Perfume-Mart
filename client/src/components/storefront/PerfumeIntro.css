@@ -1,37 +1,46 @@
 /* =========================================================
-   PERFUME INTRO SPLASH
-   Pure CSS/SVG welcome splash shown once per session on the
-   home page. It overlays the real page — which stays in the
-   initial HTML — then mists away to reveal it.
+   PERFUME INTRO SPLASH — Canva "Bethel" scene design
+   Realistic SVG bottle + canvas spray engine. No dependencies.
+   The real page stays in the initial HTML underneath.
    ========================================================= */
 
 .perfume-intro {
   position: fixed;
   inset: 0;
   z-index: 9999;
+  isolation: isolate;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  isolation: isolate;
-  padding: 20px;
-  color: var(--ink);
+  color: #603c46;
   font-family: var(--font-sans), Arial, sans-serif;
-  background:
-    radial-gradient(
-      ellipse at 50% 44%,
-      rgba(255, 255, 255, 0.96),
-      rgba(253, 243, 245, 0.85) 32%,
-      transparent 64%
-    ),
-    linear-gradient(150deg, #fffaf9, #fdf3f5 55%, #f9e8ec);
+  background: radial-gradient(
+    ellipse at 50% 31%,
+    #fff8f6 0%,
+    #f8e9e7 43%,
+    #eecfd0 100%
+  );
 }
 
-.perfume-intro--leaving {
-  opacity: 0;
+/* Warm floor glow */
+.perfume-intro::before {
+  content: "";
+  position: absolute;
+  inset: 0;
   pointer-events: none;
-  transition: opacity 1s ease;
+  opacity: 0.27;
+  background: radial-gradient(ellipse at 50% 82%, #d9aeb3 0%, transparent 49%);
+}
+
+/* Film grain */
+.perfume-intro::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.13;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.74' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.24'/%3E%3C/svg%3E");
 }
 
 /* Set by the inline pre-paint script: the splash never flashes for
@@ -40,449 +49,291 @@
   display: none;
 }
 
-/* ---- Brand ----------------------------------------------------------- */
+.perfume-intro--leaving {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.9s ease;
+}
 
-.perfume-intro__brand {
+/* ---- Orbs ---------------------------------------------------------------- */
+
+.perfume-intro__orb {
   position: absolute;
-  top: clamp(20px, 4.5vh, 48px);
-  left: 0;
-  right: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
   pointer-events: none;
 }
 
-.perfume-intro__wordmark {
-  font-family: var(--font-serif), Georgia, serif;
-  font-size: clamp(1.7rem, 3vw, 2.3rem);
-  font-weight: 600;
-  letter-spacing: -0.02em;
+.perfume-intro__orb--one {
+  width: min(76vw, 850px);
+  aspect-ratio: 1;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -49%);
 }
 
-.perfume-intro__tagline {
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.42em;
-  text-transform: uppercase;
-  color: var(--rose-dark);
+.perfume-intro__orb--two {
+  width: min(59vw, 660px);
+  aspect-ratio: 1;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -49%);
+  opacity: 0.5;
 }
 
-/* ---- Stage ----------------------------------------------------------- */
+/* ---- Content --------------------------------------------------------------- */
 
-.perfume-intro__stage {
+.perfume-intro__content {
   position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1120px;
+  margin: auto;
+  padding: 35px 32px 26px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(16px, 3.5vh, 32px);
   text-align: center;
 }
 
 .perfume-intro__eyebrow {
-  margin: 0;
-  font-family: var(--font-serif), Georgia, serif;
-  font-style: italic;
-  font-size: clamp(1.05rem, 2.2vw, 1.5rem);
-  color: var(--rose-dark);
+  font-size: 11px;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: #9f747a;
+  margin: 0 0 13px;
 }
 
-.perfume-intro__figure {
+.perfume-intro__brand {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: clamp(57px, 8.3vw, 112px);
+  font-weight: 400;
+  line-height: 1.06;
+  letter-spacing: -0.055em;
+  margin: 0;
+  color: #633c47;
+}
+
+.perfume-intro__descriptor {
+  font-size: 12px;
+  letter-spacing: 0.43em;
+  font-weight: 500;
+  color: #90636b;
+  margin: 11px 0 0;
+  padding-left: 0.43em;
+}
+
+.perfume-intro__stage {
   position: relative;
-  width: min(225px, 46vw);
-  animation: perfume-intro-float 5.5s ease-in-out infinite alternate;
+  width: min(360px, 70vw);
+  margin: 0 auto -3px;
+  filter: drop-shadow(0 18px 22px rgba(118, 76, 89, 0.25));
+  transform-origin: 50% 65%;
 }
 
 .perfume-intro__bottle {
   display: block;
   width: 100%;
   height: auto;
+  overflow: visible;
 }
 
-/* Dotted bronze halo echoing the site's art-deco background. */
-.perfume-intro__halo {
+.perfume-intro__tagline {
+  font-family: var(--font-serif), Georgia, serif;
+  font-style: italic;
+  font-size: clamp(17px, 2vw, 23px);
+  color: #926b70;
+  margin: 4px 0 0;
+}
+
+.perfume-intro__rule {
+  height: 1px;
+  width: 43px;
+  background: #bd9194;
+  margin: 19px auto 0;
+}
+
+/* ---- Canvas + controls ------------------------------------------------------ */
+
+.perfume-intro__canvas {
   position: absolute;
-  top: 44%;
-  left: 50%;
-  width: min(430px, 80vw);
-  aspect-ratio: 1;
-  border: 1.5px dashed rgba(169, 138, 104, 0.4);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  animation: perfume-intro-spin 70s linear infinite;
-  pointer-events: none;
-}
-
-.perfume-intro--spraying .perfume-intro__figure {
-  animation: perfume-intro-press 0.55s ease-in-out;
-}
-
-/* The cap pumps down while the bottle sprays. */
-.perfume-intro--spraying .perfume-intro__cap {
-  animation: perfume-intro-cap-press 0.5s ease-in-out;
-}
-
-/* ---- Spray plume + droplets -------------------------------------------- */
-
-/* Soft mist puff that leaves the nozzle first. */
-.perfume-intro__plume {
-  position: absolute;
-  top: 9%;
-  left: 66%;
-  width: 110px;
-  height: 54px;
-  border-radius: 50%;
-  background: radial-gradient(
-    ellipse at 22% 50%,
-    rgba(255, 255, 255, 0.95),
-    rgba(247, 213, 223, 0.75) 35%,
-    rgba(201, 106, 130, 0.4) 65%,
-    transparent 78%
-  );
-  filter: blur(7px);
-  opacity: 0;
-  transform: translate(0, -50%) scale(0.3);
-  pointer-events: none;
-}
-
-.perfume-intro--spraying .perfume-intro__plume,
-.perfume-intro--misting .perfume-intro__plume {
-  animation: perfume-intro-plume 1.5s ease-out forwards;
-}
-
-.perfume-intro__spray {
-  position: absolute;
-  top: 8.5%;
-  left: 66%;
-  pointer-events: none;
-}
-
-.perfume-intro__spray i {
-  position: absolute;
+  inset: 0;
+  z-index: 5;
   display: block;
-  width: var(--s, 5px);
-  height: var(--s, 5px);
-  border-radius: 50%;
-  background: var(--rose);
-  box-shadow: 0 0 8px rgba(201, 106, 130, 0.55);
-  filter: blur(var(--b, 0));
-  opacity: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
 
-.perfume-intro--spraying .perfume-intro__spray i,
-.perfume-intro--misting .perfume-intro__spray i {
-  animation: perfume-intro-dot 1.3s ease-out var(--d, 0s) forwards;
-}
-
-/* ---- Button ----------------------------------------------------------- */
-
-.perfume-intro__button {
-  display: inline-flex;
-  align-items: center;
+.perfume-intro__controls {
+  position: absolute;
+  z-index: 6;
+  right: clamp(20px, 4vw, 55px);
+  bottom: clamp(20px, 4vw, 43px);
+  display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   gap: 10px;
-  min-width: 210px;
-  padding: 15px 26px;
-  border: 1px solid rgba(158, 64, 90, 0.32);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
-  color: var(--rose-dark);
+}
+
+.perfume-intro__button {
+  border: 1px solid rgba(167, 121, 128, 0.66);
+  border-radius: 100px;
+  padding: 10px 17px;
+  background: rgba(255, 255, 255, 0.6);
+  color: #704c55;
   font-family: var(--font-sans), Arial, sans-serif;
-  font-size: 0.66rem;
-  font-weight: 600;
-  letter-spacing: 0.22em;
+  font-size: 11px;
+  letter-spacing: 0.13em;
   text-transform: uppercase;
-  box-shadow:
-    0 12px 32px rgba(158, 64, 90, 0.12),
-    inset 0 1px rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
   cursor: pointer;
   transition:
-    transform 0.2s ease,
-    background 0.2s ease,
-    box-shadow 0.2s ease;
+    background 0.2s,
+    transform 0.2s;
 }
 
-.perfume-intro__button:hover:not(:disabled),
-.perfume-intro__button:focus-visible {
-  transform: translateY(-2px);
+.perfume-intro__button:hover {
   background: #fff;
-  box-shadow: 0 16px 40px rgba(158, 64, 90, 0.2);
+  transform: translateY(-2px);
 }
 
 .perfume-intro__button:focus-visible {
-  outline: 2px solid var(--rose);
-  outline-offset: 4px;
-}
-
-.perfume-intro__button:disabled {
-  cursor: default;
-  opacity: 0.85;
-}
-
-.perfume-intro__button-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--rose);
-  box-shadow: 0 0 10px rgba(201, 106, 130, 0.8);
-  animation: perfume-intro-pulse 1.8s ease-in-out infinite;
-}
-
-/* ---- Hint + skip ------------------------------------------------------- */
-
-.perfume-intro__hint {
-  margin: 16px 0 0;
-  font-size: 0.72rem;
-  letter-spacing: 0.04em;
-  color: var(--muted);
-  text-align: center;
-}
-
-.perfume-intro__skip {
-  position: absolute;
-  bottom: clamp(18px, 4vh, 40px);
-  padding: 6px;
-  border: 0;
-  border-radius: 6px;
-  background: none;
-  color: var(--muted);
-  font-family: var(--font-sans), Arial, sans-serif;
-  font-size: 0.7rem;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  cursor: pointer;
-}
-
-.perfume-intro__skip:hover,
-.perfume-intro__skip:focus-visible {
-  color: var(--rose-dark);
-}
-
-.perfume-intro__skip:focus-visible {
-  outline: 2px solid var(--rose);
+  outline: 3px solid #7a4658;
   outline-offset: 3px;
 }
 
-/* ---- Mist --------------------------------------------------------------- */
+/* ---- Entrance choreography ---------------------------------------------------
+   Elements render hidden (perfume-intro--entering, also the SSR state),
+   then transition in with staggered delays once the component swaps to
+   perfume-intro--playing after hydration. */
 
-.perfume-intro__mist {
-  position: absolute;
-  inset: -30%;
-  z-index: 4;
+.perfume-intro__stage,
+.perfume-intro__eyebrow,
+.perfume-intro__brand,
+.perfume-intro__descriptor,
+.perfume-intro__tagline,
+.perfume-intro__rule {
+  transition:
+    opacity 0.7s ease,
+    transform 0.9s cubic-bezier(0.18, 0.7, 0.25, 1);
+}
+
+.perfume-intro--entering .perfume-intro__stage {
+  transform: translateY(25px) scale(0.96);
   opacity: 0;
-  transform: scale(0.4);
-  pointer-events: none;
 }
 
-.perfume-intro__cloud {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(24px);
+.perfume-intro--entering .perfume-intro__eyebrow,
+.perfume-intro--entering .perfume-intro__brand,
+.perfume-intro--entering .perfume-intro__descriptor,
+.perfume-intro--entering .perfume-intro__tagline,
+.perfume-intro--entering .perfume-intro__rule {
+  opacity: 0;
+  transform: translateY(13px);
 }
 
-.perfume-intro__cloud--one {
-  top: 6%;
-  left: 2%;
-  width: 95vw;
-  height: 92vw;
-  background: radial-gradient(
-    ellipse at 38% 46%,
-    #fff 0%,
-    rgba(247, 229, 233, 0.95) 16%,
-    rgba(201, 106, 130, 0.8) 38%,
-    rgba(158, 64, 90, 0.4) 58%,
-    transparent 74%
-  );
+.perfume-intro--playing .perfume-intro__stage {
+  transition-delay: 0.15s;
 }
 
-.perfume-intro__cloud--two {
-  top: 24%;
-  right: -14%;
-  width: 98vw;
-  height: 80vw;
-  background: radial-gradient(
-    ellipse,
-    rgba(255, 252, 250, 0.96),
-    rgba(246, 180, 205, 0.75) 34%,
-    rgba(201, 106, 130, 0.42) 58%,
-    transparent 74%
-  );
+.perfume-intro--playing .perfume-intro__eyebrow,
+.perfume-intro--playing .perfume-intro__brand,
+.perfume-intro--playing .perfume-intro__descriptor {
+  transition-delay: 0.38s;
 }
 
-.perfume-intro__cloud--three {
-  bottom: -24%;
-  left: -18%;
-  width: 110vw;
-  height: 100vw;
-  background: radial-gradient(
-    ellipse,
-    rgba(255, 255, 255, 0.96),
-    rgba(247, 213, 223, 0.88) 28%,
-    rgba(158, 64, 90, 0.5) 52%,
-    transparent 74%
-  );
+.perfume-intro--playing .perfume-intro__tagline,
+.perfume-intro--playing .perfume-intro__rule {
+  transition-delay: 1.25s;
 }
 
-.perfume-intro__veil {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    circle,
-    rgba(255, 244, 249, 0.9),
-    rgba(201, 106, 130, 0.4) 55%,
-    rgba(158, 64, 90, 0.55)
-  );
+/* ---- Pump press -------------------------------------------------------------- */
+
+#perfume-intro-pump {
+  transform-box: fill-box;
+  transform-origin: center bottom;
 }
 
-.perfume-intro--misting .perfume-intro__mist {
-  animation: perfume-intro-mist 2.8s cubic-bezier(0.18, 0.72, 0.22, 1) forwards;
-}
-
-.perfume-intro--misting .perfume-intro__brand,
-.perfume-intro--misting .perfume-intro__eyebrow,
-.perfume-intro--misting .perfume-intro__hint,
-.perfume-intro--misting .perfume-intro__button {
-  animation: perfume-intro-fade-up 0.5s ease forwards;
-}
-
-/* ---- Keyframes ----------------------------------------------------------- */
-
-@keyframes perfume-intro-float {
-  from {
-    transform: translateY(-5px);
-  }
-
-  to {
-    transform: translateY(6px);
-  }
+.perfume-intro.is-spraying #perfume-intro-pump {
+  animation: perfume-intro-press 0.55s ease-in-out 1;
 }
 
 @keyframes perfume-intro-press {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-
-  40% {
-    transform: translateY(4px);
+  38%,
+  72% {
+    transform: translateY(5px);
   }
 }
 
-@keyframes perfume-intro-cap-press {
-  0%,
-  100% {
-    transform: translateY(0);
+/* ---- Short viewports ----------------------------------------------------------- */
+
+@media (max-height: 760px) {
+  .perfume-intro__brand {
+    font-size: clamp(40px, 6vw, 72px);
   }
 
-  40% {
-    transform: translateY(3.5px);
-  }
-}
-
-@keyframes perfume-intro-plume {
-  0% {
-    opacity: 0;
-    transform: translate(0, -50%) scale(0.3);
+  .perfume-intro__stage {
+    width: min(290px, 56vw);
   }
 
-  25% {
-    opacity: 0.9;
-  }
-
-  100% {
-    opacity: 0;
-    transform: translate(52px, -50%) scale(1.7);
+  .perfume-intro__content {
+    padding-top: 20px;
   }
 }
 
-@keyframes perfume-intro-spin {
-  to {
-    transform: translate(-50%, -50%) rotate(360deg);
+@media (max-height: 600px) {
+  .perfume-intro__brand {
+    font-size: clamp(32px, 5vw, 54px);
+  }
+
+  .perfume-intro__stage {
+    width: min(240px, 46vw);
+  }
+
+  .perfume-intro__eyebrow {
+    margin-bottom: 8px;
+  }
+
+  .perfume-intro__tagline {
+    margin-top: 0;
   }
 }
 
-@keyframes perfume-intro-pulse {
-  0%,
-  100% {
-    opacity: 0.6;
-    transform: scale(1);
+/* ---- Mobile ------------------------------------------------------------------ */
+
+@media (max-width: 600px) {
+  .perfume-intro__content {
+    padding: 55px 18px 112px;
   }
 
-  50% {
-    opacity: 1;
-    transform: scale(1.3);
-  }
-}
-
-@keyframes perfume-intro-dot {
-  0% {
-    opacity: 0;
-    transform: translate(0, 0) scale(0.4);
+  .perfume-intro__stage {
+    width: min(330px, 79vw);
   }
 
-  12% {
-    opacity: 0.95;
+  .perfume-intro__controls {
+    left: 12px;
+    right: 12px;
+    bottom: 19px;
   }
 
-  55% {
-    opacity: 0.7;
-    transform:
-      translate(calc(var(--dx) * 0.75), calc(var(--dy) * 0.75))
-      scale(1);
+  .perfume-intro__orb--one {
+    width: 105vw;
   }
 
-  100% {
-    opacity: 0;
-    transform: translate(var(--dx), calc(var(--dy) + 30px)) scale(0.45);
+  .perfume-intro__orb--two {
+    width: 85vw;
   }
 }
 
-@keyframes perfume-intro-mist {
-  0% {
-    opacity: 0;
-    transform: scale(0.35);
-  }
-
-  45% {
-    opacity: 1;
-    transform: scale(1.15);
-  }
-
-  100% {
-    opacity: 1;
-    transform: scale(3.4);
-  }
-}
-
-@keyframes perfume-intro-fade-up {
-  to {
-    opacity: 0;
-    transform: translateY(-12px);
-  }
-}
-
-/* ---- Short viewports ------------------------------------------------------ */
-
-@media (max-height: 640px) {
-  .perfume-intro__halo,
-  .perfume-intro__hint {
-    display: none;
-  }
-
-  .perfume-intro__figure {
-    width: min(180px, 40vw);
-  }
-}
-
-/* ---- Reduced motion -------------------------------------------------------- */
+/* ---- Reduced motion ------------------------------------------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
   .perfume-intro,
-  .perfume-intro * {
+  .perfume-intro *,
+  .perfume-intro::before,
+  .perfume-intro::after {
     animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
 }
