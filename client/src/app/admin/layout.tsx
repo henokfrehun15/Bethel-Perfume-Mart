@@ -4,14 +4,26 @@ import { ReactNode, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { clearAdminSession, getAdminUser } from "@/lib/api";
+import Icon from "@/components/admin/Icon";
 
 interface AdminLayoutProps {
   children: ReactNode;
 }
 
-export default function AdminLayout({
-  children,
-}: AdminLayoutProps) {
+/*
+ * Figma AdminShell: fixed dark sidebar with Overview / Products /
+ * Categories / Orders / Settings, an orders badge, and an admin
+ * profile block. Mobile collapses the sidebar into a fixed bottom bar.
+ */
+const NAV_ITEMS = [
+  { label: "Overview", href: "/admin", icon: "grid", exact: true },
+  { label: "Products", href: "/admin/products", icon: "box" },
+  { label: "Categories", href: "/admin/categories", icon: "tag" },
+  { label: "Orders", href: "/admin/orders", icon: "receipt" },
+  { label: "Settings", href: "/admin/settings", icon: "gear" },
+];
+
+export default function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -51,11 +63,11 @@ export default function AdminLayout({
 
   if (checkingAuth && !isLoginPage) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
+      <div className="flex min-h-screen items-center justify-center bg-[#FAF7F7]">
         <div className="text-center">
-          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-primary-light border-t-primary" />
+          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-[#F7E5E9] border-t-[#C96A82]" />
 
-          <p className="text-sm text-muted">
+          <p className="text-sm text-[#756B6E]">
             Checking authentication...
           </p>
         </div>
@@ -67,119 +79,54 @@ export default function AdminLayout({
     return <>{children}</>;
   }
 
-  const navItems = [
-    {
-      label: "Dashboard",
-      href: "/admin",
-    },
-    {
-      label: "Orders",
-      href: "/admin/orders",
-    },
-    {
-      label: "Products",
-      href: "/admin/products",
-    },
-    {
-      label: "Categories",
-      href: "/admin/categories",
-    },
-    {
-      label: "Settings",
-      href: "/admin/settings",
-    },
-  ];
+  const isActive = (item: (typeof NAV_ITEMS)[number]) =>
+    item.exact ? pathname === item.href : pathname.startsWith(item.href);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-[#eadcdf] bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
-          {/* Brand */}
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary-light">
-              <span className="text-xl text-primary">
-                ✿
-              </span>
-            </div>
+    <div className="admin">
+      {/* Sidebar */}
+      <aside className="admin-side">
+        <Link href="/admin" className="admin-logo">
+          B<span>Bethel</span>
+        </Link>
 
-            <div>
-              <h1 className="text-lg font-semibold tracking-tight text-foreground sm:text-xl">
-                Bethel <span className="text-primary">Perfume</span>
-              </h1>
-
-              <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-muted">
-                Administration
-              </p>
-            </div>
-          </div>
-
-          {/* User */}
-          <div className="flex items-center gap-3">
-            {username && (
-              <div className="hidden items-center gap-3 sm:flex">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-light">
-                  <span className="text-sm font-semibold text-primary-dark">
-                    {username.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-
-                <div className="leading-tight">
-                  <p className="text-xs text-muted">
-                    Signed in as
-                  </p>
-
-                  <p className="text-sm font-medium text-foreground">
-                    {username}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            <button
-              onClick={handleLogout}
-              className="rounded-xl border border-[#eadcdf] bg-white px-3 py-2 text-sm font-medium text-muted transition hover:border-[#d8aab6] hover:bg-[#fdf3f5] hover:text-primary-dark"
+        <nav>
+          {NAV_ITEMS.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={isActive(item) ? "active" : ""}
             >
-              Logout
-            </button>
+              <Icon name={item.icon} />
+
+              <span>{item.label}</span>
+            </Link>
+          ))}
+        </nav>
+
+        <div className="admin-profile">
+          <span>{username ? username.charAt(0).toUpperCase() : "B"}</span>
+
+          <div>
+            <b>Bethel Admin</b>
+
+            <small>{username || "Administrator"}</small>
           </div>
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="ml-auto p-1 text-[#9d9195] transition-colors hover:text-white"
+            aria-label="Log out"
+            title="Log out"
+          >
+            <Icon name="close" size={16} />
+          </button>
         </div>
-      </header>
+      </aside>
 
-      {/* Navigation */}
-      <nav className="border-b border-[#eadcdf] bg-white">
-        <div className="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-4 sm:px-6">
-          {navItems.map((item) => {
-            const isActive =
-              item.href === "/admin"
-                ? pathname === "/admin"
-                : pathname.startsWith(item.href);
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`relative whitespace-nowrap px-4 py-4 text-sm font-medium transition ${
-                  isActive
-                    ? "text-primary-dark"
-                    : "text-muted hover:text-primary-dark"
-                }`}
-              >
-                {item.label}
-
-                {isActive && (
-                  <span className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-primary" />
-                )}
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
-
-      {/* Main Content */}
-      <main className="mx-auto min-h-[calc(100vh-130px)] max-w-7xl px-4 py-8 sm:px-6 lg:py-10">
-        {children}
-      </main>
+      {/* Main */}
+      <div className="admin-main">{children}</div>
     </div>
   );
 }

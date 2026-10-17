@@ -89,30 +89,7 @@ export default function CheckoutPage() {
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
 
-  if (!loaded) {
-    return (
-      <main className="bethel-page min-h-screen">
-        <div className="relative z-10">
-          <StorefrontHeader />
-
-          <section className="bethel-container py-12 md:py-16">
-            <Skeleton className="h-8 w-48" />
-
-            <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_380px]">
-              <div className="space-y-6">
-                <Skeleton className="h-72 rounded-3xl" />
-                <Skeleton className="h-56 rounded-3xl" />
-              </div>
-
-              <Skeleton className="h-96 rounded-3xl" />
-            </div>
-          </section>
-        </div>
-      </main>
-    );
-  }
-
-  if (items.length === 0) {
+    if (items.length === 0) {
       setError("Your cart is empty. Please add a fragrance before checkout.");
       return;
     }
@@ -153,269 +130,183 @@ export default function CheckoutPage() {
     }
   };
 
+  if (!loaded) {
+    return (
+      <main>
+        <StorefrontHeader />
+
+        <section className="page">
+          <Skeleton className="h-8 w-48" />
+
+          <div className="checkout" style={{ minHeight: "auto", marginTop: 40 }}>
+            <div className="space-y-6">
+              <Skeleton className="h-16 w-64" />
+              <Skeleton className="h-72 rounded-2xl" />
+              <Skeleton className="h-40 rounded-2xl" />
+            </div>
+
+            <Skeleton className="h-96 rounded-2xl" />
+          </div>
+        </section>
+
+        <StorefrontFooter />
+      </main>
+    );
+  }
+
   if (items.length === 0) {
     return (
-      <main className="bethel-page min-h-screen">
-        <div className="relative z-10">
-          <StorefrontHeader />
-
-          <section className="bethel-container py-16">
-            <div className="mx-auto max-w-xl rounded-3xl border border-dashed border-[#d9c4ca] bg-white/80 px-6 py-16 text-center">
-              <p className="font-serif text-3xl text-foreground">
-                Nothing to checkout
-              </p>
-
-              <p className="mt-3 text-sm leading-6 text-muted">
-                Your fragrance bag is currently empty.
-              </p>
-
-              <Link
-                href="/products"
-                className="mt-6 inline-flex rounded-2xl bg-primary px-6 py-3 text-sm font-semibold text-white transition hover:bg-primary-dark"
-              >
-                Explore fragrances
-              </Link>
-            </div>
-          </section>
-        </div>
+      <main>
+        <StorefrontHeader />
+        <section className="state-page">
+          <div className="state-icon">✿</div>
+          <h1 style={{ fontSize: "2.8rem" }}>Nothing to checkout</h1>
+          <p>Your fragrance bag is currently empty.</p>
+          <Link href="/products" className="btn btn-primary">
+            Explore fragrances
+          </Link>
+        </section>
+        <StorefrontFooter />
       </main>
     );
   }
 
   return (
-    <main className="bethel-page min-h-screen">
-      <div className="relative z-10">
-        <StorefrontHeader />
+    <main>
+      <StorefrontHeader />
 
-        <section className="bethel-container py-12 md:py-16">
-          <div className="max-w-2xl">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-primary-dark">
-              Checkout
-            </p>
+      <form onSubmit={handleSubmit} className="checkout">
+        {/* Customer information */}
+        <div className="checkout-form">
+          <Link href="/cart" className="breadcrumb">
+            ← Back to bag
+          </Link>
+          <span className="eyebrow">Almost yours</span>
+          <h1>Delivery details</h1>
+          <p>We’ll use these details to bring your order to you.</p>
 
-            <h1 className="font-serif text-4xl leading-tight text-foreground md:text-5xl">
-              Complete your order
-            </h1>
+          <div className="form-grid">
+            <label className="field">
+              <span>Full name</span>
+              <input
+                id="customerName"
+                type="text"
+                required
+                value={customerName}
+                onChange={(event) => setCustomerName(event.target.value)}
+                placeholder="e.g. Hana Tesfaye"
+              />
+            </label>
 
-            <p className="mt-4 text-base leading-7 text-muted">
-              Tell us where to deliver your fragrances and how we can contact
-              you.
-            </p>
+            <label className="field">
+              <span>Phone number</span>
+              <input
+                id="customerPhone"
+                type="tel"
+                required
+                value={customerPhone}
+                onChange={(event) => setCustomerPhone(event.target.value)}
+                placeholder="+251 9__ ___ ___"
+              />
+            </label>
+
+            <label className="field">
+              <span>Email (optional)</span>
+              <input
+                id="customerEmail"
+                type="email"
+                value={customerEmail}
+                onChange={(event) => setCustomerEmail(event.target.value)}
+                placeholder="you@example.com"
+              />
+            </label>
+
+            <label className="field">
+              <span>Delivery address</span>
+              <input
+                id="deliveryAddress"
+                type="text"
+                required
+                value={deliveryAddress}
+                onChange={(event) => setDeliveryAddress(event.target.value)}
+                placeholder="Sub-city, woreda, street"
+              />
+            </label>
           </div>
 
-          <form
-            onSubmit={handleSubmit}
-            className="mt-10 grid gap-8 lg:grid-cols-[1fr_380px]"
-          >
-            {/* Customer information */}
-            <div className="space-y-6">
-              <section className="rounded-3xl border border-border bg-white/90 p-6 shadow-[0_12px_40px_rgba(120,70,85,0.05)] md:p-7">
-                <h2 className="font-serif text-2xl text-foreground">
-                  Your information
-                </h2>
+          <label className="field">
+            <span>Order notes (optional)</span>
+            <textarea
+              id="customerNotes"
+              rows={4}
+              value={customerNotes}
+              onChange={(event) => setCustomerNotes(event.target.value)}
+              placeholder="Anything we should know about your delivery?"
+            />
+          </label>
 
-                <div className="mt-6 grid gap-5 sm:grid-cols-2">
-                  <div className="sm:col-span-2">
-                    <label
-                      htmlFor="customerName"
-                      className="mb-2 block text-sm font-medium text-foreground"
-                    >
-                      Full name
-                    </label>
+          {error && (
+            <div className="bethel-alert bethel-alert-error">{error}</div>
+          )}
+        </div>
 
-                    <input
-                      id="customerName"
-                      type="text"
-                      required
-                      value={customerName}
-                      onChange={(event) =>
-                        setCustomerName(event.target.value)
-                      }
-                      placeholder="Your full name"
-                      className="min-h-12 w-full rounded-2xl border border-input bg-background px-4 text-sm text-foreground outline-none transition placeholder:text-muted-light focus:border-primary focus:ring-2 focus:ring-primary/10"
-                    />
-                  </div>
+        {/* Order summary */}
+        <aside className="checkout-summary">
+          <h3>Your order</h3>
 
-                  <div>
-                    <label
-                      htmlFor="customerPhone"
-                      className="mb-2 block text-sm font-medium text-foreground"
-                    >
-                      Phone number
-                    </label>
-
-                    <input
-                      id="customerPhone"
-                      type="tel"
-                      required
-                      value={customerPhone}
-                      onChange={(event) =>
-                        setCustomerPhone(event.target.value)
-                      }
-                      placeholder="09..."
-                      className="min-h-12 w-full rounded-2xl border border-input bg-background px-4 text-sm text-foreground outline-none transition placeholder:text-muted-light focus:border-primary focus:ring-2 focus:ring-primary/10"
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="customerEmail"
-                      className="mb-2 block text-sm font-medium text-foreground"
-                    >
-                      Email
-                      <span className="ml-1 text-muted-light">(optional)</span>
-                    </label>
-
-                    <input
-                      id="customerEmail"
-                      type="email"
-                      value={customerEmail}
-                      onChange={(event) =>
-                        setCustomerEmail(event.target.value)
-                      }
-                      placeholder="you@example.com"
-                      className="min-h-12 w-full rounded-2xl border border-input bg-background px-4 text-sm text-foreground outline-none transition placeholder:text-muted-light focus:border-primary focus:ring-2 focus:ring-primary/10"
-                    />
-                  </div>
-                </div>
-              </section>
-
-              <section className="rounded-3xl border border-border bg-white/90 p-6 shadow-[0_12px_40px_rgba(120,70,85,0.05)] md:p-7">
-                <h2 className="font-serif text-2xl text-foreground">
-                  Delivery
-                </h2>
-
-                <div className="mt-6">
-                  <label
-                    htmlFor="deliveryAddress"
-                    className="mb-2 block text-sm font-medium text-foreground"
-                  >
-                    Delivery address
-                  </label>
-
-                  <textarea
-                    id="deliveryAddress"
-                    required
-                    rows={4}
-                    value={deliveryAddress}
-                    onChange={(event) =>
-                      setDeliveryAddress(event.target.value)
-                    }
-                    placeholder="Enter your delivery address"
-                    className="w-full resize-none rounded-2xl border border-input bg-background px-4 py-3 text-sm leading-6 text-foreground outline-none transition placeholder:text-muted-light focus:border-primary focus:ring-2 focus:ring-primary/10"
-                  />
-                </div>
-
-                <div className="mt-5">
-                  <label
-                    htmlFor="customerNotes"
-                    className="mb-2 block text-sm font-medium text-foreground"
-                  >
-                    Delivery notes
-                    <span className="ml-1 text-muted-light">(optional)</span>
-                  </label>
-
-                  <textarea
-                    id="customerNotes"
-                    rows={3}
-                    value={customerNotes}
-                    onChange={(event) =>
-                      setCustomerNotes(event.target.value)
-                    }
-                    placeholder="Any instructions for delivery?"
-                    className="w-full resize-none rounded-2xl border border-input bg-background px-4 py-3 text-sm leading-6 text-foreground outline-none transition placeholder:text-muted-light focus:border-primary focus:ring-2 focus:ring-primary/10"
-                  />
-                </div>
-              </section>
-
-              {error && (
-                <div className="rounded-2xl border border-[#edcbd1] bg-[#fdf0f2] p-4 text-sm leading-6 text-[#9e405a]">
-                  {error}
-                </div>
-              )}
+          {items.map((item) => (
+            <div key={item.productId} className="mini-item">
+              <ProductImage
+                src={item.image}
+                alt={item.name}
+                className="h-full w-full object-cover"
+              />
+              <div>
+                <b>{item.name}</b>
+                <span>
+                  {item.size ? `${item.size} · ` : ""}Qty {item.quantity}
+                </span>
+              </div>
+              <strong>
+                {item.currency} {(item.price * item.quantity).toFixed(2)}
+              </strong>
             </div>
+          ))}
 
-            {/* Order summary */}
-            <aside className="h-fit rounded-3xl border border-border bg-white/90 p-6 shadow-[0_12px_40px_rgba(120,70,85,0.06)] lg:sticky lg:top-6">
-              <h2 className="font-serif text-2xl text-foreground">
-                Your order
-              </h2>
+          <div className="summary-lines">
+            <span>
+              Subtotal <b>{currency} {subtotal.toFixed(2)}</b>
+            </span>
+            <span>
+              Delivery{" "}
+              <b>
+                {deliveryFee > 0
+                  ? `${currency} ${deliveryFee.toFixed(2)}`
+                  : "Free"}
+              </b>
+            </span>
+            <span className="total">
+              Total <b>{currency} {total.toFixed(2)}</b>
+            </span>
+          </div>
 
-              <div className="mt-6 space-y-4">
-                {items.map((item) => (
-                  <div key={item.productId} className="flex gap-3">
-                    <div className="h-16 w-14 shrink-0 overflow-hidden rounded-xl bg-primary-light">
-                      <ProductImage
-                        src={item.image}
-                        alt={item.name}
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn btn-primary place-order"
+          >
+            {loading
+              ? "Placing order..."
+              : `Place order · ${currency} ${total.toFixed(2)}`}
+          </button>
 
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-foreground">
-                        {item.name}
-                      </p>
+          <p className="cod" style={{ marginTop: 16 }}>
+            You’ll pay in cash when your order arrives.
+          </p>
+        </aside>
+      </form>
 
-                      <p className="mt-1 text-xs text-muted">
-                        Qty {item.quantity}
-                        {item.size ? ` · ${item.size}` : ""}
-                      </p>
-                    </div>
-
-                    <p className="text-sm font-semibold text-foreground">
-                      {item.currency} {(item.price * item.quantity).toFixed(2)}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-6 space-y-3 border-y border-border py-5">
-                <div className="flex justify-between text-sm text-muted">
-                  <span>Subtotal</span>
-                  <span>
-                    {currency} {subtotal.toFixed(2)}
-                  </span>
-                </div>
-
-                <div className="flex justify-between text-sm text-muted">
-                  <span>Delivery</span>
-                  <span>
-                    {deliveryFee > 0
-                      ? `${currency} ${deliveryFee.toFixed(2)}`
-                      : "Free"}
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-5 flex items-center justify-between">
-                <span className="font-serif text-xl text-foreground">
-                  Total
-                </span>
-
-                <span className="text-lg font-semibold text-primary-dark">
-                  {currency} {total.toFixed(2)}
-                </span>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="mt-6 flex min-h-12 w-full items-center justify-center rounded-2xl bg-primary px-6 py-3 text-sm font-semibold text-white transition hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {loading ? "Placing order..." : "Place order"}
-              </button>
-
-              <p className="mt-4 text-center text-xs leading-5 text-muted-light">
-                Your order will be created securely using the latest product
-                prices and available stock.
-              </p>
-            </aside>
-          </form>
-        </section>
-
-        <StorefrontFooter />
-      </div>
+      <StorefrontFooter />
     </main>
   );
 }

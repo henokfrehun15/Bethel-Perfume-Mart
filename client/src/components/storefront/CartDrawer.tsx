@@ -67,56 +67,57 @@ export default function CartDrawer({
   );
 
   return (
-    <div className="fixed inset-0 z-50">
-      <div
-        aria-hidden="true"
-        onClick={onClose}
-        className="bethel-fade-in absolute inset-0 bg-foreground/30 backdrop-blur-[2px]"
-      />
-
+    <div className="drawer-wrap" onClick={onClose}>
       <aside
         role="dialog"
         aria-modal="true"
         aria-label="Your cart"
-        className="bethel-drawer absolute right-0 top-0 flex h-full w-full max-w-md flex-col bg-white shadow-2xl"
+        className="drawer"
+        onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-border px-6 py-5">
-          <p className="font-serif text-2xl text-foreground">
-            Your bag{" "}
-            <span className="font-sans text-sm font-semibold text-muted">
-              ({count})
-            </span>
-          </p>
+        <div className="drawer-head">
+          <div>
+            <span className="eyebrow">Your bag</span>
+            <h2>
+              {count === 0
+                ? "Your bag is empty"
+                : count === 1
+                  ? "One lovely thing"
+                  : `${count} lovely things`}
+            </h2>
+          </div>
 
           <button
             ref={closeRef}
             type="button"
             onClick={onClose}
             aria-label="Close cart"
-            className="flex h-10 w-10 items-center justify-center rounded-full text-xl text-muted transition hover:bg-primary-light hover:text-primary-dark"
           >
             ✕
           </button>
         </div>
 
         {items.length === 0 ? (
-          <div className="flex flex-1 items-center justify-center px-6 text-center">
-            <p className="text-sm text-muted">
-              Your bag is empty.
-            </p>
+          <div
+            style={{
+              flex: 1,
+              display: "grid",
+              placeItems: "center",
+              textAlign: "center",
+              color: "var(--muted)",
+              fontSize: "0.85rem",
+            }}
+          >
+            Add a fragrance to see it here.
           </div>
         ) : (
           <>
-            <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
+            <div style={{ flex: 1, overflowY: "auto" }}>
               {items.map((item) => (
-                <div
-                  key={item.productId}
-                  className="flex gap-4"
-                >
+                <div key={item.productId} className="mini-item drawer-item">
                   <Link
                     href={`/products/${item.slug}`}
                     onClick={onClose}
-                    className="h-20 w-16 shrink-0 overflow-hidden rounded-xl bg-primary-light"
                   >
                     <ProductImage
                       src={item.image}
@@ -125,61 +126,58 @@ export default function CartDrawer({
                     />
                   </Link>
 
-                  <div className="min-w-0 flex-1">
+                  <div>
                     <Link
                       href={`/products/${item.slug}`}
                       onClick={onClose}
-                      className="block truncate font-medium text-foreground transition hover:text-primary-dark"
+                      style={{ textDecoration: "none", color: "inherit" }}
                     >
-                      {item.name}
+                      <b>{item.name}</b>
                     </Link>
-
-                    <p className="mt-1 text-xs text-muted">
-                      Qty {item.quantity}
-                      {item.size ? ` · ${item.size}` : ""}
-                    </p>
+                    <span>
+                      {item.size ? `${item.size} · ` : ""}Qty{" "}
+                      {item.quantity}
+                    </span>
                   </div>
 
-                  <p className="text-sm font-semibold text-foreground">
+                  <strong>
                     {item.currency}{" "}
                     {(item.price * item.quantity).toFixed(2)}
-                  </p>
+                  </strong>
                 </div>
               ))}
             </div>
 
-            <div className="border-t border-border px-6 py-5">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted">
-                  Subtotal
-                </span>
-
-                <span className="font-semibold text-primary-dark">
-                  {currency} {subtotal.toFixed(2)}
-                </span>
-              </div>
-
-              <Link
-                href="/checkout"
-                onClick={onClose}
-                className="mt-4 flex min-h-12 items-center justify-center rounded-2xl bg-primary px-6 text-sm font-semibold text-white transition hover:bg-primary-dark"
-              >
-                Checkout
-              </Link>
-
-              <Link
-                href="/cart"
-                onClick={onClose}
-                className="mt-3 flex min-h-12 items-center justify-center rounded-2xl border border-input px-6 text-sm font-medium text-primary-dark transition hover:bg-primary-light"
-              >
-                View cart
-              </Link>
-
-              <p className="mt-4 text-center text-xs text-muted-light">
-                Cash on delivery — pay when your fragrance
-                arrives.
-              </p>
+            <div className="drawer-total">
+              <span>Subtotal</span>
+              <b>
+                {currency} {subtotal.toFixed(2)}
+              </b>
             </div>
+
+            <Link
+              href="/checkout"
+              onClick={onClose}
+              className="btn btn-primary"
+              style={{ width: "100%", textDecoration: "none" }}
+            >
+              View bag &amp; checkout
+            </Link>
+
+            <button type="button" className="continue" onClick={onClose}>
+              Continue shopping
+            </button>
+
+            <p
+              style={{
+                textAlign: "center",
+                fontSize: "0.65rem",
+                color: "var(--muted)",
+                marginTop: 14,
+              }}
+            >
+              Secure checkout · Cash on delivery
+            </p>
           </>
         )}
       </aside>

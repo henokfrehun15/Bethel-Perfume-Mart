@@ -81,90 +81,70 @@ export default function ProductFilters({
   const hasFilters =
     search || category || inStock || promotion;
 
+  const chips: { label: string; active: boolean; toggle: () => void }[] = [
+    { label: "All", active: !category && !inStock && !promotion, toggle: () => router.push(search ? `/products?search=${encodeURIComponent(search)}` : "/products") },
+    { label: "On promotion", active: promotion, toggle: () => apply({ promotion: !promotion }) },
+    { label: "In stock", active: inStock, toggle: () => apply({ inStock: !inStock }) },
+  ];
+
   return (
-    <div className="mt-10 rounded-3xl border border-border bg-white/90 p-4 shadow-[0_12px_40px_rgba(120,70,85,0.06)] backdrop-blur-sm md:p-5">
-      <form
-        onSubmit={handleSearch}
-        className="flex flex-col gap-3 md:flex-row"
-      >
-        <input
-          type="search"
-          name="search"
-          value={searchInput}
-          onChange={(event) =>
-            setSearchInput(event.target.value)
-          }
-          placeholder="Search fragrances..."
-          className="min-h-12 flex-1 rounded-2xl border border-input bg-background px-4 text-sm text-foreground outline-none transition placeholder:text-muted-light focus:border-primary focus:ring-2 focus:ring-primary/10"
-        />
+    <div>
+      <div className="toolbar">
+        <form onSubmit={handleSearch} className="search" style={{ margin: 0 }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-4-4" />
+          </svg>
+          <input
+            type="search"
+            name="search"
+            value={searchInput}
+            onChange={(event) => setSearchInput(event.target.value)}
+            placeholder="Search fragrances and beauty..."
+          />
+        </form>
 
-        <button
-          type="submit"
-          className="min-h-12 rounded-2xl bg-primary px-7 text-sm font-semibold text-white transition hover:bg-primary-dark"
-        >
-          Search
-        </button>
-      </form>
-
-      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <select
-          value={category}
-          onChange={(event) =>
-            apply({ category: event.target.value })
-          }
-          className="min-h-11 rounded-2xl border border-input bg-background px-4 text-sm text-foreground outline-none focus:border-primary"
-        >
-          <option value="">
-            All categories
-          </option>
-
-          {categories.map((item) => (
-            <option
-              key={item.id}
-              value={item.slug}
+        <div className="filters">
+          {chips.map((chip) => (
+            <button
+              type="button"
+              key={chip.label}
+              className={chip.active ? "active" : ""}
+              onClick={chip.toggle}
             >
-              {item.name}
-            </option>
+              {chip.label}
+            </button>
           ))}
-        </select>
 
-        <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-2xl border border-input bg-background px-4 text-sm text-foreground">
-          <input
-            type="checkbox"
-            checked={inStock}
-            onChange={(event) =>
-              apply({ inStock: event.target.checked })
-            }
-            className="h-4 w-4 accent-primary"
-          />
-
-          In stock only
-        </label>
-
-        <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-2xl border border-input bg-background px-4 text-sm text-foreground">
-          <input
-            type="checkbox"
-            checked={promotion}
-            onChange={(event) =>
-              apply({ promotion: event.target.checked })
-            }
-            className="h-4 w-4 accent-primary"
-          />
-
-          Promotions
-        </label>
-
-        {hasFilters ? (
-          <button
-            type="button"
-            onClick={() => router.push("/products")}
-            className="min-h-11 rounded-2xl border border-[#d9c4ca] px-4 text-sm font-medium text-primary-dark transition hover:bg-primary-light"
+          <select
+            value={category}
+            onChange={(event) => apply({ category: event.target.value })}
+            aria-label="Filter by category"
+            style={{
+              padding: "0.75rem 1.1rem",
+              border: "1px solid var(--border)",
+              borderRadius: 999,
+              background: "white",
+              fontSize: "0.78rem",
+            }}
           >
-            Clear filters
-          </button>
-        ) : (
-          <div className="hidden lg:block" />
-        )}
+            <option value="">All categories</option>
+            {categories.map((item) => (
+              <option key={item.id} value={item.slug}>
+                {item.name}
+              </option>
+            ))}
+          </select>
+
+          {hasFilters && (
+            <button
+              type="button"
+              onClick={() => router.push("/products")}
+            >
+              Clear filters
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

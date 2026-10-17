@@ -92,52 +92,28 @@ function StatusTimeline({ status }: { status: OrderStatus }) {
   );
 
   return (
-    <ol>
+    <>
       {STATUS_FLOW.map((step, index) => {
         const done = index < currentIndex;
         const current = index === currentIndex;
 
         return (
-          <li key={step} className="flex gap-3">
-            <div className="flex flex-col items-center">
-              <span
-                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-semibold ${
-                  done || current
-                    ? "border-primary bg-primary text-white"
-                    : "border-border bg-white text-muted-light"
-                }`}
-              >
-                {done ? "✓" : index + 1}
-              </span>
-
-              {index < STATUS_FLOW.length - 1 && (
-                <span
-                  className={`w-px flex-1 ${
-                    done ? "bg-primary" : "bg-border"
-                  }`}
-                />
-              )}
-            </div>
-
-            <div className="pb-5 pt-1">
-              <p
-                className={`text-sm font-semibold ${
-                  done || current ? "text-foreground" : "text-muted-light"
-                }`}
-              >
-                {STATUS_LABELS[step]}
-
-                {current && (
-                  <span className="ml-2 rounded-full bg-primary-light px-2 py-0.5 text-xs font-medium text-primary-dark">
-                    Current
-                  </span>
-                )}
-              </p>
-            </div>
-          </li>
+          <div className={done ? "done" : ""} key={step}>
+            <i>{done ? "✓" : index + 1}</i>
+            <span>
+              <b>{STATUS_LABELS[step]}</b>
+              <small>
+                {done
+                  ? "Completed"
+                  : current
+                    ? "In progress"
+                    : "Pending"}
+              </small>
+            </span>
+          </div>
         );
       })}
-    </ol>
+    </>
   );
 }
 
@@ -189,172 +165,117 @@ function TrackForm() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-primary-dark">
-        Order tracking
-      </p>
+    <div>
+      <div className="track-intro">
+        <span className="eyebrow">Follow its journey</span>
+        <h1>Track your order</h1>
+        <p>
+          Enter your details to see the latest update on your
+          delivery.
+        </p>
 
-      <h1 className="font-serif text-4xl leading-tight text-foreground md:text-5xl">
-        Where is my order?
-      </h1>
-
-      <p className="mt-4 text-base leading-7 text-muted">
-        Enter the order number from your confirmation and the phone
-        number you checked out with to see the latest status.
-      </p>
-
-      <form
-        onSubmit={handleSubmit}
-        className="mt-8 rounded-3xl border border-border bg-white/90 p-6 shadow-[0_12px_40px_rgba(120,70,85,0.05)] md:p-7"
-      >
-        <div className="grid gap-5 sm:grid-cols-2">
-          <div>
-            <label
-              htmlFor="track-order-number"
-              className="mb-2 block text-sm font-medium text-foreground"
-            >
-              Order number
-            </label>
-
+        <form onSubmit={handleSubmit} className="lookup">
+          <label className="field">
+            <span>Order number</span>
             <input
               id="track-order-number"
               type="text"
               required
               value={orderNumber}
-              onChange={(event) =>
-                setOrderNumber(event.target.value)
-              }
-              placeholder="BETHEL-20250101-000001"
-              className="w-full rounded-2xl border border-input bg-background px-4 py-3 text-sm text-foreground outline-none transition placeholder:text-muted-light focus:border-primary focus:ring-2 focus:ring-primary/10"
+              onChange={(event) => setOrderNumber(event.target.value)}
+              placeholder="e.g. BTL-2025-1048"
             />
-          </div>
+          </label>
 
-          <div>
-            <label
-              htmlFor="track-phone"
-              className="mb-2 block text-sm font-medium text-foreground"
-            >
-              Phone number
-            </label>
-
+          <label className="field">
+            <span>Phone number</span>
             <input
               id="track-phone"
               type="tel"
               required
               value={phone}
               onChange={(event) => setPhone(event.target.value)}
-              placeholder="09XXXXXXXX"
-              className="w-full rounded-2xl border border-input bg-background px-4 py-3 text-sm text-foreground outline-none transition placeholder:text-muted-light focus:border-primary focus:ring-2 focus:ring-primary/10"
+              placeholder="+251 9__ ___ ___"
             />
-          </div>
-        </div>
+          </label>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn btn-primary"
+            style={{ marginBottom: 0 }}
+          >
+            {loading ? "Looking up..." : "Track order"}
+          </button>
+        </form>
 
         {error && (
-          <div className="mt-5 rounded-2xl border border-[#edcbd1] bg-[#fdf0f2] p-4 text-sm leading-6 text-[#9e405a]">
+          <div className="bethel-alert bethel-alert-error" style={{ marginTop: 18 }}>
             {error}
           </div>
         )}
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="mt-6 w-full rounded-2xl bg-primary px-6 py-3 text-sm font-semibold text-white transition hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-        >
-          {loading ? "Looking up order..." : "Track order"}
-        </button>
-      </form>
+      </div>
 
       {order && (
-        <div className="mt-8 rounded-3xl border border-border bg-white/90 p-6 shadow-[0_12px_40px_rgba(120,70,85,0.05)] md:p-7">
-          <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border pb-5">
+        <section className="tracking-result">
+          <div className="tracking-head">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-light">
-                Order number
-              </p>
-
-              <p className="mt-1 break-all font-serif text-xl text-primary-dark">
-                {order.order_number}
+              <span className="badge badge-green">
+                {STATUS_LABELS[order.status]}
+              </span>
+              <h2>Order {order.order_number}</h2>
+              <p>
+                Placed on {formatDateTime(order.created_at)} · Cash on
+                delivery
               </p>
             </div>
-
-            <span className="rounded-full border border-border bg-background px-3 py-1 text-xs font-semibold text-foreground">
-              {STATUS_LABELS[order.status]}
-            </span>
+            <b>{formatPrice(order.total, order.currency)}</b>
           </div>
 
-          <div className="mt-6">
-            <StatusTimeline status={order.status} />
-          </div>
+          <div className="tracking-body">
+            <div className="timeline">
+              <StatusTimeline status={order.status} />
+            </div>
 
-          <div className="border-t border-border pt-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-light">
-              Placed on
-            </p>
-
-            <p className="mt-1 text-sm text-foreground">
-              {formatDateTime(order.created_at)}
-            </p>
-          </div>
-
-          <div className="mt-5 space-y-3 border-t border-border pt-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-light">
-              Items
-            </p>
-
-            {order.items.map((item, index) => (
-              <div
-                key={index}
-                className="flex items-start justify-between gap-4 text-sm"
-              >
-                <div>
-                  <p className="font-medium text-foreground">
-                    {item.product_name}
-                  </p>
-
-                  <p className="mt-0.5 text-xs text-muted">
-                    Qty {item.quantity}
-                    {item.product_size
-                      ? ` · ${item.product_size}`
-                      : ""}
-                  </p>
+            <div>
+              {order.items.map((item, index) => (
+                <div key={index} className="tracked-item">
+                  <div>
+                    <b>{item.product_name}</b>
+                    <span>
+                      {item.product_size ? `${item.product_size} · ` : ""}
+                      Qty {item.quantity}
+                    </span>
+                  </div>
+                  <strong>
+                    {formatPrice(item.subtotal, order.currency)}
+                  </strong>
                 </div>
+              ))}
 
-                <p className="font-semibold text-foreground">
-                  {formatPrice(item.subtotal, order.currency)}
-                </p>
+              <div className="summary-lines">
+                <span>
+                  Subtotal{" "}
+                  <b>{formatPrice(order.subtotal, order.currency)}</b>
+                </span>
+                <span>
+                  Delivery{" "}
+                  <b>{formatPrice(order.delivery_fee, order.currency)}</b>
+                </span>
+                <span className="total">
+                  Total <b>{formatPrice(order.total, order.currency)}</b>
+                </span>
               </div>
-            ))}
-          </div>
-
-          <div className="mt-5 space-y-2 border-t border-border pt-5 text-sm">
-            <div className="flex justify-between text-muted">
-              <span>Subtotal</span>
-              <span>
-                {formatPrice(order.subtotal, order.currency)}
-              </span>
-            </div>
-
-            <div className="flex justify-between text-muted">
-              <span>Delivery</span>
-              <span>
-                {formatPrice(order.delivery_fee, order.currency)}
-              </span>
-            </div>
-
-            <div className="flex justify-between text-base font-semibold text-foreground">
-              <span>Total</span>
-              <span>
-                {formatPrice(order.total, order.currency)}
-              </span>
             </div>
           </div>
-        </div>
+        </section>
       )}
 
-      <div className="mt-8 text-center">
+      <div style={{ marginTop: 32, textAlign: "center" }}>
         <Link
           href="/products"
-          className="text-sm font-semibold text-primary-dark transition-colors hover:text-primary"
+          className="text-link"
+          style={{ display: "inline-flex", textDecoration: "none", color: "inherit" }}
         >
           Continue shopping →
         </Link>
@@ -363,26 +284,25 @@ function TrackForm() {
   );
 }
 
+
 export default function TrackPage() {
   return (
-    <main className="bethel-page min-h-screen">
-      <div className="relative z-10">
-        <StorefrontHeader />
+    <main>
+      <StorefrontHeader />
 
-        <section className="bethel-container py-12 md:py-16">
-          <Suspense
-            fallback={
-              <div className="flex justify-center py-16">
-                <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#f0d7de] border-t-primary" />
-              </div>
-            }
-          >
-            <TrackForm />
-          </Suspense>
-        </section>
+      <section className="page">
+        <Suspense
+          fallback={
+            <div className="flex justify-center py-16">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#f0d7de] border-t-primary" />
+            </div>
+          }
+        >
+          <TrackForm />
+        </Suspense>
+      </section>
 
-        <StorefrontFooter />
-      </div>
+      <StorefrontFooter />
     </main>
   );
 }

@@ -2,6 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import Skeleton from "@/components/Skeleton";
+import Icon from "@/components/admin/Icon";
 import { apiRequest } from "@/lib/api";
 
 interface Category {
@@ -26,6 +27,35 @@ interface CategoryResponse {
   data: Category;
 }
 
+/* Figma AdminHeader: eyebrow + serif title, notification bell + action. */
+function AdminHeader({
+  eyebrow,
+  title,
+  action,
+}: {
+  eyebrow: string;
+  title: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="admin-head">
+      <div>
+        <span>{eyebrow}</span>
+
+        <h1>{title}</h1>
+      </div>
+
+      <div className="admin-head-actions">
+        <button className="notification" aria-label="Notifications">
+          ○<i />
+        </button>
+
+        {action}
+      </div>
+    </div>
+  );
+}
+
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
 
@@ -46,16 +76,12 @@ export default function CategoriesPage() {
       setLoading(true);
       setError("");
 
-      const response = await apiRequest<CategoriesResponse>(
-        "/categories"
-      );
+      const response = await apiRequest<CategoriesResponse>("/categories");
 
       setCategories(response.data);
     } catch (error) {
       setError(
-        error instanceof Error
-          ? error.message
-          : "Failed to load categories"
+        error instanceof Error ? error.message : "Failed to load categories"
       );
     } finally {
       setLoading(false);
@@ -85,9 +111,7 @@ export default function CategoriesPage() {
     setEditingId(null);
   };
 
-  const handleSubmit = async (
-    event: FormEvent<HTMLFormElement>
-  ) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     setSaving(true);
@@ -106,23 +130,17 @@ export default function CategoriesPage() {
       }
 
       if (editingId) {
-        await apiRequest<CategoryResponse>(
-          `/categories/${editingId}`,
-          {
-            method: "PUT",
-            body: JSON.stringify(body),
-          }
-        );
+        await apiRequest<CategoryResponse>(`/categories/${editingId}`, {
+          method: "PUT",
+          body: JSON.stringify(body),
+        });
 
         setSuccess("Category updated successfully.");
       } else {
-        await apiRequest<CategoryResponse>(
-          "/categories",
-          {
-            method: "POST",
-            body: JSON.stringify(body),
-          }
-        );
+        await apiRequest<CategoryResponse>("/categories", {
+          method: "POST",
+          body: JSON.stringify(body),
+        });
 
         setSuccess("Category created successfully.");
       }
@@ -131,9 +149,7 @@ export default function CategoriesPage() {
       await loadCategories();
     } catch (error) {
       setError(
-        error instanceof Error
-          ? error.message
-          : "Failed to save category"
+        error instanceof Error ? error.message : "Failed to save category"
       );
     } finally {
       setSaving(false);
@@ -168,12 +184,9 @@ export default function CategoriesPage() {
       setError("");
       setSuccess("");
 
-      await apiRequest(
-        `/categories/${id}`,
-        {
-          method: "DELETE",
-        }
-      );
+      await apiRequest(`/categories/${id}`, {
+        method: "DELETE",
+      });
 
       setSuccess("Category deleted successfully.");
 
@@ -184,312 +197,180 @@ export default function CategoriesPage() {
       await loadCategories();
     } catch (error) {
       setError(
-        error instanceof Error
-          ? error.message
-          : "Failed to delete category"
+        error instanceof Error ? error.message : "Failed to delete category"
       );
     }
   };
 
+  const scrollTop = () =>
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
   return (
-    <div className="relative min-h-screen overflow-hidden">
-      {/* Decorative background */}
-      <div className="pointer-events-none absolute -right-32 -top-32 h-80 w-80 rounded-full bg-primary-light opacity-60 blur-3xl" />
-      <div className="pointer-events-none absolute -left-40 top-96 h-72 w-72 rounded-full bg-[#fdf3f5] blur-3xl" />
+    <>
+      <AdminHeader
+        eyebrow="Catalog"
+        title="Categories"
+        action={
+          <button
+            type="button"
+            className="btn btn-primary"
+            style={{
+              padding: "0.7rem 1.2rem",
+              fontSize: "0.78rem",
+            }}
+            onClick={scrollTop}
+          >
+            + New category
+          </button>
+        }
+      />
 
-      <div className="relative">
-        {/* Page Header */}
-        <div className="mb-8">
-          <div className="mb-3 flex items-center gap-2">
-            <span className="text-lg text-primary">✿</span>
+      {error && (
+        <div className="bethel-alert bethel-alert-error mb-4">{error}</div>
+      )}
 
-            <span className="text-xs font-semibold uppercase tracking-[0.22em] text-primary-dark">
-              Fragrance Collections
-            </span>
+      {success && (
+        <div className="bethel-alert bethel-alert-success mb-4">{success}</div>
+      )}
+
+      {/* Form card, mirroring the Figma admin-card pattern */}
+      <section
+        className="admin-card"
+        style={{ padding: "0 22px 6px", marginBottom: 22 }}
+      >
+        <div className="card-head">
+          <div>
+            <h3>{editingId ? "Edit category" : "New category"}</h3>
+
+            <p>
+              {editingId
+                ? "Update the selected fragrance collection."
+                : "Add a new fragrance collection to your store."}
+            </p>
           </div>
 
-          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-            <div>
-              <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-                Categories
-              </h2>
-
-              <p className="mt-2 max-w-xl text-sm leading-6 text-muted">
-                Create and organize the fragrance collections
-                available throughout your store.
-              </p>
-            </div>
-
-            <div className="flex h-10 items-center rounded-full bg-primary-light px-4 text-sm font-medium text-primary-dark">
-              {categories.length}{" "}
-              {categories.length === 1
-                ? "category"
-                : "categories"}
-            </div>
-          </div>
+          {editingId && (
+            <button type="button" onClick={resetForm}>
+              Cancel edit
+            </button>
+          )}
         </div>
 
-        {/* Alerts */}
-        {error && (
-          <div className="bethel-alert bethel-alert-error mb-6 flex items-start gap-3">
-            <span className="mt-0.5">!</span>
-            <span>{error}</span>
-          </div>
-        )}
+        <form onSubmit={handleSubmit} className="pb-5">
+          <div className="form-grid">
+            <label className="field">
+              <span>Category name *</span>
 
-        {success && (
-          <div className="bethel-alert bethel-alert-success mb-6 flex items-start gap-3">
-            <span className="mt-0.5">✓</span>
-            <span>{success}</span>
-          </div>
-        )}
+              <input
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                required
+                placeholder="e.g. Floral perfumes"
+              />
+            </label>
 
-        {/* Form Card */}
-        <section className="bethel-card bethel-floral mb-8 overflow-hidden">
-          <div className="border-b border-[#eadcdf] px-6 py-6 sm:px-8">
-            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-              <div>
-                <div className="flex items-center gap-2">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-light">
-                    <span className="text-primary">
-                      {editingId ? "✎" : "+"}
-                    </span>
-                  </div>
+            <label className="field">
+              <span>Slug *</span>
 
-                  <h3 className="text-lg font-semibold text-foreground">
-                    {editingId
-                      ? "Edit category"
-                      : "Create category"}
-                  </h3>
-                </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <input
+                  value={slug}
+                  onChange={(event) => setSlug(event.target.value)}
+                  required
+                  placeholder="floral-perfumes"
+                />
 
-                <p className="mt-2 text-sm text-muted">
-                  {editingId
-                    ? "Update the selected fragrance collection."
-                    : "Add a new fragrance collection to your store."}
-                </p>
-              </div>
-
-              {editingId && (
                 <button
                   type="button"
-                  onClick={resetForm}
-                  className="bethel-button bethel-button-secondary"
+                  onClick={generateSlug}
+                  className="btn btn-secondary"
+                  style={{ padding: "0.6rem 1rem", fontSize: "0.7rem" }}
                 >
-                  Cancel edit
+                  Generate
                 </button>
-              )}
-            </div>
+              </div>
+            </label>
           </div>
 
-          <form
-            onSubmit={handleSubmit}
-            className="space-y-6 px-6 py-6 sm:px-8"
-          >
-            <div className="grid gap-6 md:grid-cols-2">
-              {/* Name */}
+          <label className="field">
+            <span>Description</span>
+
+            <textarea
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              rows={3}
+              placeholder="Describe this fragrance collection..."
+            />
+          </label>
+
+          <div className="form-actions">
+            <button
+              type="submit"
+              disabled={saving}
+              className="btn btn-primary"
+            >
+              {saving
+                ? "Saving..."
+                : editingId
+                  ? "Update category"
+                  : "Save category"}
+            </button>
+          </div>
+        </form>
+      </section>
+
+      {/* Categories grid, mirroring the Figma category-admin cards */}
+      {loading ? (
+        <div className="category-admin">
+          {[0, 1, 2, 3].map((card) => (
+            <Skeleton key={card} className="h-20 rounded-[15px]" />
+          ))}
+        </div>
+      ) : categories.length === 0 ? (
+        <div className="table-wrap py-16 text-center">
+          <p className="text-sm text-[#756B6E]">
+            No categories yet. Create your first fragrance collection with the
+            form above.
+          </p>
+        </div>
+      ) : (
+        <div className="category-admin">
+          {categories.map((category) => (
+            <article key={category.id}>
+              <span className="category-icon">
+                <Icon name="tag" />
+              </span>
+
               <div>
-                <label className="bethel-label">
-                  Category name *
-                </label>
+                <h3>{category.name}</h3>
 
-                <input
-                  value={name}
-                  onChange={(event) =>
-                    setName(event.target.value)
-                  }
-                  required
-                  className="bethel-input"
-                  placeholder="Men's Perfume"
-                />
-
-                <p className="mt-2 text-xs text-[#9a8f92]">
-                  The name customers will see.
-                </p>
+                <p>{category.description || `/${category.slug}`}</p>
               </div>
 
-              {/* Slug */}
-              <div>
-                <label className="bethel-label">
-                  Slug *
-                </label>
-
-                <div className="flex gap-2">
-                  <input
-                    value={slug}
-                    onChange={(event) =>
-                      setSlug(event.target.value)
-                    }
-                    required
-                    className="bethel-input"
-                    placeholder="mens-perfume"
-                  />
-
-                  <button
-                    type="button"
-                    onClick={generateSlug}
-                    className="bethel-button bethel-button-secondary shrink-0"
-                  >
-                    Generate
-                  </button>
-                </div>
-
-                <p className="mt-2 text-xs text-[#9a8f92]">
-                  Used in the category URL.
-                </p>
-              </div>
-            </div>
-
-            {/* Description */}
-            <div>
-              <label className="bethel-label">
-                Description
-              </label>
-
-              <textarea
-                value={description}
-                onChange={(event) =>
-                  setDescription(event.target.value)
-                }
-                rows={4}
-                className="bethel-input resize-none"
-                placeholder="Describe this fragrance collection..."
-              />
-
-              <p className="mt-2 text-xs text-[#9a8f92]">
-                Optional description for this collection.
-              </p>
-            </div>
-
-            {/* Submit */}
-            <div className="flex flex-col-reverse gap-3 border-t border-[#f0e3e6] pt-5 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs text-[#9a8f92]">
-                Fields marked with * are required.
-              </p>
+              <span className="badge badge-green">Active</span>
 
               <button
-                type="submit"
-                disabled={saving}
-                className="bethel-button bethel-button-primary min-w-[160px] disabled:cursor-not-allowed disabled:opacity-50"
+                type="button"
+                onClick={() => handleEdit(category)}
+                aria-label={`Edit ${category.name}`}
+                title="Edit"
               >
-                {saving
-                  ? "Saving..."
-                  : editingId
-                    ? "Update category"
-                    : "Create category"}
+                <Icon name="edit" size={16} />
               </button>
-            </div>
-          </form>
-        </section>
 
-        {/* Categories List */}
-        <section className="bethel-card overflow-hidden">
-          <div className="flex flex-col justify-between gap-3 border-b border-[#eadcdf] px-6 py-6 sm:flex-row sm:items-center sm:px-8">
-            <div>
-              <h3 className="text-lg font-semibold text-foreground">
-                All categories
-              </h3>
-
-              <p className="mt-1 text-sm text-muted">
-                Your current fragrance collections.
-              </p>
-            </div>
-
-            <span className="bethel-badge bethel-badge-pink">
-              {categories.length} total
-            </span>
-          </div>
-
-          {loading ? (
-            <div className="grid gap-3 px-6 py-6 sm:grid-cols-2 sm:px-8 lg:grid-cols-3">
-              {[0, 1, 2, 3, 4, 5].map((card) => (
-                <Skeleton
-                  key={card}
-                  className="h-24 rounded-2xl"
-                />
-              ))}
-            </div>
-          ) : categories.length === 0 ? (
-            <div className="px-6 py-16 text-center sm:px-8">
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#fdf3f5]">
-                <span className="text-2xl text-primary">
-                  ✿
-                </span>
-              </div>
-
-              <h4 className="text-base font-semibold text-foreground">
-                No categories yet
-              </h4>
-
-              <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-muted">
-                Create your first fragrance collection using
-                the form above.
-              </p>
-            </div>
-          ) : (
-            <div className="divide-y divide-[#f0e3e6]">
-              {categories.map((category, index) => (
-                <div
-                  key={category.id}
-                  className="group flex flex-col gap-5 px-6 py-6 transition hover:bg-[#fdf9fa] sm:px-8 md:flex-row md:items-center md:justify-between"
-                >
-                  <div className="flex min-w-0 items-start gap-4">
-                    {/* Number */}
-                    <div className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#fdf3f5] text-sm font-semibold text-primary sm:flex">
-                      {String(index + 1).padStart(2, "0")}
-                    </div>
-
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h4 className="font-semibold text-foreground">
-                          {category.name}
-                        </h4>
-
-                        <span className="bethel-badge bethel-badge-pink">
-                          Active
-                        </span>
-                      </div>
-
-                      <p className="mt-1 text-sm text-primary">
-                        /{category.slug}
-                      </p>
-
-                      {category.description && (
-                        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
-                          {category.description}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex shrink-0 gap-2">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleEdit(category)
-                      }
-                      className="bethel-button bethel-button-secondary"
-                    >
-                      Edit
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleDelete(category.id)
-                      }
-                      className="bethel-button border border-[#edcbd1] bg-white text-[#b94a5c] hover:bg-[#fdf0f2]"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-      </div>
-    </div>
+              <button
+                type="button"
+                onClick={() => handleDelete(category.id)}
+                aria-label={`Delete ${category.name}`}
+                title="Delete"
+                style={{ color: "#B94A5C" }}
+              >
+                <Icon name="trash" size={16} />
+              </button>
+            </article>
+          ))}
+        </div>
+      )}
+    </>
   );
 }

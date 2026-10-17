@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import Skeleton from "@/components/Skeleton";
+import Icon from "@/components/admin/Icon";
 import { apiRequest } from "@/lib/api";
 
 type OrderStatus =
@@ -77,19 +78,6 @@ interface StatusUpdateResponse {
   };
 }
 
-// ------------------------------------------------------------
-// Status presentation helpers
-// ------------------------------------------------------------
-
-const STATUS_STYLES: Record<OrderStatus, string> = {
-  PENDING: "bg-[#fbf4e7] text-[#9a7538] border-[#eee0bf]",
-  CONFIRMED: "bg-[#eef3fb] text-[#4a6288] border-[#d8e2f0]",
-  PROCESSING: "bg-[#f1ecfa] text-[#6a5595] border-[#e0d6ef]",
-  SHIPPED: "bg-[#eef6f9] text-[#3f7285] border-[#d3e8ef]",
-  DELIVERED: "bg-[#edf5ee] text-[#687565] border-[#dce9de]",
-  CANCELLED: "bg-[#fbecef] text-[#a4475e] border-[#efd0d8]",
-};
-
 function formatPrice(price: string | number, currency: string) {
   return `${currency} ${Number(price).toLocaleString(undefined, {
     minimumFractionDigits: 2,
@@ -107,6 +95,35 @@ function formatDateTime(iso: string) {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+/* Figma AdminHeader: eyebrow + serif title, notification bell + action. */
+function AdminHeader({
+  eyebrow,
+  title,
+  action,
+}: {
+  eyebrow: string;
+  title: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="admin-head">
+      <div>
+        <span>{eyebrow}</span>
+
+        <h1>{title}</h1>
+      </div>
+
+      <div className="admin-head-actions">
+        <button className="notification" aria-label="Notifications">
+          ○<i />
+        </button>
+
+        {action}
+      </div>
+    </div>
+  );
 }
 
 export default function AdminOrdersPage() {
@@ -265,594 +282,418 @@ export default function AdminOrdersPage() {
     {}
   );
 
+  const statusBadge = (status: OrderStatus) =>
+    status === "DELIVERED"
+      ? "badge-green"
+      : status === "CANCELLED"
+        ? "badge-red"
+        : status === "PENDING"
+          ? "badge-neutral"
+          : "badge-pink";
+
   return (
-    <div className="bethel-page">
-      {/* Decorative background */}
-      <div className="pointer-events-none absolute right-0 top-0 -z-0 h-72 w-72 rounded-full bg-primary-light opacity-60 blur-3xl" />
+    <>
+      <AdminHeader
+        eyebrow="Sales"
+        title="Orders"
+        action={
+          <span className="badge badge-pink">
+            {total} {total === 1 ? "order" : "orders"}
+          </span>
+        }
+      />
 
-      <div className="relative z-10">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="bethel-label mb-3 flex items-center gap-2">
-            <span className="h-px w-8 bg-primary" />
-            Order Management
-          </div>
+      {error && (
+        <div className="bethel-alert bethel-alert-error mb-4">{error}</div>
+      )}
 
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h2 className="bethel-title text-3xl sm:text-4xl">Orders</h2>
+      {/* Search + tabs, mirroring the Figma admin toolbar / order tabs */}
+      <form onSubmit={handleSearch} className="admin-toolbar">
+        <label className="search">
+          <Icon name="search" size={16} />
 
-              <p className="bethel-muted mt-2 max-w-xl">
-                Review incoming orders, update their status, and keep track of
-                deliveries.
-              </p>
-            </div>
+          <input
+            type="text"
+            placeholder="Search number, name or phone..."
+            value={searchInput}
+            onChange={(event) => setSearchInput(event.target.value)}
+          />
+        </label>
 
-            <div className="flex h-10 w-fit items-center rounded-full bg-primary-light px-4 text-sm font-medium text-primary-dark">
-              {total} {total === 1 ? "order" : "orders"}
-            </div>
+        <button type="submit">Search</button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setSearchInput("");
+            setSearch("");
+            setStatusFilter("");
+            setPage(1);
+          }}
+        >
+          Clear
+        </button>
+      </form>
+
+      <div className="order-tabs">
+        <button
+          type="button"
+          className={statusFilter === "" ? "active" : ""}
+          onClick={() => {
+            setStatusFilter("");
+            setPage(1);
+          }}
+        >
+          All {total}
+        </button>
+
+        {ORDER_STATUSES.map((status) => (
+          <button
+            key={status}
+            type="button"
+            className={statusFilter === status ? "active" : ""}
+            onClick={() => {
+              setStatusFilter(status);
+              setPage(1);
+            }}
+          >
+            {status.replace("_", " ")}
+            {statusCounts[status] ? ` ${statusCounts[status]}` : ""}
+          </button>
+        ))}
+      </div>
+
+      {/* Orders table */}
+      <div className="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Customer</th>
+              <th>Items</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th></th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {loading ? (
+              <>
+                {[0, 1, 2, 3, 4].map((row) => (
+                  <tr key={row}>
+                    <td>
+                      <Skeleton className="h-4 w-24" />
+                    </td>
+
+                    <td>
+                      <Skeleton className="h-4 w-32" />
+                    </td>
+
+                    <td>
+                      <Skeleton className="h-4 w-14" />
+                    </td>
+
+                    <td>
+                      <Skeleton className="h-4 w-20" />
+                    </td>
+
+                    <td>
+                      <Skeleton className="h-4 w-20" />
+                    </td>
+
+                    <td>
+                      <Skeleton className="h-4 w-24" />
+                    </td>
+
+                    <td>
+                      <Skeleton className="h-4 w-14" />
+                    </td>
+                  </tr>
+                ))}
+              </>
+            ) : orders.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="px-5 py-16 text-center">
+                  <p className="text-sm text-[#756B6E]">
+                    {search || statusFilter
+                      ? "No orders match your filters."
+                      : "New customer orders will appear here."}
+                  </p>
+                </td>
+              </tr>
+            ) : (
+              orders.map((order) => (
+                <tr
+                  key={order.id}
+                  onClick={() => openOrderDetail(order.order_number)}
+                  style={{ cursor: "pointer" }}
+                >
+                  <td>
+                    <b>{order.order_number}</b>
+                  </td>
+
+                  <td>{order.customer_name}</td>
+
+                  <td>
+                    {order.item_count}
+                    {order.item_count === 1 ? " product" : " products"} ·{" "}
+                    {order.total_quantity} units
+                  </td>
+
+                  <td>{formatPrice(order.total, order.currency)}</td>
+
+                  <td>
+                    <span className={`badge ${statusBadge(order.status)}`}>
+                      {order.status.replace("_", " ")}
+                    </span>
+                  </td>
+
+                  <td>{formatDateTime(order.created_at)}</td>
+
+                  <td>•••</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Pagination */}
+      {!loading && total > 0 && (
+        <div className="result-meta">
+          <span>
+            Showing {(page - 1) * limit + 1}–
+            {Math.min(page * limit, total)} of {total}
+          </span>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={page === 1}
+              onClick={() => setPage((current) => Math.max(current - 1, 1))}
+              style={{
+                border: "1px solid var(--border)",
+                borderRadius: 999,
+                padding: "6px 14px",
+                fontSize: "0.7rem",
+              }}
+            >
+              Previous
+            </button>
+
+            <span className="badge badge-neutral">
+              {page} / {totalPages}
+            </span>
+
+            <button
+              type="button"
+              disabled={page >= totalPages}
+              onClick={() =>
+                setPage((current) => Math.min(current + 1, totalPages))
+              }
+              style={{
+                border: "1px solid var(--border)",
+                borderRadius: 999,
+                padding: "6px 14px",
+                fontSize: "0.7rem",
+              }}
+            >
+              Next
+            </button>
           </div>
         </div>
+      )}
 
-        {/* Filters */}
-        <div className="bethel-card mb-6 p-5 sm:p-6">
-          <div className="mb-4">
-            <p className="bethel-label">Order Filters</p>
-
-            <h3 className="mt-1 text-lg font-semibold text-foreground">
-              Find an order
-            </h3>
-          </div>
-
-          <form
-            onSubmit={handleSearch}
-            className="grid gap-3 md:grid-cols-2 lg:grid-cols-4"
+      {/* Detail drawer, mirroring the Figma order-detail side panel */}
+      {(selectedOrder || detailLoading || detailError) && (
+        <div className="modal-wrap" onClick={closeOrderDetail}>
+          <aside
+            className="order-detail"
+            onClick={(event) => event.stopPropagation()}
           >
-            <input
-              type="text"
-              placeholder="Search number, name or phone..."
-              value={searchInput}
-              onChange={(event) => setSearchInput(event.target.value)}
-              className="bethel-input"
-            />
+            <div className="drawer-head">
+              <div>
+                <span className="eyebrow">Order details</span>
 
-            <select
-              value={statusFilter}
-              onChange={(event) => {
-                setStatusFilter(event.target.value as "" | OrderStatus);
-                setPage(1);
-              }}
-              className="bethel-input"
-            >
-              <option value="">All statuses</option>
-
-              {ORDER_STATUSES.map((status) => (
-                <option key={status} value={status}>
-                  {status.replace("_", " ")}
-                </option>
-              ))}
-            </select>
-
-            <div className="flex gap-2 md:col-span-2">
-              <button
-                type="submit"
-                className="bethel-button bethel-button-primary flex-1"
-              >
-                Search
-              </button>
+                <h2>
+                  {detailLoading
+                    ? "Loading..."
+                    : selectedOrder?.order_number}
+                </h2>
+              </div>
 
               <button
                 type="button"
-                onClick={() => {
-                  setSearchInput("");
-                  setSearch("");
-                  setStatusFilter("");
-                  setPage(1);
-                }}
-                className="bethel-button bethel-button-secondary"
+                onClick={closeOrderDetail}
+                aria-label="Close order details"
               >
-                Clear
+                <Icon name="close" />
               </button>
             </div>
-          </form>
-        </div>
 
-        {/* Alerts */}
-        {error && (
-          <div className="bethel-alert bethel-alert-error mb-6">{error}</div>
-        )}
-
-        {/* Orders table */}
-        <div className="bethel-card overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px] text-left text-sm">
-              <thead className="border-b border-border bg-[#fdf8f9]">
-                <tr>
-                  <th className="px-5 py-4 font-semibold text-[#574b4f]">
-                    Order
-                  </th>
-
-                  <th className="px-5 py-4 font-semibold text-[#574b4f]">
-                    Customer
-                  </th>
-
-                  <th className="px-5 py-4 font-semibold text-[#574b4f]">
-                    Items
-                  </th>
-
-                  <th className="px-5 py-4 font-semibold text-[#574b4f]">
-                    Total
-                  </th>
-
-                  <th className="px-5 py-4 font-semibold text-[#574b4f]">
-                    Status
-                  </th>
-
-                  <th className="px-5 py-4 font-semibold text-[#574b4f]">
-                    Placed
-                  </th>
-
-                  <th className="px-5 py-4 font-semibold text-[#574b4f]">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {loading ? (
-                  <>
-                    {[0, 1, 2, 3, 4].map((row) => (
-                      <tr
-                        key={row}
-                        className="border-b border-[#f0e7e9]"
-                      >
-                        <td className="px-5 py-4">
-                          <Skeleton className="h-4 w-24" />
-                        </td>
-                        <td className="px-5 py-4">
-                          <Skeleton className="h-4 w-32" />
-                        </td>
-                        <td className="px-5 py-4">
-                          <Skeleton className="h-4 w-14" />
-                        </td>
-                        <td className="px-5 py-4">
-                          <Skeleton className="h-4 w-20" />
-                        </td>
-                        <td className="px-5 py-4">
-                          <Skeleton className="h-6 w-20 rounded-full" />
-                        </td>
-                        <td className="px-5 py-4">
-                          <Skeleton className="h-4 w-24" />
-                        </td>
-                        <td className="px-5 py-4">
-                          <Skeleton className="h-9 w-20 rounded-lg" />
-                        </td>
-                      </tr>
-                    ))}
-                  </>
-                ) : orders.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="px-5 py-16 text-center">
-                      <div className="mx-auto flex max-w-sm flex-col items-center">
-                        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary-light text-2xl text-primary">
-                          ✿
-                        </div>
-
-                        <h3 className="text-lg font-semibold text-foreground">
-                          No orders found
-                        </h3>
-
-                        <p className="mt-1 text-sm text-muted">
-                          {search || statusFilter
-                            ? "Try changing your filters."
-                            : "New customer orders will appear here."}
-                        </p>
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  orders.map((order) => (
-                    <tr
-                      key={order.id}
-                      className="border-b border-[#f0e7e9] transition-colors last:border-b-0 hover:bg-[#fffbfc]"
-                    >
-                      {/* Order number */}
-                      <td className="px-5 py-4">
-                        <p className="font-semibold text-foreground">
-                          {order.order_number}
-                        </p>
-
-                        <p className="mt-0.5 text-xs text-muted">
-                          {order.customer_email || "No email"}
-                        </p>
-                      </td>
-
-                      {/* Customer */}
-                      <td className="px-5 py-4">
-                        <p className="font-medium text-foreground">
-                          {order.customer_name}
-                        </p>
-
-                        <p className="mt-0.5 text-xs text-muted">
-                          {order.customer_phone}
-                        </p>
-                      </td>
-
-                      {/* Items */}
-                      <td className="px-5 py-4 text-muted">
-                        {order.item_count}{" "}
-                        {order.item_count === 1 ? "product" : "products"} ·{" "}
-                        {order.total_quantity} units
-                      </td>
-
-                      {/* Total */}
-                      <td className="px-5 py-4 font-semibold text-foreground">
-                        {formatPrice(order.total, order.currency)}
-                      </td>
-
-                      {/* Status */}
-                      <td className="px-5 py-4">
-                        <span
-                          className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${
-                            STATUS_STYLES[order.status]
-                          }`}
-                        >
-                          {order.status.replace("_", " ")}
-                        </span>
-                      </td>
-
-                      {/* Placed */}
-                      <td className="px-5 py-4 text-xs text-muted">
-                        {formatDateTime(order.created_at)}
-                      </td>
-
-                      {/* Actions */}
-                      <td className="px-5 py-4">
-                        <button
-                          type="button"
-                          onClick={() => openOrderDetail(order.order_number)}
-                          className="inline-flex items-center rounded-lg border border-[#e5dadd] bg-white px-3 py-2 text-xs font-semibold text-[#574b4f] transition-colors hover:border-[#d7a7b3] hover:bg-[#fdf5f7] hover:text-primary-dark"
-                        >
-                          View
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination */}
-          {!loading && total > 0 && (
-            <div className="flex flex-col gap-4 border-t border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-muted">
-                Showing{" "}
-                <span className="font-medium text-foreground">
-                  {(page - 1) * limit + 1}–{Math.min(page * limit, total)}
-                </span>{" "}
-                of <span className="font-medium text-foreground">{total}</span>
-                {search && (
-                  <span className="ml-1 text-[#a69b9e]">
-                    (search filters the current page)
-                  </span>
-                )}
-              </p>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  disabled={page === 1}
-                  onClick={() =>
-                    setPage((current) => Math.max(current - 1, 1))
-                  }
-                  className="bethel-button bethel-button-secondary px-4 py-2 disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  ← Previous
-                </button>
-
-                <span className="rounded-lg bg-primary-light px-3 py-2 text-xs font-semibold text-primary-dark">
-                  {page} / {totalPages}
-                </span>
-
-                <button
-                  type="button"
-                  disabled={page >= totalPages}
-                  onClick={() =>
-                    setPage((current) => Math.min(current + 1, totalPages))
-                  }
-                  className="bethel-button bethel-button-secondary px-4 py-2 disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  Next →
-                </button>
+            {detailError && (
+              <div className="bethel-alert bethel-alert-error mt-4">
+                {detailError}
               </div>
-            </div>
-          )}
-        </div>
-
-        {/* Status summary chips (current page) */}
-        {!loading && orders.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-2 px-1 text-xs text-muted">
-            {ORDER_STATUSES.filter((status) => statusCounts[status]).map(
-              (status) => (
-                <span
-                  key={status}
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 font-medium ${
-                    STATUS_STYLES[status]
-                  }`}
-                >
-                  {status.replace("_", " ")}: {statusCounts[status]}
-                </span>
-              )
             )}
-          </div>
-        )}
-      </div>
 
-      {/* ------------------------------------------------------------
-          Order detail drawer
-      ------------------------------------------------------------ */}
-      {(selectedOrder || detailLoading || detailError) && (
-        <div className="fixed inset-0 z-50 flex justify-end">
-          {/* Backdrop */}
-          <button
-            type="button"
-            aria-label="Close order details"
-            onClick={closeOrderDetail}
-            className="absolute inset-0 bg-foreground/40 backdrop-blur-sm"
-          />
-
-          {/* Panel */}
-          <aside className="relative flex h-full w-full max-w-xl flex-col overflow-y-auto bg-white shadow-2xl">
-            <div className="sticky top-0 z-10 border-b border-border bg-white/95 px-6 py-5 backdrop-blur">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="bethel-label mb-1">Order Details</p>
-
-                  <h3 className="font-serif text-2xl text-foreground">
-                    {detailLoading
-                      ? "Loading..."
-                      : selectedOrder?.order_number}
-                  </h3>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={closeOrderDetail}
-                  className="rounded-xl border border-[#eadcdf] bg-white px-3 py-2 text-sm font-medium text-muted transition hover:border-[#d8aab6] hover:bg-[#fdf3f5] hover:text-primary-dark"
-                >
-                  Close
-                </button>
+            {detailLoading && (
+              <div className="flex items-center justify-center py-16">
+                <div className="bethel-spinner h-8 w-8 border-2" />
               </div>
-            </div>
+            )}
 
-            <div className="flex-1 px-6 py-6">
-              {detailError && (
-                <div className="bethel-alert bethel-alert-error">
-                  {detailError}
+            {selectedOrder && !detailLoading && (
+              <div className="mt-5">
+                {/* Status */}
+                <label className="field">
+                  <span>Order status</span>
+
+                  <select
+                    value={selectedOrder.status}
+                    disabled={
+                      updatingStatus ||
+                      selectedOrder.status === "DELIVERED" ||
+                      selectedOrder.status === "CANCELLED"
+                    }
+                    onChange={(event) =>
+                      handleStatusChange(
+                        selectedOrder,
+                        event.target.value as OrderStatus
+                      )
+                    }
+                  >
+                    {ORDER_STATUSES.map((status) => (
+                      <option key={status} value={status}>
+                        {status.replace("_", " ")}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                {statusMessage && (
+                  <div className="bethel-alert bethel-alert-success">
+                    {statusMessage}
+                  </div>
+                )}
+
+                {statusError && (
+                  <div className="bethel-alert bethel-alert-error">
+                    {statusError}
+                  </div>
+                )}
+
+                {/* Customer */}
+                <div className="customer-info" style={{ marginTop: 16 }}>
+                  <h3>Customer</h3>
+
+                  <p>
+                    <b>{selectedOrder.customer_name}</b>
+                    <br />
+
+                    {selectedOrder.customer_phone}
+                    {selectedOrder.customer_email
+                      ? `, ${selectedOrder.customer_email}`
+                      : ""}
+                    <br />
+
+                    {selectedOrder.delivery_address}
+                  </p>
+
+                  {selectedOrder.customer_notes && (
+                    <p style={{ marginTop: 8 }}>
+                      Notes: {selectedOrder.customer_notes}
+                    </p>
+                  )}
                 </div>
-              )}
 
-              {detailLoading && (
-                <div className="flex items-center justify-center py-16">
-                  <div className="bethel-spinner h-8 w-8 border-2" />
-                </div>
-              )}
+                {/* Items */}
+                {selectedOrder.items.map((item) => (
+                  <div className="mini-item" key={item.id}>
+                    <div>
+                      <b>{item.product_name}</b>
 
-              {selectedOrder && !detailLoading && (
-                <div className="space-y-6">
-                  {/* Status management */}
-                  <section className="rounded-2xl border border-border bg-background p-5">
-                    <div className="flex items-center justify-between gap-4">
-                      <div>
-                        <p className="bethel-label mb-1">Status</p>
-
-                        <span
-                          className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${
-                            STATUS_STYLES[selectedOrder.status]
-                          }`}
-                        >
-                          {selectedOrder.status.replace("_", " ")}
-                        </span>
-                      </div>
-
-                      <select
-                        value={selectedOrder.status}
-                        disabled={
-                          updatingStatus ||
-                          selectedOrder.status === "DELIVERED" ||
-                          selectedOrder.status === "CANCELLED"
-                        }
-                        onChange={(event) =>
-                          handleStatusChange(
-                            selectedOrder,
-                            event.target.value as OrderStatus
-                          )
-                        }
-                        className="bethel-input w-auto min-w-[170px]"
-                      >
-                        {ORDER_STATUSES.map((status) => (
-                          <option key={status} value={status}>
-                            {status.replace("_", " ")}
-                          </option>
-                        ))}
-                      </select>
+                      <span>
+                        {item.quantity} ×{" "}
+                        {formatPrice(
+                          item.unit_price,
+                          selectedOrder.currency
+                        )}
+                        {item.product_size ? ` · ${item.product_size}` : ""}
+                      </span>
                     </div>
 
-                    {(selectedOrder.status === "DELIVERED" ||
-                      selectedOrder.status === "CANCELLED") && (
-                      <p className="mt-3 text-xs text-[#9a8f92]">
-                        This order is {selectedOrder.status.toLowerCase()} and
-                        can no longer be changed.
-                      </p>
-                    )}
+                    <strong>
+                      {formatPrice(item.subtotal, selectedOrder.currency)}
+                    </strong>
+                  </div>
+                ))}
 
-                    {statusMessage && (
-                      <div className="bethel-alert bethel-alert-success mt-4">
-                        {statusMessage}
-                      </div>
-                    )}
-
-                    {statusError && (
-                      <div className="bethel-alert bethel-alert-error mt-4">
-                        {statusError}
-                      </div>
-                    )}
-                  </section>
-
-                  {/* Customer */}
-                  <section>
-                    <h4 className="mb-3 font-serif text-lg text-foreground">
-                      Customer
-                    </h4>
-
-                    <dl className="space-y-2 text-sm">
-                      <div className="flex justify-between gap-4">
-                        <dt className="text-muted">Name</dt>
-
-                        <dd className="text-right font-medium text-foreground">
-                          {selectedOrder.customer_name}
-                        </dd>
-                      </div>
-
-                      <div className="flex justify-between gap-4">
-                        <dt className="text-muted">Phone</dt>
-
-                        <dd className="text-right font-medium text-foreground">
-                          <a
-                            href={`tel:${selectedOrder.customer_phone}`}
-                            className="hover:text-primary-dark hover:underline"
-                          >
-                            {selectedOrder.customer_phone}
-                          </a>
-                        </dd>
-                      </div>
-
-                      {selectedOrder.customer_email && (
-                        <div className="flex justify-between gap-4">
-                          <dt className="text-muted">Email</dt>
-
-                          <dd className="text-right font-medium text-foreground">
-                            <a
-                              href={`mailto:${selectedOrder.customer_email}`}
-                              className="hover:text-primary-dark hover:underline"
-                            >
-                              {selectedOrder.customer_email}
-                            </a>
-                          </dd>
-                        </div>
+                <div className="summary-lines">
+                  <span>
+                    Subtotal{" "}
+                    <b>
+                      {formatPrice(
+                        selectedOrder.subtotal,
+                        selectedOrder.currency
                       )}
+                    </b>
+                  </span>
 
-                      <div className="flex justify-between gap-4">
-                        <dt className="text-muted">Placed</dt>
+                  <span>
+                    Delivery{" "}
+                    <b>
+                      {formatPrice(
+                        selectedOrder.delivery_fee,
+                        selectedOrder.currency
+                      )}
+                    </b>
+                  </span>
 
-                        <dd className="text-right font-medium text-foreground">
-                          {formatDateTime(selectedOrder.created_at)}
-                        </dd>
-                      </div>
-                    </dl>
-                  </section>
-
-                  {/* Delivery */}
-                  <section>
-                    <h4 className="mb-3 font-serif text-lg text-foreground">
-                      Delivery
-                    </h4>
-
-                    <div className="rounded-2xl bg-background p-4 text-sm leading-6 text-foreground">
-                      {selectedOrder.delivery_address}
-                    </div>
-
-                    {selectedOrder.customer_notes && (
-                      <div className="mt-3 rounded-2xl bg-[#fbf4e7] p-4 text-sm leading-6 text-[#7a6234]">
-                        <span className="font-semibold">Notes: </span>
-                        {selectedOrder.customer_notes}
-                      </div>
-                    )}
-                  </section>
-
-                  {/* Items */}
-                  <section>
-                    <h4 className="mb-3 font-serif text-lg text-foreground">
-                      Items
-                    </h4>
-
-                    <div className="space-y-2">
-                      {selectedOrder.items.map((item) => (
-                        <div
-                          key={item.id}
-                          className="flex items-start justify-between gap-4 rounded-2xl border border-border bg-white p-4"
-                        >
-                          <div className="min-w-0">
-                            <p className="font-medium text-foreground">
-                              {item.product_name}
-                            </p>
-
-                            <p className="mt-0.5 text-xs text-muted">
-                              {item.quantity} ×{" "}
-                              {formatPrice(
-                                item.unit_price,
-                                selectedOrder.currency
-                              )}
-                              {item.product_size
-                                ? ` · ${item.product_size}`
-                                : ""}
-                            </p>
-                          </div>
-
-                          <p className="shrink-0 font-semibold text-foreground">
-                            {formatPrice(item.subtotal, selectedOrder.currency)}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </section>
-
-                  {/* Totals */}
-                  <section className="rounded-2xl border border-border bg-background p-5">
-                    <dl className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <dt className="text-muted">Subtotal</dt>
-
-                        <dd className="font-medium text-foreground">
-                          {formatPrice(
-                            selectedOrder.subtotal,
-                            selectedOrder.currency
-                          )}
-                        </dd>
-                      </div>
-
-                      <div className="flex justify-between">
-                        <dt className="text-muted">Delivery</dt>
-
-                        <dd className="font-medium text-foreground">
-                          {formatPrice(
-                            selectedOrder.delivery_fee,
-                            selectedOrder.currency
-                          )}
-                        </dd>
-                      </div>
-
-                      <div className="flex justify-between border-t border-border pt-3">
-                        <dt className="font-serif text-base text-foreground">
-                          Total
-                        </dt>
-
-                        <dd className="text-lg font-semibold text-primary-dark">
-                          {formatPrice(
-                            selectedOrder.total,
-                            selectedOrder.currency
-                          )}
-                        </dd>
-                      </div>
-                    </dl>
-                  </section>
+                  <span className="total">
+                    Total{" "}
+                    <b>
+                      {formatPrice(
+                        selectedOrder.total,
+                        selectedOrder.currency
+                      )}
+                    </b>
+                  </span>
                 </div>
-              )}
-            </div>
+
+                {/* One-click status advance, matching the Figma "Update order status" button */}
+                {selectedOrder.status !== "DELIVERED" &&
+                  selectedOrder.status !== "CANCELLED" && (
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      style={{ width: "100%", marginTop: 20 }}
+                      disabled={updatingStatus}
+                      onClick={() =>
+                        handleStatusChange(
+                          selectedOrder,
+                          selectedOrder.status === "PENDING"
+                            ? "CONFIRMED"
+                            : selectedOrder.status === "CONFIRMED"
+                              ? "PROCESSING"
+                              : selectedOrder.status === "PROCESSING"
+                                ? "SHIPPED"
+                                : "DELIVERED"
+                        )
+                      }
+                    >
+                      {updatingStatus
+                        ? "Updating..."
+                        : "Update order status"}
+                    </button>
+                  )}
+              </div>
+            )}
           </aside>
         </div>
       )}
-    </div>
+    </>
   );
 }

@@ -14,76 +14,52 @@ export default function OrderSuccessPage() {
   );
 
   return (
-    <main className="bethel-page min-h-screen">
-      <div className="relative z-10">
-        <StorefrontHeader />
+    <main>
+      <StorefrontHeader />
 
-        <section className="bethel-container flex min-h-[70vh] items-center justify-center py-16">
-          <div className="w-full max-w-2xl rounded-[2rem] border border-border bg-white/90 px-6 py-12 text-center shadow-[0_20px_60px_rgba(120,70,85,0.08)] md:px-12">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary-light text-2xl text-primary-dark">
-              ✓
-            </div>
+      <section className="success-page">
+        <div className="success-mark">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="m5 12 4 4L19 6" />
+          </svg>
+        </div>
 
-            <p className="mt-6 text-xs font-semibold uppercase tracking-[0.22em] text-primary-dark">
-              Order received
-            </p>
+        <span className="eyebrow">Order confirmed</span>
+        <h1>Thank you for choosing Bethel.</h1>
+        <p>
+          Your order is in. We’ll confirm it shortly and keep you
+          updated as it makes its way to you.
+        </p>
 
-            <h1 className="mt-3 font-serif text-4xl leading-tight text-foreground md:text-5xl">
-              Thank you for choosing Bethel.
-            </h1>
+        <div className="order-number">
+          <span>Order number</span>
+          <b style={{ fontSize: "1.4rem" }}>{orderNumber}</b>
+        </div>
 
-            <p className="mx-auto mt-5 max-w-lg text-base leading-7 text-muted">
-              Your order has been received successfully.
-              We will use the contact information you
-              provided to follow up about your delivery.
-            </p>
+        <div className="button-row" style={{ justifyContent: "center" }}>
+          <Link
+            href={`/track?order=${encodeURIComponent(orderNumber)}`}
+            className="btn btn-primary"
+            style={{ textDecoration: "none" }}
+          >
+            Track your order
+          </Link>
+          <Link
+            href="/"
+            className="btn btn-secondary"
+            style={{ textDecoration: "none" }}
+          >
+            Back to home
+          </Link>
+        </div>
 
-            <div className="mx-auto mt-8 max-w-md rounded-2xl border border-border bg-background p-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-light">
-                Order number
-              </p>
+        <p style={{ fontSize: "0.8rem", marginTop: 24 }}>
+          Track your delivery anytime with your order number and the
+          phone number you checked out with.
+        </p>
+      </section>
 
-              <p className="mt-2 break-all font-serif text-2xl text-primary-dark">
-                {orderNumber}
-              </p>
-
-              <div className="mt-4 border-t border-border pt-4">
-                <p className="text-sm leading-6 text-muted">
-                  Track your delivery anytime with your order number
-                  and the phone number you checked out with.
-                </p>
-
-                <Link
-                  href={`/track?order=${encodeURIComponent(
-                    orderNumber
-                  )}`}
-                  className="mt-3 inline-flex rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-dark"
-                >
-                  Track my order
-                </Link>
-              </div>
-            </div>
-
-            <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-              <Link
-                href="/products"
-                className="rounded-2xl bg-primary px-6 py-3 text-sm font-semibold text-white transition hover:bg-primary-dark"
-              >
-                Continue shopping
-              </Link>
-
-              <Link
-                href="/"
-                className="rounded-2xl border border-[#d9c4ca] px-6 py-3 text-sm font-medium text-primary-dark transition hover:bg-primary-light"
-              >
-                Back to home
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        <StorefrontFooter />
-      </div>
+      <StorefrontFooter />
     </main>
   );
 }

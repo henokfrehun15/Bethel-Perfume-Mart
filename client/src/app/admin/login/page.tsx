@@ -18,38 +18,22 @@ interface LoginResponse {
 export default function AdminLoginPage() {
   const router = useRouter();
 
-  const [username, setUsername] =
-    useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const [password, setPassword] =
-    useState("");
-
-  const [error, setError] =
-    useState("");
-
-  const [loading, setLoading] =
-    useState(false);
-
-  const handleSubmit = async (
-    event: FormEvent<HTMLFormElement>
-  ) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     setError("");
     setLoading(true);
 
     try {
-      const response =
-        await apiRequest<LoginResponse>(
-          "/auth/login",
-          {
-            method: "POST",
-            body: JSON.stringify({
-              username,
-              password,
-            }),
-          }
-        );
+      const response = await apiRequest<LoginResponse>("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ username, password }),
+      });
 
       // The session token itself is set by the API as an httpOnly
       // cookie; only the display username is stored client-side.
@@ -58,9 +42,7 @@ export default function AdminLoginPage() {
       router.push("/admin");
     } catch (error) {
       setError(
-        error instanceof Error
-          ? error.message
-          : "Login failed"
+        error instanceof Error ? error.message : "Login failed"
       );
     } finally {
       setLoading(false);
@@ -68,89 +50,94 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <main className="bethel-page flex min-h-screen items-center justify-center bg-background px-4 py-12">
-      {/* Decorative background */}
-      <div className="pointer-events-none absolute right-0 top-0 h-72 w-72 rounded-full bg-primary-light opacity-60 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-0 left-0 h-56 w-56 rounded-full bg-primary-light opacity-40 blur-3xl" />
+    <main className="login-page">
+      {/* Art side */}
+      <div className="login-art">
+        <img
+          src="https://images.unsplash.com/photo-1615108395437-df128ad79e80?auto=format&fit=crop&w=900&q=85"
+          alt="Luxury perfume and white flowers"
+        />
 
-      <div className="bethel-card relative w-full max-w-md p-8 sm:p-10">
-        <div className="mb-8 text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary-dark">
-            Bethel Perfume
-          </p>
+        <div className="login-brand">
+          <span>B</span>
 
-          <h1 className="bethel-heading mt-2 text-3xl">
-            Admin sign in
+          <h1>
+            Bethel
+            <br />
+            <em>Perfume &amp; Mart</em>
           </h1>
 
-          <p className="bethel-muted mt-2 text-sm">
-            Manage your store
-          </p>
+          <p>Beauty, thoughtfully curated.</p>
         </div>
+      </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-5"
-        >
-          <div>
-            <label
-              htmlFor="username"
-              className="bethel-label"
-            >
-              Username
-            </label>
+      {/* Form side */}
+      <div className="login-panel">
+        <form onSubmit={handleSubmit}>
+          <span className="eyebrow">Welcome back</span>
+
+          <h2>Sign in to your store</h2>
+
+          <p>
+            Enter your details to manage Bethel Perfume &amp; Mart.
+          </p>
+
+          <label className="field">
+            <span>Username</span>
 
             <input
               id="username"
               type="text"
               value={username}
-              onChange={(event) =>
-                setUsername(event.target.value)
-              }
+              onChange={(event) => setUsername(event.target.value)}
               required
               autoComplete="username"
-              className="bethel-input"
-              placeholder="Enter username"
+              placeholder="Enter your username"
             />
-          </div>
+          </label>
 
-          <div>
-            <label
-              htmlFor="password"
-              className="bethel-label"
-            >
-              Password
-            </label>
+          <label className="field">
+            <span>Password</span>
 
             <input
               id="password"
               type="password"
               value={password}
-              onChange={(event) =>
-                setPassword(event.target.value)
-              }
+              onChange={(event) => setPassword(event.target.value)}
               required
               autoComplete="current-password"
-              className="bethel-input"
-              placeholder="Enter password"
+              placeholder="Enter your password"
             />
-          </div>
+          </label>
 
           {error && (
-            <div className="bethel-alert bethel-alert-error">
-              {error}
+            <div className="field error">
+              <input value={error} readOnly style={{ display: "none" }} />
+
+              <small>{error}</small>
             </div>
           )}
+
+          <label className="remember">
+            <input type="checkbox" /> Keep me signed in
+          </label>
 
           <button
             type="submit"
             disabled={loading}
-            className="bethel-button bethel-button-primary w-full"
+            className="btn btn-primary"
+            style={{ width: "100%" }}
           >
-            {loading
-              ? "Signing in..."
-              : "Sign in"}
+            {loading ? "Signing in..." : <>Sign in securely →</>}
           </button>
+
+          <small>Protected admin access · JWT secured</small>
+
+          <noscript>
+            <p style={{ color: "#B94A5C" }}>
+              JavaScript is required to sign in.
+            </p>
+          </noscript>
         </form>
       </div>
     </main>

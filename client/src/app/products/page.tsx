@@ -160,139 +160,121 @@ export default async function ProductsPage({
   );
 
   return (
-    <main className="bethel-page min-h-screen">
-      <div className="relative z-10">
-        {/* Shared storefront header with live cart count */}
-        <StorefrontHeader />
+    <main>
+      {/* Shared storefront header with live cart count */}
+      <StorefrontHeader />
 
-        <section className="bethel-container py-12 md:py-16">
-          {/* Page introduction */}
-          <div className="max-w-2xl">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-primary-dark">
-              The collection
-            </p>
+      <section className="page">
+        {/* Page introduction */}
+        <div className="shop-title">
+          <span className="eyebrow">Our collection</span>
+          <h1>Find your fragrance</h1>
+          <p>
+            From soft florals to warm, lingering notes—something
+            here is waiting to feel like you.
+          </p>
+        </div>
 
-            <h1 className="font-serif text-4xl leading-tight text-foreground md:text-5xl">
-              Find a fragrance that feels like you.
-            </h1>
+        {/* Filters */}
+        <ProductFilters
+          categories={categories ?? []}
+          search={query.search}
+          category={query.category}
+          inStock={query.inStock}
+          promotion={query.promotion}
+        />
 
-            <p className="mt-4 max-w-xl text-base leading-7 text-muted">
-              Explore the Bethel Perfume collection and
-              discover fragrances for every moment.
-            </p>
-          </div>
+        {/* Results summary */}
+        <div className="result-meta">
+          <span>
+            {failed
+              ? "Could not load fragrances."
+              : `${total} fragrance${total === 1 ? "" : "s"} found`}
+          </span>
 
-          {/* Filters */}
-          <ProductFilters
-            categories={categories ?? []}
-            search={query.search}
-            category={query.category}
-            inStock={query.inStock}
-            promotion={query.promotion}
-          />
-
-          {/* Results summary */}
-          <div className="mt-10 flex items-center justify-between gap-4">
-            <p className="text-sm text-muted">
-              {failed
-                ? "Could not load fragrances."
-                : `${total} fragrance${
-                    total === 1 ? "" : "s"
-                  } found`}
-            </p>
-
-            {total > 0 && (
-              <p className="text-sm text-muted">
-                Page {query.page} of {totalPages}
-              </p>
-            )}
-          </div>
-
-          {/* Error */}
-          {failed && (
-            <div className="mt-6 rounded-2xl border border-[#edcbd1] bg-[#fdf0f2] p-4 text-sm text-[#9e405a]">
-              The collection could not be loaded. Please
-              refresh the page and try again.
-            </div>
+          {total > 0 && (
+            <span>
+              Page {query.page} of {totalPages}
+            </span>
           )}
+        </div>
 
-          {/* Product content */}
-          {!failed && products.length > 0 ? (
-            <div className="grid gap-6 pt-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {products.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                />
-              ))}
-            </div>
-          ) : null}
+        {/* Error */}
+        {failed && (
+          <div className="bethel-alert bethel-alert-error">
+            The collection could not be loaded. Please refresh the
+            page and try again.
+          </div>
+        )}
 
-          {!failed &&
-            products.length === 0 && (
-              <div className="mt-8 rounded-3xl border border-dashed border-[#d9c4ca] bg-white/70 px-6 py-16 text-center">
-                <p className="font-serif text-2xl text-foreground">
-                  No fragrances found
-                </p>
+        {/* Product content */}
+        {!failed && products.length > 0 ? (
+          <div className="product-grid">
+            {products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        ) : null}
 
-                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted">
-                  Try a different search or remove some
-                  filters to see more of the collection.
-                </p>
+        {!failed && products.length === 0 && (
+          <div className="state-page" style={{ minHeight: "auto", padding: "60px 20px" }}>
+            <div className="state-icon">✿</div>
+            <h1 style={{ fontSize: "2.4rem" }}>No fragrances found</h1>
+            <p>
+              Try a different search or remove some filters to see
+              more of the collection.
+            </p>
+            <Link href="/products" className="btn btn-primary">
+              View all fragrances
+            </Link>
+          </div>
+        )}
 
-                <Link
-                  href="/products"
-                  className="mt-6 inline-flex rounded-2xl bg-primary px-6 py-3 text-sm font-semibold text-white transition hover:bg-primary-dark"
-                >
-                  View all fragrances
-                </Link>
-              </div>
-            )}
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="mt-12 flex items-center justify-center gap-3">
-              {query.page > 1 ? (
-                <Link
-                  href={pageHref(query, query.page - 1)}
-                  className="rounded-2xl border border-input bg-white px-5 py-3 text-sm font-medium text-muted transition hover:border-primary hover:text-primary-dark"
-                >
-                  Previous
-                </Link>
-              ) : (
-                <span
-                  aria-disabled="true"
-                  className="cursor-not-allowed rounded-2xl border border-input bg-white px-5 py-3 text-sm font-medium text-muted opacity-40"
-                >
-                  Previous
-                </span>
-              )}
-
-              <span className="rounded-2xl bg-primary-light px-5 py-3 text-sm font-semibold text-primary-dark">
-                {query.page}
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="pagination">
+            {query.page > 1 ? (
+              <Link
+                href={pageHref(query, query.page - 1)}
+                aria-label="Previous page"
+              >
+                ←
+              </Link>
+            ) : (
+              <span aria-disabled="true" style={{ opacity: 0.4 }}>
+                ←
               </span>
+            )}
 
-              {query.page < totalPages ? (
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+              (page) => (
                 <Link
-                  href={pageHref(query, query.page + 1)}
-                  className="rounded-2xl border border-input bg-white px-5 py-3 text-sm font-medium text-muted transition hover:border-primary hover:text-primary-dark"
+                  key={page}
+                  href={pageHref(query, page)}
+                  className={page === query.page ? "active" : ""}
                 >
-                  Next
+                  {page}
                 </Link>
-              ) : (
-                <span
-                  aria-disabled="true"
-                  className="cursor-not-allowed rounded-2xl border border-input bg-white px-5 py-3 text-sm font-medium text-muted opacity-40"
-                >
-                  Next
-                </span>
-              )}
-            </div>
-          )}
-        </section>
+              )
+            )}
 
-        <StorefrontFooter />
-      </div>
+            {query.page < totalPages ? (
+              <Link
+                href={pageHref(query, query.page + 1)}
+                aria-label="Next page"
+              >
+                →
+              </Link>
+            ) : (
+              <span aria-disabled="true" style={{ opacity: 0.4 }}>
+                →
+              </span>
+            )}
+          </div>
+        )}
+      </section>
+
+      <StorefrontFooter />
     </main>
   );
 }

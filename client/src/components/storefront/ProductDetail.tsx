@@ -95,189 +95,184 @@ export default function ProductDetail({
   };
 
   return (
-    <main className="bethel-page min-h-screen">
-      <div className="relative z-10">
-        <StorefrontHeader />
+    <main>
+      <StorefrontHeader />
 
-        <section className="bethel-container py-10 md:py-16">
-          <Link
-            href="/products"
-            className="text-sm font-medium text-primary-dark hover:underline"
-          >
-            ← Back to collection
-          </Link>
+      <section className="page">
+        <Link href="/products" className="breadcrumb">
+          Shop / {product.category_name || "Fragrances"}
+        </Link>
 
-          <div className="mt-8 grid gap-10 lg:grid-cols-2 lg:gap-16">
-            {/* Product images */}
-            <div>
-              <div className="overflow-hidden rounded-[2rem] border border-border bg-[#f9f0f2] shadow-[0_16px_50px_rgba(120,70,85,0.08)]">
-                <ProductImage
-                  src={currentImage}
-                  alt={
-                    images[selectedImage]?.alt_text ||
-                    product.name
-                  }
-                  className="aspect-[4/5] h-full w-full object-cover"
-                  eager
-                >
-                  <div className="flex aspect-[4/5] items-center justify-center px-8 text-center">
-                    <span className="font-serif text-3xl text-primary">
-                      Bethel Perfume
-                    </span>
-                  </div>
-                </ProductImage>
-              </div>
-
-              {images.length > 1 && (
-                <div className="mt-4 grid grid-cols-4 gap-3">
-                  {images.map((image, index) => (
-                    <button
-                      key={image.id}
-                      type="button"
-                      onClick={() =>
-                        setSelectedImage(index)
-                      }
-                      className={`overflow-hidden rounded-2xl border-2 ${
+        <div className="detail">
+          {/* Product images */}
+          <div className="gallery">
+            {images.length > 1 && (
+              <div className="thumbs">
+                {images.map((image, index) => (
+                  <button
+                    key={image.id}
+                    type="button"
+                    onClick={() => setSelectedImage(index)}
+                    style={{
+                      borderColor:
                         selectedImage === index
-                          ? "border-primary"
-                          : "border-transparent"
-                      }`}
-                    >
-                      <ProductImage
-                        src={image.url}
-                        alt={
-                          image.alt_text ||
-                          `${product.name} image ${index + 1}`
-                        }
-                        className="aspect-square w-full object-cover"
-                      />
-                    </button>
-                  ))}
+                          ? "var(--rose)"
+                          : "var(--border)",
+                    }}
+                    aria-label={`${product.name} image ${index + 1}`}
+                  >
+                    <ProductImage
+                      src={image.url}
+                      alt={
+                        image.alt_text ||
+                        `${product.name} image ${index + 1}`
+                      }
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <div className="main-image">
+              <ProductImage
+                src={currentImage}
+                alt={
+                  images[selectedImage]?.alt_text || product.name
+                }
+                eager
+              >
+                <div
+                  style={{
+                    height: "100%",
+                    display: "grid",
+                    placeItems: "center",
+                    padding: 24,
+                    textAlign: "center",
+                  }}
+                >
+                  <span className="font-serif text-3xl text-primary">
+                    Bethel Perfume
+                  </span>
                 </div>
+              </ProductImage>
+
+              {hasPromotion && (
+                <span className="badge badge-pink">
+                  {product.promotion_text || "Special offer"}
+                </span>
               )}
             </div>
+          </div>
 
             {/* Product information */}
-            <div className="flex flex-col justify-center">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary-dark">
-                {product.brand || "Bethel Perfume"}
-              </p>
+            <div className="detail-copy">
+              <span className="eyebrow">
+                {product.category_name || product.brand || "Perfume"}
+                {product.size ? ` · ${product.size}` : ""}
+              </span>
 
-              <h1 className="mt-3 font-serif text-4xl leading-tight text-foreground md:text-5xl">
-                {product.name}
-              </h1>
-
-              {product.brand && (
-                <p className="mt-3 text-base text-muted">
-                  {product.brand}
-                </p>
-              )}
+              <h1>{product.name}</h1>
 
               {/* Price */}
-              <div className="mt-7">
+              <strong className="price">
                 {hasPromotion ? (
-                  <div>
-                    <p className="text-lg text-muted-light line-through">
-                      {formatPrice(
-                        product.price,
-                        product.currency
-                      )}
-                    </p>
-
-                    <p className="text-2xl font-semibold text-primary-dark">
-                      {formatPrice(
-                        product.promotion_price!,
-                        product.currency
-                      )}
-                    </p>
-                  </div>
-                ) : (
-                  <p className="text-2xl font-semibold text-foreground">
+                  <>
+                    <span
+                      style={{
+                        textDecoration: "line-through",
+                        color: "var(--muted2)",
+                        fontWeight: 400,
+                        marginRight: 10,
+                      }}
+                    >
+                      {formatPrice(product.price, product.currency)}
+                    </span>
                     {formatPrice(
-                      product.price,
+                      product.promotion_price!,
                       product.currency
                     )}
-                  </p>
+                  </>
+                ) : (
+                  formatPrice(product.price, product.currency)
                 )}
-              </div>
-
-              {/* Promotion */}
-              {hasPromotion &&
-                product.promotion_text && (
-                  <div className="mt-5 rounded-2xl bg-primary-light px-4 py-3 text-sm font-medium text-primary-dark">
-                    {product.promotion_text}
-                  </div>
-                )}
+              </strong>
 
               {/* Description */}
               {product.description && (
-                <div className="mt-8 border-t border-border pt-7">
-                  <h2 className="font-serif text-2xl text-foreground">
-                    About this fragrance
-                  </h2>
-
-                  <p className="mt-3 whitespace-pre-line text-sm leading-7 text-muted">
-                    {product.description}
-                  </p>
-                </div>
+                <p style={{ whiteSpace: "pre-line" }}>
+                  {product.description}
+                </p>
               )}
 
               {/* Details */}
-              <div className="mt-8 grid gap-3 border-t border-border pt-7 sm:grid-cols-2">
-                {product.size && (
-                  <div className="rounded-2xl bg-background p-4">
-                    <p className="text-xs uppercase tracking-wider text-muted-light">
-                      Size
-                    </p>
+              <div className="notes">
+                <div>
+                  <span>Size</span>
+                  <b>{product.size || "Standard"}</b>
+                </div>
 
-                    <p className="mt-1 font-medium text-foreground">
-                      {product.size}
-                    </p>
-                  </div>
-                )}
-
-                <div className="rounded-2xl bg-background p-4">
-                  <p className="text-xs uppercase tracking-wider text-muted-light">
-                    Availability
-                  </p>
-
-                  <p
-                    className={`mt-1 font-medium ${
-                      isOutOfStock
-                        ? "text-[#9b5d63]"
-                        : "text-[#687565]"
-                    }`}
+                <div>
+                  <span>Availability</span>
+                  <b
+                    style={{
+                      color: isOutOfStock
+                        ? "var(--danger)"
+                        : "var(--success)",
+                    }}
                   >
                     {stockLabel}
-                  </p>
+                  </b>
+                </div>
+
+                <div>
+                  <span>Payment</span>
+                  <b>Cash on delivery</b>
                 </div>
               </div>
 
               {/* Cart action */}
-              <div className="mt-8">
+              <div className="purchase">
                 <button
                   type="button"
+                  className="btn btn-primary"
                   disabled={isOutOfStock}
                   onClick={handleAddToCart}
-                  className="w-full rounded-2xl bg-primary px-6 py-4 text-sm font-semibold text-white transition hover:bg-primary-dark disabled:cursor-not-allowed disabled:bg-[#cfc4c7]"
                 >
                   {isOutOfStock
                     ? "Currently unavailable"
                     : added
-                      ? "Added to cart ✓"
-                      : "Add to cart"}
+                      ? "Added to bag ✓"
+                      : "Add to bag"}
                 </button>
+              </div>
 
-                <p className="mt-3 text-center text-xs text-muted-light">
-                  Cash on delivery — pay when it arrives.
-                </p>
+              <div className="delivery-note">
+                <svg
+                  width="22"
+                  height="22"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m4 7 8-4 8 4-8 4-8-4Z" />
+                  <path d="M4 7v10l8 4 8-4V7M12 11v10" />
+                </svg>
+                <div>
+                  <b>Delivery in Addis Ababa</b>
+                  <span>
+                    Usually delivered within 1–2 business days
+                  </span>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        <StorefrontFooter />
-      </div>
+      <StorefrontFooter />
 
       <CartDrawer
         open={drawerOpen}

@@ -4,10 +4,40 @@ import {
   FormEvent,
   useEffect,
   useState,
+  type ReactNode,
 } from "react";
 import Skeleton from "@/components/Skeleton";
 
 import { apiRequest } from "@/lib/api";
+
+/* Figma AdminHeader: eyebrow + serif title, notification bell + action. */
+function AdminHeader({
+  eyebrow,
+  title,
+  action,
+}: {
+  eyebrow: string;
+  title: string;
+  action?: ReactNode;
+}) {
+  return (
+    <div className="admin-head">
+      <div>
+        <span>{eyebrow}</span>
+
+        <h1>{title}</h1>
+      </div>
+
+      <div className="admin-head-actions">
+        <button className="notification" aria-label="Notifications">
+          ○<i />
+        </button>
+
+        {action}
+      </div>
+    </div>
+  );
+}
 
 interface StoreSettings {
   store_name: string;
@@ -231,44 +261,44 @@ export default function SettingsPage() {
   }
 
   return (
-    <div>
-      <div className="mb-8">
-        <h2 className="bethel-title text-2xl">
-          Store Settings
-        </h2>
-
-        <p className="bethel-muted mt-1">
-          Manage your store information and
-          contact details.
-        </p>
-      </div>
+    <>
+      <AdminHeader
+        eyebrow="Configuration"
+        title="Store settings"
+      />
 
       {error && (
-        <div className="bethel-alert bethel-alert-error mb-6">
+        <div className="bethel-alert bethel-alert-error mb-4">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="bethel-alert bethel-alert-success mb-6">
+        <div className="bethel-alert bethel-alert-success mb-4">
           {success}
         </div>
       )}
 
       <form
         onSubmit={handleSubmit}
-        className="space-y-6"
+        className="settings-grid"
       >
-        <section className="bethel-card p-6">
-          <h3 className="bethel-title mb-6 text-lg">
-            Store information
-          </h3>
-
-          <div className="space-y-5">
+        {/* Store information card, mirroring the Figma settings card */}
+        <section className="admin-card">
+          <div className="card-head">
             <div>
-              <label className="bethel-label">
-                Store name *
-              </label>
+              <h3>Store information</h3>
+
+              <p>
+                Public details used across your
+                storefront.
+              </p>
+            </div>
+          </div>
+
+          <div style={{ padding: "0 22px 22px" }}>
+            <label className="field">
+              <span>Store name *</span>
 
               <input
                 value={settings.store_name}
@@ -279,15 +309,12 @@ export default function SettingsPage() {
                   )
                 }
                 required
-                className="bethel-input"
                 placeholder="Bethel Perfume"
               />
-            </div>
+            </label>
 
-            <div>
-              <label className="bethel-label">
-                Delivery fee (ETB)
-              </label>
+            <label className="field">
+              <span>Delivery fee (ETB)</span>
 
               <input
                 type="number"
@@ -300,45 +327,32 @@ export default function SettingsPage() {
                     event.target.value
                   )
                 }
-                className="bethel-input"
-                placeholder="0"
+                placeholder="200"
               />
 
-              <p className="mt-2 text-xs bethel-muted">
+              <small style={{ color: "#9B9093" }}>
                 Added to every order at checkout. Use 0
                 for free delivery.
-              </p>
-            </div>
+              </small>
+            </label>
 
-            <div>
-              <label className="bethel-label">
-                WhatsApp number
-              </label>
+            <label className="field">
+              <span>WhatsApp number</span>
 
               <input
-                value={
-                  settings.whatsapp_number
-                }
+                value={settings.whatsapp_number}
                 onChange={(event) =>
                   updateField(
                     "whatsapp_number",
                     event.target.value
                   )
                 }
-                className="bethel-input"
-                placeholder="+251 9XX XXX XXX"
+                placeholder="+251 911 000 000"
               />
+            </label>
 
-              <p className="mt-2 text-xs bethel-muted">
-                Include the country code, for
-                example +251.
-              </p>
-            </div>
-
-            <div>
-              <label className="bethel-label">
-                Store description
-              </label>
+            <label className="field">
+              <span>Store description</span>
 
               <textarea
                 value={settings.description}
@@ -348,24 +362,28 @@ export default function SettingsPage() {
                     event.target.value
                   )
                 }
-                rows={5}
-                className="bethel-input"
+                rows={4}
                 placeholder="Premium perfumes for every occasion..."
               />
-            </div>
+            </label>
           </div>
         </section>
 
-        <section className="bethel-card p-6">
-          <h3 className="bethel-title mb-6 text-lg">
-            Contact information
-          </h3>
-
-          <div className="space-y-5">
+        <section className="admin-card">
+          <div className="card-head">
             <div>
-              <label className="bethel-label">
-                Contact email
-              </label>
+              <h3>Contact information</h3>
+
+              <p>
+                Shown on your storefront contact
+                page.
+              </p>
+            </div>
+          </div>
+
+          <div style={{ padding: "0 22px 22px" }}>
+            <label className="field">
+              <span>Contact email</span>
 
               <input
                 type="email"
@@ -378,15 +396,12 @@ export default function SettingsPage() {
                     event.target.value
                   )
                 }
-                className="bethel-input"
-                placeholder="info@example.com"
+                placeholder="you@store.com"
               />
-            </div>
+            </label>
 
-            <div>
-              <label className="bethel-label">
-                Contact address
-              </label>
+            <label className="field">
+              <span>Contact address</span>
 
               <textarea
                 value={
@@ -399,48 +414,51 @@ export default function SettingsPage() {
                   )
                 }
                 rows={3}
-                className="bethel-input"
                 placeholder="Addis Ababa, Ethiopia"
               />
-            </div>
+            </label>
           </div>
         </section>
 
-        <button
-          type="submit"
-          disabled={saving}
-          className="bethel-button bethel-button-primary disabled:opacity-50"
-        >
-          {saving
-            ? "Saving..."
-            : "Save settings"}
-        </button>
+        <div className="form-actions">
+          <button
+            type="submit"
+            disabled={saving}
+            className="btn btn-primary"
+          >
+            {saving
+              ? "Saving..."
+              : "Save store information"}
+          </button>
+        </div>
       </form>
 
-      <section className="bethel-card mt-10 p-6">
-        <h2 className="bethel-title text-lg">
-          Admin account
-        </h2>
+      <section
+        className="admin-card"
+        style={{ marginTop: 22 }}
+      >
+        <div className="card-head">
+          <div>
+            <h3>Admin account</h3>
 
-        <p className="mt-1 text-sm bethel-muted">
-          Changing your password signs out every other
-          session, including this browser.
-        </p>
+            <p>
+              Changing your password signs out every
+              other session, including this browser.
+            </p>
+          </div>
+        </div>
 
         <form
           onSubmit={handleChangePassword}
-          className="mt-6 max-w-md space-y-4"
+          style={{
+            padding: "0 22px 22px",
+            maxWidth: 420,
+          }}
         >
-          <div>
-            <label
-              htmlFor="currentPassword"
-              className="bethel-label"
-            >
-              Current password
-            </label>
+          <label className="field">
+            <span>Current password</span>
 
             <input
-              id="currentPassword"
               type="password"
               autoComplete="current-password"
               required
@@ -448,80 +466,65 @@ export default function SettingsPage() {
               onChange={(event) =>
                 setCurrentPassword(event.target.value)
               }
-              className="bethel-input mt-1"
             />
-          </div>
+          </label>
 
-          <div>
-            <label
-              htmlFor="newPassword"
-              className="bethel-label"
-            >
-              New password
+          <div className="form-grid">
+            <label className="field">
+              <span>New password</span>
+
+              <input
+                type="password"
+                autoComplete="new-password"
+                required
+                minLength={8}
+                value={newPassword}
+                onChange={(event) =>
+                  setNewPassword(event.target.value)
+                }
+              />
             </label>
 
-            <input
-              id="newPassword"
-              type="password"
-              autoComplete="new-password"
-              required
-              minLength={8}
-              value={newPassword}
-              onChange={(event) =>
-                setNewPassword(event.target.value)
-              }
-              className="bethel-input mt-1"
-            />
+            <label className="field">
+              <span>Confirm new password</span>
 
-            <p className="mt-1 text-xs bethel-muted">
-              At least 8 characters.
-            </p>
-          </div>
-
-          <div>
-            <label
-              htmlFor="confirmPassword"
-              className="bethel-label"
-            >
-              Confirm new password
+              <input
+                type="password"
+                autoComplete="new-password"
+                required
+                value={confirmPassword}
+                onChange={(event) =>
+                  setConfirmPassword(event.target.value)
+                }
+              />
             </label>
-
-            <input
-              id="confirmPassword"
-              type="password"
-              autoComplete="new-password"
-              required
-              value={confirmPassword}
-              onChange={(event) =>
-                setConfirmPassword(event.target.value)
-              }
-              className="bethel-input mt-1"
-            />
           </div>
 
           {passwordError && (
-            <p className="bethel-alert bethel-alert-error">
+            <div className="bethel-alert bethel-alert-error">
               {passwordError}
-            </p>
+            </div>
           )}
 
           {passwordSuccess && (
-            <p className="bethel-alert bethel-alert-success">
+            <div className="bethel-alert bethel-alert-success">
               {passwordSuccess}
-            </p>
+            </div>
           )}
 
-          <button
-            type="submit"
-            disabled={changingPassword}
-            className="bethel-button bethel-button-primary disabled:opacity-50"
-          >
-            {changingPassword
-              ? "Updating..."
-              : "Change password"}
-          </button>
+          <div className="form-actions">
+            <button
+              type="submit"
+              disabled={changingPassword}
+              className="btn btn-primary"
+            >
+              {changingPassword
+                ? "Updating..."
+                : "Change password"}
+            </button>
+          </div>
         </form>
       </section>
-    </div>
+    </>
   );
 }

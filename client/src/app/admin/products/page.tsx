@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 
 import Skeleton from "@/components/Skeleton";
+import Icon from "@/components/admin/Icon";
 import ProductImage from "@/components/storefront/ProductImage";
 import { apiRequest } from "@/lib/api";
 
@@ -49,6 +50,35 @@ interface CategoriesResponse {
   }[];
 }
 
+/* Figma AdminHeader: eyebrow + serif title, notification bell + action. */
+function AdminHeader({
+  eyebrow,
+  title,
+  action,
+}: {
+  eyebrow: string;
+  title: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="admin-head">
+      <div>
+        <span>{eyebrow}</span>
+
+        <h1>{title}</h1>
+      </div>
+
+      <div className="admin-head-actions">
+        <button className="notification" aria-label="Notifications">
+          ○<i />
+        </button>
+
+        {action}
+      </div>
+    </div>
+  );
+}
+
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<
@@ -67,7 +97,6 @@ export default function AdminProductsPage() {
   const [error, setError] = useState("");
 
   const limit = 10;
-
   const totalPages = Math.max(
     Math.ceil(total / limit),
     1
@@ -259,560 +288,351 @@ export default function AdminProductsPage() {
     setPage(1);
   };
 
-  const getStockClasses = (
-    status: Product["stock_status"]
-  ) => {
-    if (status === "IN_STOCK") {
-      return "bg-[#edf5ee] text-[#687565] border-[#dce9de]";
-    }
-
-    if (status === "LOW_STOCK") {
-      return "bg-[#fbf4e7] text-[#9a7538] border-[#eee0bf]";
-    }
-
-    return "bg-[#fbecef] text-[#a4475e] border-[#efd0d8]";
-  };
-
   return (
-    <div className="bethel-page">
-      {/* Decorative background */}
-      <div className="pointer-events-none absolute right-0 top-0 -z-0 h-72 w-72 rounded-full bg-primary-light opacity-60 blur-3xl" />
-
-      <div className="relative z-10">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="bethel-label mb-3 flex items-center gap-2">
-            <span className="h-px w-8 bg-primary" />
-            Fragrance Catalog
-          </div>
-
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h2 className="bethel-title text-3xl sm:text-4xl">
-                Products
-              </h2>
-
-              <p className="bethel-muted mt-2 max-w-xl">
-                Manage your fragrances, pricing, stock,
-                promotions, and featured products.
-              </p>
-            </div>
-
-            <Link
-              href="/admin/products/new"
-              className="bethel-button bethel-button-primary inline-flex w-full items-center justify-center gap-2 sm:w-auto"
-            >
-              <span className="text-lg leading-none">
-                +
-              </span>
-              Add Product
-            </Link>
-          </div>
-        </div>
-
-        {/* Filters */}
-        <div className="bethel-card mb-6 p-5 sm:p-6">
-          <div className="mb-4">
-            <p className="bethel-label">
-              Catalog Filters
-            </p>
-
-            <h3 className="mt-1 text-lg font-semibold text-foreground">
-              Find a fragrance
-            </h3>
-          </div>
-
-          <form
-            onSubmit={handleSearch}
-            className="grid gap-3 md:grid-cols-2 lg:grid-cols-5"
+    <>
+      <AdminHeader
+        eyebrow="Catalog"
+        title="Products"
+        action={
+          <Link
+            href="/admin/products/new"
+            className="btn btn-primary"
+            style={{
+              padding: "0.7rem 1.2rem",
+              fontSize: "0.78rem",
+            }}
           >
-            {/* Search */}
-            <div className="relative lg:col-span-1">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#a99da0]"
-                stroke="currentColor"
-                strokeWidth="1.8"
-              >
-                <circle
-                  cx="11"
-                  cy="11"
-                  r="6.5"
-                />
-                <path
-                  strokeLinecap="round"
-                  d="m16 16 4 4"
-                />
-              </svg>
+            + New product
+          </Link>
+        }
+      />
 
-              <input
-                type="text"
-                placeholder="Search products..."
-                value={search}
-                onChange={(event) =>
-                  setSearch(event.target.value)
-                }
-                className="bethel-input pl-10"
-              />
-            </div>
-
-            {/* Category */}
-            <select
-              value={category}
-              onChange={(event) => {
-                setCategory(event.target.value);
-                setPage(1);
-              }}
-              className="bethel-input"
-            >
-              <option value="">
-                All categories
-              </option>
-
-              {categories.map((item) => (
-                <option
-                  key={item.id}
-                  value={item.slug}
-                >
-                  {item.name}
-                </option>
-              ))}
-            </select>
-
-            {/* Stock */}
-            <select
-              value={stockFilter}
-              onChange={(event) => {
-                setStockFilter(event.target.value);
-                setPage(1);
-              }}
-              className="bethel-input"
-            >
-              <option value="">
-                All stock
-              </option>
-
-              <option value="in-stock">
-                In stock
-              </option>
-            </select>
-
-            {/* Promotion */}
-            <select
-              value={promotionFilter}
-              onChange={(event) => {
-                setPromotionFilter(
-                  event.target.value
-                );
-                setPage(1);
-              }}
-              className="bethel-input"
-            >
-              <option value="">
-                All products
-              </option>
-
-              <option value="promotion">
-                Promotions
-              </option>
-            </select>
-
-            {/* Buttons */}
-            <div className="flex gap-2">
-              <button
-                type="submit"
-                className="bethel-button bethel-button-primary flex-1"
-              >
-                Search
-              </button>
-
-              <button
-                type="button"
-                onClick={clearFilters}
-                className="bethel-button bethel-button-secondary"
-              >
-                Clear
-              </button>
-            </div>
-          </form>
+      {error && (
+        <div className="bethel-alert bethel-alert-error mb-4">
+          {error}
         </div>
+      )}
 
-        {/* Error */}
-        {error && (
-          <div className="bethel-alert bethel-alert-error mb-6">
-            <div className="flex items-start gap-3">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                className="mt-0.5 h-5 w-5 shrink-0"
-                stroke="currentColor"
-                strokeWidth="1.8"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 9v4m0 4h.01M10.3 3.9 2.9 17a2 2 0 0 0 1.7 3h14.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"
-                />
-              </svg>
+      {/* Toolbar */}
+      <form onSubmit={handleSearch} className="admin-toolbar">
+        <label className="search">
+          <Icon name="search" size={16} />
 
-              <div>
-                <p className="font-medium">
-                  Unable to load products
-                </p>
+          <input
+            type="text"
+            placeholder="Search products..."
+            value={search}
+            onChange={(event) =>
+              setSearch(event.target.value)
+            }
+          />
+        </label>
 
-                <p className="mt-1 text-sm">
-                  {error}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
+        <select
+          value={category}
+          onChange={(event) => {
+            setCategory(event.target.value);
+            setPage(1);
+          }}
+        >
+          <option value="">All categories ↓</option>
 
-        {/* Product count */}
-        {!loading && total > 0 && (
-          <div className="mb-3 flex items-center justify-between px-1">
-            <p className="text-sm text-muted">
-              <span className="font-semibold text-foreground">
-                {total}
-              </span>{" "}
-              {total === 1
-                ? "product"
-                : "products"}{" "}
-              in catalog
-            </p>
-          </div>
-        )}
+          {categories.map((item) => (
+            <option
+              key={item.id}
+              value={item.slug}
+            >
+              {item.name}
+            </option>
+          ))}
+        </select>
 
-        {/* Product table */}
-        <div className="bethel-card overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px] text-left text-sm">
-              <thead className="border-b border-border bg-[#fdf8f9]">
-                <tr>
-                  <th className="px-5 py-4 font-semibold text-[#574b4f]">
-                    Product
-                  </th>
+        <select
+          value={stockFilter}
+          onChange={(event) => {
+            setStockFilter(event.target.value);
+            setPage(1);
+          }}
+        >
+          <option value="">All stock ↓</option>
 
-                  <th className="px-5 py-4 font-semibold text-[#574b4f]">
-                    Category
-                  </th>
+          <option value="in-stock">
+            In stock
+          </option>
+        </select>
 
-                  <th className="px-5 py-4 font-semibold text-[#574b4f]">
-                    Price
-                  </th>
+        <select
+          value={promotionFilter}
+          onChange={(event) => {
+            setPromotionFilter(
+              event.target.value
+            );
+            setPage(1);
+          }}
+        >
+          <option value="">All visibility ↓</option>
 
-                  <th className="px-5 py-4 font-semibold text-[#574b4f]">
-                    Stock
-                  </th>
+          <option value="promotion">
+            On promotion
+          </option>
+        </select>
 
-                  <th className="px-5 py-4 font-semibold text-[#574b4f]">
-                    Status
-                  </th>
+        <button type="button" onClick={clearFilters}>
+          Clear
+        </button>
+      </form>
 
-                  <th className="px-5 py-4 font-semibold text-[#574b4f]">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
+      {/* Product table */}
+      <div className="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Stock</th>
+              <th>Visibility</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
 
-              <tbody>
-                {loading ? (
-                  <>
-                    {[0, 1, 2, 3, 4].map((row) => (
-                      <tr
-                        key={row}
-                        className="border-b border-[#f0e7e9]"
-                      >
-                        <td className="px-5 py-4">
-                          <div className="flex items-center gap-3">
-                            <Skeleton className="h-14 w-14 rounded-xl" />
-                            <Skeleton className="h-4 w-32" />
-                          </div>
-                        </td>
-                        <td className="px-5 py-4">
-                          <Skeleton className="h-4 w-24" />
-                        </td>
-                        <td className="px-5 py-4">
-                          <Skeleton className="h-4 w-20" />
-                        </td>
-                        <td className="px-5 py-4">
-                          <Skeleton className="h-4 w-14" />
-                        </td>
-                        <td className="px-5 py-4">
-                          <Skeleton className="h-6 w-20 rounded-full" />
-                        </td>
-                        <td className="px-5 py-4">
-                          <Skeleton className="h-9 w-24 rounded-lg" />
-                        </td>
-                      </tr>
-                    ))}
-                  </>
-                ) : products.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={6}
-                      className="px-5 py-16 text-center"
-                    >
-                      <div className="mx-auto flex max-w-sm flex-col items-center">
-                        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary-light text-primary">
-                          <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            className="h-7 w-7"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M7 7h10l2 3v9H5v-9l2-3Z"
-                            />
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M9 7a3 3 0 0 1 6 0"
-                            />
-                          </svg>
-                        </div>
+          <tbody>
+            {loading ? (
+              <>
+                {[0, 1, 2, 3, 4].map((row) => (
+                  <tr key={row}>
+                    <td>
+                      <div className="product-cell">
+                        <Skeleton className="h-11 w-9" />
 
-                        <h3 className="text-lg font-semibold text-foreground">
-                          No products found
-                        </h3>
-
-                        <p className="mt-1 text-sm text-muted">
-                          Try changing your filters or add
-                          your first fragrance.
-                        </p>
-
-                        <Link
-                          href="/admin/products/new"
-                          className="bethel-button bethel-button-primary mt-5"
-                        >
-                          Add Product
-                        </Link>
+                        <Skeleton className="h-4 w-28" />
                       </div>
                     </td>
+
+                    <td>
+                      <Skeleton className="h-4 w-24" />
+                    </td>
+
+                    <td>
+                      <Skeleton className="h-4 w-20" />
+                    </td>
+
+                    <td>
+                      <Skeleton className="h-4 w-14" />
+                    </td>
+
+                    <td>
+                      <Skeleton className="h-4 w-16" />
+                    </td>
+
+                    <td>
+                      <Skeleton className="h-4 w-20" />
+                    </td>
                   </tr>
-                ) : (
-                  products.map((product) => (
-                    <tr
-                      key={product.id}
-                      className={`border-b border-[#f0e7e9] transition-colors last:border-b-0 hover:bg-[#fffbfc] ${
-                        product.is_active ? "" : "opacity-70"
-                      }`}
-                    >
-                      {/* Product */}
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-3">
-                          <ProductImage
-                            src={product.image}
-                            alt={product.name}
-                            className="h-14 w-14 shrink-0 rounded-xl border border-border object-cover shadow-sm"
-                          >
-                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-border bg-[#fdf5f7] text-primary">
-                              <svg
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                className="h-6 w-6"
-                                stroke="currentColor"
-                                strokeWidth="1.5"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="M7 7h10l2 3v9H5v-9l2-3Z"
-                                />
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="M9 7a3 3 0 0 1 6 0"
-                                />
-                              </svg>
-                            </div>
-                          </ProductImage>
-
-                          <div className="min-w-0">
-                            <p className="truncate font-semibold text-foreground">
-                              {product.name}
-                            </p>
-
-                            {product.brand && (
-                              <p className="mt-0.5 text-xs text-muted">
-                                {product.brand}
-                                {product.size
-                                  ? ` · ${product.size}`
-                                  : ""}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-
-                      {/* Category */}
-                      <td className="px-5 py-4">
-                        <span className="inline-flex rounded-full border border-border bg-background px-3 py-1 text-xs font-medium text-muted">
-                          {product.category_name}
-                        </span>
-                      </td>
-
-                      {/* Price */}
-                      <td className="px-5 py-4">
-                        <div>
-                          <span className="font-semibold text-foreground">
-                            {product.price}{" "}
-                            {product.currency}
-                          </span>
-
-                          {product.is_promotion &&
-                            product.promotion_price && (
-                              <p className="mt-1 text-xs font-medium text-[#687565]">
-                                Promo:{" "}
-                                {product.promotion_price}{" "}
-                                {product.currency}
-                              </p>
-                            )}
-                        </div>
-                      </td>
-
-                      {/* Stock */}
-                      <td className="px-5 py-4">
-                        <span className="font-medium text-foreground">
-                          {product.stock_qty}
-                        </span>
-
-                        <span className="ml-1 text-xs text-muted">
-                          units
-                        </span>
-                      </td>
-
-                      {/* Status */}
-                      <td className="px-5 py-4">
-                        <div className="flex flex-wrap gap-2">
-                          <span
-                            className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-medium ${getStockClasses(
-                              product.stock_status
-                            )}`}
-                          >
-                            {product.stock_status.replace(
-                              "_",
-                              " "
-                            )}
-                          </span>
-
-                          {product.is_featured && (
-                            <span className="inline-flex rounded-full border border-[#e8c2cc] bg-primary-light px-2.5 py-1 text-xs font-medium text-primary-dark">
-                              Featured
-                            </span>
-                          )}
-
-                          {product.is_promotion && (
-                            <span className="inline-flex rounded-full border border-[#dce9de] bg-[#edf5ee] px-2.5 py-1 text-xs font-medium text-[#687565]">
-                              Promotion
-                            </span>
-                          )}
-
-                          {!product.is_active && (
-                            <span className="inline-flex rounded-full border border-[#e5dadd] bg-[#f4eff0] px-2.5 py-1 text-xs font-medium text-muted">
-                              Hidden
-                            </span>
-                          )}
-                        </div>
-                      </td>
-
-                      {/* Actions */}
-                      <td className="px-5 py-4">
-                        <div className="flex gap-2">
-                          <Link
-                            href={`/admin/products/${product.id}/edit`}
-                            className="inline-flex items-center rounded-lg border border-[#e5dadd] bg-white px-3 py-2 text-xs font-semibold text-[#574b4f] transition-colors hover:border-[#d7a7b3] hover:bg-[#fdf5f7] hover:text-primary-dark"
-                          >
-                            Edit
-                          </Link>
-
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleToggleVisibility(product)
-                            }
-                            className="inline-flex items-center rounded-lg border border-[#e5dadd] bg-white px-3 py-2 text-xs font-semibold text-[#574b4f] transition-colors hover:border-[#d7a7b3] hover:bg-[#fdf5f7] hover:text-primary-dark"
-                          >
-                            {product.is_active
-                              ? "Hide"
-                              : "Publish"}
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleDelete(product)
-                            }
-                            className="inline-flex items-center rounded-lg border border-[#efd0d8] bg-white px-3 py-2 text-xs font-semibold text-[#a4475e] transition-colors hover:bg-[#fbecef]"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination */}
-          {!loading && total > 0 && (
-            <div className="flex flex-col gap-4 border-t border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-muted">
-                Showing{" "}
-                <span className="font-medium text-foreground">
-                  {(page - 1) * limit + 1}–
-                  {Math.min(page * limit, total)}
-                </span>{" "}
-                of{" "}
-                <span className="font-medium text-foreground">
-                  {total}
-                </span>
-              </p>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  disabled={page === 1}
-                  onClick={() =>
-                    setPage((current) =>
-                      Math.max(current - 1, 1)
-                    )
-                  }
-                  className="bethel-button bethel-button-secondary px-4 py-2 disabled:cursor-not-allowed disabled:opacity-40"
+                ))}
+              </>
+            ) : products.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={6}
+                  className="px-5 py-16 text-center"
                 >
-                  ← Previous
-                </button>
+                  <p className="text-sm text-[#756B6E]">
+                    No products found. Try changing your filters or add
+                    your first fragrance.
+                  </p>
 
-                <span className="rounded-lg bg-primary-light px-3 py-2 text-xs font-semibold text-primary-dark">
-                  {page} / {totalPages}
-                </span>
-
-                <button
-                  type="button"
-                  disabled={page >= totalPages}
-                  onClick={() =>
-                    setPage((current) =>
-                      Math.min(
-                        current + 1,
-                        totalPages
-                      )
-                    )
-                  }
-                  className="bethel-button bethel-button-secondary px-4 py-2 disabled:cursor-not-allowed disabled:opacity-40"
+                  <Link
+                    href="/admin/products/new"
+                    className="btn btn-primary"
+                    style={{
+                      margin: "18px auto 0",
+                      padding: "0.7rem 1.2rem",
+                      fontSize: "0.78rem",
+                    }}
+                  >
+                    Add product
+                  </Link>
+                </td>
+              </tr>
+            ) : (
+              products.map((product) => (
+                <tr
+                  key={product.id}
+                  style={{
+                    opacity: product.is_active ? 1 : 0.7,
+                  }}
                 >
-                  Next →
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+                  {/* Product */}
+                  <td>
+                    <div className="product-cell">
+                      <ProductImage
+                        src={product.image}
+                        alt={product.name}
+                        className="h-11 w-9 shrink-0 rounded-md object-cover"
+                      >
+                        <div
+                          className="flex h-11 w-9 shrink-0 items-center justify-center rounded-md"
+                          style={{
+                            background: "#F7E5E9",
+                            color: "#9E405A",
+                          }}
+                        >
+                          <Icon name="box" size={14} />
+                        </div>
+                      </ProductImage>
+
+                      <b>{product.name}</b>
+                    </div>
+                  </td>
+
+                  {/* Category */}
+                  <td>{product.category_name}</td>
+
+                  {/* Price */}
+                  <td>
+                    {product.price} {product.currency}
+
+                    {product.is_promotion &&
+                      product.promotion_price && (
+                        <div
+                          style={{
+                            color: "#687565",
+                            fontSize: "0.62rem",
+                          }}
+                        >
+                          Promo:{" "}
+                          {product.promotion_price}{" "}
+                          {product.currency}
+                        </div>
+                      )}
+                  </td>
+
+                  {/* Stock */}
+                  <td>{product.stock_qty}</td>
+
+                  {/* Visibility */}
+                  <td>
+                    {product.is_active ? (
+                      <span className="badge badge-green">
+                        Active
+                      </span>
+                    ) : (
+                      <span className="badge badge-neutral">
+                        Hidden
+                      </span>
+                    )}
+
+                    {product.is_featured && (
+                      <span
+                        className="badge badge-pink"
+                        style={{ marginLeft: 6 }}
+                      >
+                        Featured
+                      </span>
+                    )}
+                  </td>
+
+                  {/* Actions */}
+                  <td>
+                    <div className="icon-actions">
+                      <Link
+                        href={`/admin/products/${product.id}/edit`}
+                        aria-label="Edit product"
+                        title="Edit"
+                      >
+                        <Icon name="edit" size={15} />
+                      </Link>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleToggleVisibility(product)
+                        }
+                        aria-label={
+                          product.is_active
+                            ? "Hide product"
+                            : "Publish product"
+                        }
+                        title={product.is_active ? "Hide" : "Publish"}
+                      >
+                        <Icon name="eye" size={15} />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleDelete(product)
+                        }
+                        aria-label="Delete product"
+                        title="Delete"
+                        style={{ color: "#B94A5C" }}
+                      >
+                        <Icon name="trash" size={15} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
-    </div>
+
+      {/* Pagination */}
+      {!loading && total > 0 && (
+        <div className="result-meta">
+          <span>
+            Showing {(page - 1) * limit + 1}–
+            {Math.min(page * limit, total)} of {total}
+          </span>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={page === 1}
+              onClick={() =>
+                setPage((current) =>
+                  Math.max(current - 1, 1)
+                )
+              }
+              style={{
+                border: "1px solid var(--border)",
+                borderRadius: 999,
+                padding: "6px 14px",
+                fontSize: "0.7rem",
+              }}
+            >
+              ← Previous
+            </button>
+
+            <span className="badge badge-neutral">
+              {page} / {totalPages}
+            </span>
+
+            <button
+              type="button"
+              disabled={page >= totalPages}
+              onClick={() =>
+                setPage((current) =>
+                  Math.min(
+                    current + 1,
+                    totalPages
+                  )
+                )
+              }
+              style={{
+                border: "1px solid var(--border)",
+                borderRadius: 999,
+                padding: "6px 14px",
+                fontSize: "0.7rem",
+              }}
+            >
+              Next →
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

@@ -3,44 +3,30 @@ import StorefrontHeader from "@/components/storefront/StorefrontHeader";
 
 export default function NotFound() {
   return (
-    <main className="bethel-page min-h-screen">
-      <div className="relative z-10">
-        <StorefrontHeader />
+    <main>
+      <StorefrontHeader />
 
-        <section className="bethel-container flex min-h-[70vh] items-center justify-center py-16">
-          <div className="max-w-xl rounded-[2rem] border border-border bg-white/90 px-6 py-14 text-center shadow-[0_20px_60px_rgba(120,70,85,0.08)] md:px-12">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary-dark">
-              404
-            </p>
+      <section className="state-page">
+        <span className="eyebrow">404 · A little lost</span>
+        <h1>
+          This page has
+          <br />
+          <em>drifted away.</em>
+        </h1>
+        <p>
+          Like a beautiful scent, some things are hard to hold onto.
+          Let’s take you somewhere lovely instead.
+        </p>
 
-            <h1 className="mt-3 font-serif text-4xl leading-tight text-foreground md:text-5xl">
-              This page has wandered off.
-            </h1>
-
-            <p className="mx-auto mt-5 max-w-md text-base leading-7 text-muted">
-              The page you are looking for does not exist or has been
-              moved. Explore the collection to find your next
-              fragrance.
-            </p>
-
-            <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-              <Link
-                href="/products"
-                className="rounded-2xl bg-primary px-6 py-3 text-sm font-semibold text-white transition hover:bg-primary-dark"
-              >
-                Browse fragrances
-              </Link>
-
-              <Link
-                href="/"
-                className="rounded-2xl border border-[#d9c4ca] px-6 py-3 text-sm font-medium text-primary-dark transition hover:bg-primary-light"
-              >
-                Back to home
-              </Link>
-            </div>
-          </div>
-        </section>
-      </div>
+        <div className="button-row" style={{ justifyContent: "center" }}>
+          <Link href="/" className="btn btn-primary" style={{ textDecoration: "none" }}>
+            Return home
+          </Link>
+          <Link href="/products" className="btn btn-secondary" style={{ textDecoration: "none" }}>
+            Explore the shop
+          </Link>
+        </div>
+      </section>
     </main>
   );
 }
