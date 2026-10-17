@@ -1,11 +1,32 @@
 import Link from "next/link";
 
+import {
+  formatPhone,
+  telLink,
+  whatsappLink,
+} from "@/lib/contact";
+import { getStorefrontSettings } from "@/lib/serverApi";
+
 /**
  * Storefront footer: dark, two-column layout with the brand wordmark,
- * quick links and a legal row. Content stays factual — cash on delivery
- * and order tracking — with no invented contact details.
+ * quick links, contact details from the admin-editable store
+ * settings, and a legal row.
  */
-export default function StorefrontFooter() {
+export default async function StorefrontFooter() {
+  const settings = await getStorefrontSettings({
+    revalidate: 300,
+  });
+
+  const address =
+    settings?.contact_address?.trim() ||
+    "Addis Ababa, Bole, Alemnesh Plaza";
+
+  const phone = settings?.whatsapp_number?.trim() || "";
+
+  const email = settings?.contact_email?.trim() || "";
+
+  const waHref = phone ? whatsappLink(phone) : null;
+
   return (
     <footer>
       <div>
@@ -16,6 +37,23 @@ export default function StorefrontFooter() {
           Fragrance, beauty, and small rituals of joy — carefully
           selected for unforgettable moments.
         </p>
+
+        <div className="footer-contact">
+          <span>{address}</span>
+          {phone && (
+            <a href={telLink(phone)}>{formatPhone(phone)}</a>
+          )}
+          {waHref && (
+            <a
+              href={waHref}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              WhatsApp us
+            </a>
+          )}
+          {email && <a href={`mailto:${email}`}>{email}</a>}
+        </div>
       </div>
 
       <div className="footer-links">
@@ -32,4 +70,3 @@ export default function StorefrontFooter() {
     </footer>
   );
 }
-

@@ -75,6 +75,16 @@ export interface StorefrontCategory {
   slug: string;
 }
 
+/** Public store settings (contact details, WhatsApp number). */
+export interface StorefrontSettings {
+  store_name: string;
+  whatsapp_number: string;
+  description: string;
+  contact_email: string;
+  contact_address: string;
+  delivery_fee: string;
+}
+
 interface FetchOptions {
   /**
    * Cache the response for this many seconds. Omit to always fetch
@@ -150,6 +160,33 @@ export async function getStorefrontCategories(
     };
 
     return payload.data ?? [];
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Fetch the public store settings. Returns null when the request
+ * fails; callers fall back to sensible defaults.
+ */
+export async function getStorefrontSettings(
+  options: FetchOptions = {}
+): Promise<StorefrontSettings | null> {
+  try {
+    const response = await fetch(
+      `${API_URL}/settings`,
+      fetchOptions(options)
+    );
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = (await response.json()) as {
+      data?: StorefrontSettings;
+    };
+
+    return payload.data ?? null;
   } catch {
     return null;
   }

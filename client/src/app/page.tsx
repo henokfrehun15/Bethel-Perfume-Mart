@@ -9,9 +9,15 @@ import StorefrontHeader from "@/components/storefront/StorefrontHeader";
 import {
   getStorefrontCategories,
   getStorefrontProducts,
+  getStorefrontSettings,
   type StorefrontCategory,
   type StorefrontProductSummary,
 } from "@/lib/serverApi";
+import {
+  formatPhone,
+  telLink,
+  whatsappLink,
+} from "@/lib/contact";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
@@ -37,6 +43,50 @@ function Arrow() {
   );
 }
 
+/* Outline icons for the contact cards. */
+function ContactIcon({
+  name,
+}: {
+  name: "pin" | "phone" | "chat" | "mail";
+}) {
+  const paths: Record<string, React.ReactNode> = {
+    pin: (
+      <>
+        <path d="M12 21s-7-5.1-7-11a7 7 0 0 1 14 0c0 5.9-7 11-7 11Z" />
+        <circle cx="12" cy="10" r="2.5" />
+      </>
+    ),
+    phone: (
+      <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.9a2 2 0 0 1-.5 2.1L8 10a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.9.6 2.9.7a2 2 0 0 1 1.7 2Z" />
+    ),
+    chat: (
+      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z" />
+    ),
+    mail: (
+      <>
+        <rect x="3" y="5" width="18" height="14" rx="2" />
+        <path d="m3 7 9 6 9-6" />
+      </>
+    ),
+  };
+
+  return (
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {paths[name]}
+    </svg>
+  );
+}
+
 /*
  * Rendered on the server so search engines and social cards see the
  * featured products, promotions and categories in the initial HTML.
@@ -44,7 +94,7 @@ function Arrow() {
  * failing request degrades to an empty section instead of an error.
  */
 export default async function Home() {
-  const [featuredResult, promotionsResult, categories] =
+  const [featuredResult, promotionsResult, categories, settings] =
     await Promise.all([
       getStorefrontProducts("featured=true&limit=4", {
         revalidate: 300,
@@ -53,6 +103,7 @@ export default async function Home() {
         revalidate: 300,
       }),
       getStorefrontCategories({ revalidate: 300 }),
+      getStorefrontSettings({ revalidate: 300 }),
     ]);
 
   const featured: StorefrontProductSummary[] =
@@ -67,9 +118,28 @@ export default async function Home() {
 
   const promoProduct = promotions[0] ?? null;
 
+  /* Contact details come from the admin-editable store settings;
+     the address falls back to the physical shop location. */
+  const contactAddress =
+    settings?.contact_address?.trim() ||
+    "Addis Ababa, Bole, Alemnesh Plaza";
+
+  const whatsappNumber = settings?.whatsapp_number?.trim() || "";
+
+  const contactEmail = settings?.contact_email?.trim() || "";
+
+  const phoneDisplay = whatsappNumber
+    ? formatPhone(whatsappNumber)
+    : "";
+
+  const waHref = whatsappNumber
+    ? whatsappLink(whatsappNumber)
+    : null;
+
   return (
     <main>
-      {/* One-per-session splash overlay; the page below stays in the HTML */}
+      {/* Splash intro overlay — plays on every fresh visit; the page
+          below stays in the HTML */}
       <PerfumeIntro />
 
       <StorefrontHeader />
@@ -271,6 +341,65 @@ export default async function Home() {
         >
           Find a gift
         </Link>
+      </section>
+
+      {/* Contact */}
+      <section className="section contact">
+        <div className="section-head">
+          <div>
+            <span className="eyebrow">Find us</span>
+            <h2>Visit the mart</h2>
+          </div>
+        </div>
+
+        <div className="contact-grid">
+          <article className="contact-card">
+            <ContactIcon name="pin" />
+            <span>Address</span>
+            <b>{contactAddress}</b>
+          </article>
+
+          {phoneDisplay && (
+            <article className="contact-card">
+              <ContactIcon name="phone" />
+              <span>Phone</span>
+              <b>
+                <a href={telLink(whatsappNumber)}>{phoneDisplay}</a>
+              </b>
+            </article>
+          )}
+
+          {waHref && (
+            <article className="contact-card">
+              <ContactIcon name="chat" />
+              <span>WhatsApp</span>
+              <b>
+                <a
+                  href={waHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Chat with us
+                </a>
+              </b>
+            </article>
+          )}
+
+          {contactEmail && (
+            <article className="contact-card">
+              <ContactIcon name="mail" />
+              <span>Email</span>
+              <b>
+                <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
+              </b>
+            </article>
+          )}
+        </div>
+
+        <p className="contact-note">
+          Orders are confirmed by phone and delivered across Addis
+          Ababa — pay cash on delivery.
+        </p>
       </section>
 
       <StorefrontFooter />

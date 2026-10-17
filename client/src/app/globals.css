@@ -1376,6 +1376,60 @@
   color: #ffeaf0;
 }
 
+/* ---- Contact --------------------------------------------------------- */
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px;
+}
+
+.contact-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 26px 24px;
+  box-shadow: var(--shadow-md);
+}
+
+.contact-card > svg {
+  color: var(--rose);
+  margin-bottom: 14px;
+}
+
+.contact-card > span {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.contact-card b {
+  display: block;
+  font: 500 1.02rem "Playfair Display", serif;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.contact-card a {
+  color: var(--rose-dark);
+  text-decoration: none;
+  border-bottom: 1px solid var(--rose-light);
+}
+
+.contact-card a:hover {
+  border-color: var(--rose-dark);
+}
+
+.contact-note {
+  margin-top: 26px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
 /* ---- Footer ----------------------------------------------------------- */
 footer {
   background: var(--ink);
@@ -1390,6 +1444,24 @@ footer p {
   color: #c9bec1;
   font-size: 0.82rem;
   margin-top: 18px;
+}
+
+.footer-contact {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
+  margin-top: 20px;
+  font-size: 0.8rem;
+  color: #e2d9db;
+}
+
+.footer-contact a {
+  color: #e9aabd;
+}
+
+.footer-contact a:hover {
+  color: #ffd7e4;
 }
 
 .wordmark.light i {
@@ -2859,6 +2931,10 @@ tbody tr:hover {
     grid-template-columns: repeat(2, 1fr);
   }
 
+  .contact-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .hero {
     grid-template-columns: 1fr;
     padding-top: 80px;
@@ -3033,6 +3109,11 @@ tbody tr:hover {
   .section,
   .page {
     padding: 75px 16px;
+  }
+
+  .contact-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
   }
 
   .section-head {
