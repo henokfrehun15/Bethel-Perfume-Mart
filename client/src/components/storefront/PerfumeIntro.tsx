@@ -12,48 +12,30 @@ import "./PerfumeIntro.css";
 /*
  * Splash intro for the home page. The Canva "Bethel" scene design —
  * orbs, film grain, entrance choreography and the blush-rose glass
- * bottle — driven by the earlier canvas mist engine: a jet of fine
- * droplets that fall under gravity, soft blush and rose puffs that
- * trail the spray, and a fog billow that fills the screen before the
- * overlay fades to reveal the page. The sequence plays itself once
- * per session; the real page stays in the initial HTML underneath
- * (SEO and no-JS users are unaffected) and there are no dependencies.
- * `?intro` in the URL forces the splash on.
+ * bottle — driven by a canvas mist engine: a jet of fine droplets
+ * that fall under gravity, soft blush and rose puffs that trail the
+ * spray, and a dense fog billow that fills the screen before the
+ * overlay fades to reveal the page. The sequence plays itself on
+ * every fresh visit (typing or reloading the URL); only in-site
+ * client-side navigation skips the replay. The real page stays in
+ * the initial HTML underneath (SEO and no-JS users are unaffected)
+ * and there are no dependencies.
  */
 
 type Phase = "entering" | "playing" | "leaving";
 type MistMode = "spray" | "fog";
 
-const SESSION_KEY = "bethel-intro-done";
 const ENTER_TO_SPRAY_MS = 1100;
-const SPRAY_TO_FOG_MS = 2400;
-const PLAY_DURATION_MS = 6700;
+const SPRAY_TO_FOG_MS = 2200;
+const PLAY_DURATION_MS = 6900;
 const FADE_MS = 900;
 
 const useClientLayoutEffect =
   typeof window === "undefined" ? useEffect : useLayoutEffect;
 
-let shownThisSession = false;
-
-function hasSeenIntro() {
-  if (shownThisSession) return true;
-
-  try {
-    return sessionStorage.getItem(SESSION_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-
-function markIntroSeen() {
-  shownThisSession = true;
-
-  try {
-    sessionStorage.setItem(SESSION_KEY, "1");
-  } catch {
-    /* private mode — the module flag covers this page load */
-  }
-}
+/* Set once the intro has played so client-side navigation back to
+   the home page doesn't replay it. A full URL load resets it. */
+let playedThisLoad = false;
 
 /* ---- Canvas mist engine ---------------------------------------------------
    The earlier spray engine. "spray" emits fast droplets in a narrow
@@ -198,21 +180,22 @@ function createMistController(
         });
       }
     } else {
-      /* Fog: big slow puffs that drift out in every direction. */
-      for (let i = count(0.6, dt); i > 0; i--) {
+      /* Fog: big slow puffs that drift out in every direction and
+         thicken until they fill the screen. */
+      for (let i = count(1.8, dt); i > 0; i--) {
         const ang = rnd(0, Math.PI * 2);
-        const sp = rnd(1, 5) * k;
+        const sp = rnd(1.5, 6) * k;
 
         ps.push({
-          x: x + rnd(-40, 40),
-          y: y + rnd(-40, 40),
+          x: x + rnd(-80, 80),
+          y: y + rnd(-80, 80),
           vx: Math.cos(ang) * sp,
           vy: Math.sin(ang) * sp,
-          r: rnd(55, 100),
-          grow: rnd(0.9, 1.8),
-          a: rnd(0.4, 0.7),
+          r: rnd(70, 130),
+          grow: rnd(1.2, 2.2),
+          a: rnd(0.5, 0.8),
           age: 0,
-          life: rnd(90, 140),
+          life: rnd(100, 160),
           kind: Math.random() < 0.5 ? 1 : 2,
         });
       }
@@ -304,7 +287,7 @@ function createMistController(
     /* Spray waits a beat so the nozzle is pressed down first. */
     delay = window.setTimeout(
       () => {
-        emitUntil = performance.now() + (m === "spray" ? 650 : 1000);
+        emitUntil = performance.now() + (m === "spray" ? 650 : 1500);
 
         if (!running) {
           running = true;
@@ -516,19 +499,13 @@ export default function PerfumeIntro() {
   const nozzleRef = useRef<SVGEllipseElement>(null);
   const mistRef = useRef<MistController | null>(null);
 
-  /* Decide before the first paint: returning visitors and reduced-
-     motion users never see the splash; first-timers get it with the
-     background scroll locked while it is up. The session is only
-     marked seen once the sequence finishes or is skipped. */
+  /* The splash plays on every fresh visit (typed or reloaded URL);
+     only in-site client-side navigation skips the replay. The
+     background scroll is locked while it is up. */
   useClientLayoutEffect(() => {
     if (!visible) return;
 
-    const forced = new URLSearchParams(window.location.search).has("intro");
-    const prefersReduced = window
-      .matchMedia("(prefers-reduced-motion: reduce)")
-      .matches;
-
-    if (!forced && (prefersReduced || hasSeenIntro())) {
+    if (playedThisLoad) {
       setVisible(false);
       return;
     }
@@ -559,7 +536,7 @@ export default function PerfumeIntro() {
   }, []);
 
   const finish = useCallback(() => {
-    markIntroSeen();
+    playedThisLoad = true;
     setPhase("leaving");
   }, []);
 
@@ -626,21 +603,6 @@ export default function PerfumeIntro() {
 
   return (
     <div ref={sceneRef} className={`perfume-intro perfume-intro--${phase}`}>
-      {/* Runs while the HTML is still parsing so returning visitors
-          never glimpse the splash. Mirrors the layout effect above. */}
-      <script
-        dangerouslySetInnerHTML={{
-          __html:
-            "(function(){try{if(new URLSearchParams(location.search).has('intro'))return;" +
-            "var r=window.matchMedia('(prefers-reduced-motion: reduce)').matches;" +
-            "var s=false;try{s=sessionStorage.getItem('" +
-            SESSION_KEY +
-            "')==='1'}catch(e){}" +
-            "if(r||s)document.documentElement.classList.add('perfume-intro-hide')" +
-            "}catch(e){}})()",
-        }}
-      />
-
       <noscript>
         <style>{".perfume-intro{display:none !important}"}</style>
       </noscript>

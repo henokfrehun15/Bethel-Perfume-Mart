@@ -43,12 +43,6 @@
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.74' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.24'/%3E%3C/svg%3E");
 }
 
-/* Set by the inline pre-paint script: the splash never flashes for
-   returning visitors or reduced-motion users. */
-.perfume-intro-hide .perfume-intro {
-  display: none;
-}
-
 .perfume-intro--leaving {
   opacity: 0;
   pointer-events: none;
@@ -323,17 +317,5 @@
 
   .perfume-intro__orb--two {
     width: 85vw;
-  }
-}
-
-/* ---- Reduced motion ------------------------------------------------------------- */
-
-@media (prefers-reduced-motion: reduce) {
-  .perfume-intro,
-  .perfume-intro *,
-  .perfume-intro::before,
-  .perfume-intro::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
   }
 }
