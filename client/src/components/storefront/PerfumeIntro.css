@@ -118,7 +118,38 @@
   animation: perfume-intro-press 0.55s ease-in-out;
 }
 
-/* ---- Spray particles -------------------------------------------------- */
+/* The cap pumps down while the bottle sprays. */
+.perfume-intro--spraying .perfume-intro__cap {
+  animation: perfume-intro-cap-press 0.5s ease-in-out;
+}
+
+/* ---- Spray plume + droplets -------------------------------------------- */
+
+/* Soft mist puff that leaves the nozzle first. */
+.perfume-intro__plume {
+  position: absolute;
+  top: 9%;
+  left: 66%;
+  width: 110px;
+  height: 54px;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at 22% 50%,
+    rgba(255, 255, 255, 0.95),
+    rgba(247, 213, 223, 0.75) 35%,
+    rgba(201, 106, 130, 0.4) 65%,
+    transparent 78%
+  );
+  filter: blur(7px);
+  opacity: 0;
+  transform: translate(0, -50%) scale(0.3);
+  pointer-events: none;
+}
+
+.perfume-intro--spraying .perfume-intro__plume,
+.perfume-intro--misting .perfume-intro__plume {
+  animation: perfume-intro-plume 1.5s ease-out forwards;
+}
 
 .perfume-intro__spray {
   position: absolute;
@@ -135,6 +166,7 @@
   border-radius: 50%;
   background: var(--rose);
   box-shadow: 0 0 8px rgba(201, 106, 130, 0.55);
+  filter: blur(var(--b, 0));
   opacity: 0;
 }
 
@@ -334,7 +366,34 @@
   }
 
   40% {
-    transform: translateY(9px);
+    transform: translateY(4px);
+  }
+}
+
+@keyframes perfume-intro-cap-press {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  40% {
+    transform: translateY(3.5px);
+  }
+}
+
+@keyframes perfume-intro-plume {
+  0% {
+    opacity: 0;
+    transform: translate(0, -50%) scale(0.3);
+  }
+
+  25% {
+    opacity: 0.9;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(52px, -50%) scale(1.7);
   }
 }
 
@@ -358,14 +417,25 @@
 }
 
 @keyframes perfume-intro-dot {
-  from {
-    opacity: 0.95;
-    transform: translate(0, 0) scale(1);
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.4);
   }
 
-  to {
+  12% {
+    opacity: 0.95;
+  }
+
+  55% {
+    opacity: 0.7;
+    transform:
+      translate(calc(var(--dx) * 0.75), calc(var(--dy) * 0.75))
+      scale(1);
+  }
+
+  100% {
     opacity: 0;
-    transform: translate(var(--dx), var(--dy)) scale(0.35);
+    transform: translate(var(--dx), calc(var(--dy) + 30px)) scale(0.45);
   }
 }
 

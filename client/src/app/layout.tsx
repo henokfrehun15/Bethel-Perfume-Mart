@@ -52,10 +52,13 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
+  // The perfume intro's pre-paint script toggles a class on <html>
+  // before hydration; suppressHydrationWarning keeps that safe.
   return (
     <html
       lang="en"
       className={`${inter.variable} ${playfair.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
         {children}

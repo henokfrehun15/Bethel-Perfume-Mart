@@ -53,16 +53,28 @@ function markIntroSeen() {
   }
 }
 
-/* Spray particles: travel offset, stagger and size per dot. */
+/* Spray droplets: travel offset, stagger, size and softness. The mix
+   of sharp and blurred dots reads as fine perfume mist, and the extra
+   downward travel at the end of each arc mimics gravity. */
 const SPRAY_DOTS = [
-  { dx: 92, dy: -46, delay: 0, size: 7 },
-  { dx: 124, dy: -16, delay: 0.05, size: 5 },
-  { dx: 64, dy: -68, delay: 0.09, size: 6 },
-  { dx: 146, dy: -52, delay: 0.12, size: 4 },
-  { dx: 102, dy: -84, delay: 0.16, size: 5 },
-  { dx: 154, dy: -28, delay: 0.2, size: 6 },
-  { dx: 76, dy: -32, delay: 0.24, size: 4 },
-  { dx: 128, dy: -72, delay: 0.28, size: 5 },
+  { dx: 96, dy: -44, delay: 0, size: 6, blur: 0 },
+  { dx: 128, dy: -14, delay: 0.04, size: 4, blur: 1 },
+  { dx: 66, dy: -64, delay: 0.07, size: 5, blur: 0.5 },
+  { dx: 148, dy: -50, delay: 0.11, size: 3, blur: 1.5 },
+  { dx: 104, dy: -82, delay: 0.14, size: 4, blur: 1 },
+  { dx: 156, dy: -26, delay: 0.18, size: 5, blur: 0 },
+  { dx: 78, dy: -30, delay: 0.21, size: 3, blur: 1.5 },
+  { dx: 132, dy: -70, delay: 0.25, size: 4, blur: 0.5 },
+  { dx: 88, dy: -58, delay: 0.3, size: 3, blur: 1 },
+  { dx: 150, dy: -64, delay: 0.34, size: 3, blur: 1.5 },
+  { dx: 112, dy: -24, delay: 0.38, size: 4, blur: 0 },
+  { dx: 140, dy: -38, delay: 0.42, size: 3, blur: 1 },
+  { dx: 96, dy: -74, delay: 0.46, size: 3, blur: 1.5 },
+  { dx: 122, dy: -52, delay: 0.5, size: 4, blur: 0.5 },
+  { dx: 160, dy: -44, delay: 0.55, size: 3, blur: 1 },
+  { dx: 84, dy: -46, delay: 0.6, size: 3, blur: 1.5 },
+  { dx: 134, dy: -84, delay: 0.64, size: 3, blur: 1 },
+  { dx: 104, dy: -36, delay: 0.68, size: 4, blur: 0.5 },
 ];
 
 function Bottle() {
@@ -74,51 +86,76 @@ function Bottle() {
       aria-label="Bethel perfume bottle"
     >
       <defs>
-        <linearGradient id="perfume-intro-glass" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#ffffff" stopOpacity="0.92" />
-          <stop offset="1" stopColor="#f7e5e9" stopOpacity="0.96" />
+        <linearGradient id="perfume-intro-glass" x1="0" y1="0" x2="0.7" y2="1">
+          <stop offset="0" stopColor="#ffffff" stopOpacity="0.95" />
+          <stop offset="0.55" stopColor="#fbeef1" stopOpacity="0.96" />
+          <stop offset="1" stopColor="#f3dce2" stopOpacity="0.98" />
         </linearGradient>
         <linearGradient id="perfume-intro-liquid" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#d97f96" />
-          <stop offset="1" stopColor="#c96a82" />
+          <stop offset="0" stopColor="#e293a8" />
+          <stop offset="0.5" stopColor="#d47c94" />
+          <stop offset="1" stopColor="#b95d77" />
         </linearGradient>
-        <linearGradient id="perfume-intro-cap" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#b3808f" />
-          <stop offset="1" stopColor="#9e405a" />
+        <linearGradient id="perfume-intro-metal" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="#e8bda9" />
+          <stop offset="0.5" stopColor="#c98d76" />
+          <stop offset="1" stopColor="#a96a58" />
         </linearGradient>
+        <linearGradient id="perfume-intro-neck" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="#f8e8ed" />
+          <stop offset="1" stopColor="#eccdd6" />
+        </linearGradient>
+        <linearGradient id="perfume-intro-shade" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0.55" stopColor="#c96a82" stopOpacity="0" />
+          <stop offset="1" stopColor="#c96a82" stopOpacity="0.3" />
+        </linearGradient>
+        <clipPath id="perfume-intro-body-clip">
+          <path d="M30 268 V128 Q30 66 92 66 H108 Q170 66 170 128 V268 Q170 282 156 282 H44 Q30 282 30 268 Z" />
+        </clipPath>
       </defs>
 
-      {/* Cap, nozzle and neck */}
-      <rect x="76" y="14" width="48" height="30" rx="9" fill="url(#perfume-intro-cap)" />
-      <rect x="120" y="22" width="16" height="9" rx="4" fill="#9e405a" />
-      <circle cx="134" cy="26.5" r="2.6" fill="#fff0f6" />
-      <path d="M82 44 L118 44 L124 66 L76 66 Z" fill="#f2dce2" stroke="#eadfe2" />
+      {/* Grounding shadow */}
+      <ellipse cx="100" cy="287" rx="62" ry="7" fill="#9e405a" opacity="0.13" />
 
-      {/* Glass body */}
+      {/* Glass body, lit from the left */}
       <path
         d="M30 268 V128 Q30 66 92 66 H108 Q170 66 170 128 V268 Q170 282 156 282 H44 Q30 282 30 268 Z"
         fill="url(#perfume-intro-glass)"
-        stroke="#e6d6da"
+        stroke="#e6d3d8"
+      />
+      <rect
+        x="30"
+        y="66"
+        width="140"
+        height="216"
+        fill="url(#perfume-intro-shade)"
+        clipPath="url(#perfume-intro-body-clip)"
       />
 
-      {/* Rose liquid */}
+      {/* Rose liquid with a lit surface */}
       <path
-        d="M44 158 H156 V266 Q156 282 142 282 H58 Q44 282 44 266 Z"
+        d="M44 162 H156 V266 Q156 282 142 282 H58 Q44 282 44 266 Z"
         fill="url(#perfume-intro-liquid)"
-        opacity="0.78"
+        opacity="0.82"
       />
+      <rect x="46" y="162" width="108" height="6" rx="3" fill="#f4bcca" opacity="0.85" />
 
-      {/* Glass highlight */}
-      <rect x="45" y="92" width="13" height="140" rx="6.5" fill="#ffffff" opacity="0.5" />
+      {/* Glass highlights */}
+      <rect x="45" y="92" width="12" height="138" rx="6" fill="#ffffff" opacity="0.55" />
+      <rect x="61" y="96" width="5" height="92" rx="2.5" fill="#ffffff" opacity="0.35" />
+
+      {/* Neck */}
+      <path d="M82 44 L118 44 L124 66 L76 66 Z" fill="url(#perfume-intro-neck)" stroke="#e6d3d8" />
 
       {/* Label */}
-      <rect x="54" y="176" width="92" height="72" rx="14" fill="#fffdfc" stroke="#eadfdf" />
+      <rect x="54" y="172" width="92" height="78" rx="14" fill="#fffdfc" stroke="#eadfdf" />
+      <line x1="72" y1="186" x2="128" y2="186" stroke="#d9c4ca" strokeWidth="1" />
       <text
         x="100"
-        y="213"
+        y="214"
         textAnchor="middle"
         fill="#9e405a"
-        fontSize="25"
+        fontSize="24"
         fontWeight="600"
         style={{ fontFamily: "var(--font-serif), Georgia, serif" }}
       >
@@ -126,16 +163,25 @@ function Bottle() {
       </text>
       <text
         x="100"
-        y="233"
+        y="230"
         textAnchor="middle"
         fill="#756b6e"
-        fontSize="7"
+        fontSize="6.5"
         fontWeight="600"
-        letterSpacing="2.4"
+        letterSpacing="2.2"
         style={{ fontFamily: "var(--font-sans), Arial, sans-serif" }}
       >
         PERFUME &amp; MART
       </text>
+      <line x1="72" y1="238" x2="128" y2="238" stroke="#d9c4ca" strokeWidth="1" />
+
+      {/* Metallic cap and nozzle — presses down while spraying */}
+      <g className="perfume-intro__cap">
+        <rect x="76" y="14" width="48" height="30" rx="9" fill="url(#perfume-intro-metal)" />
+        <rect x="82" y="18" width="7" height="22" rx="3.5" fill="#ffffff" opacity="0.35" />
+        <rect x="120" y="22" width="16" height="9" rx="4" fill="url(#perfume-intro-metal)" />
+        <circle cx="134" cy="26.5" r="2.6" fill="#fff0f6" />
+      </g>
     </svg>
   );
 }
@@ -260,6 +306,8 @@ export default function PerfumeIntro() {
           <span className="perfume-intro__halo" aria-hidden="true" />
           <Bottle />
 
+          <span className="perfume-intro__plume" aria-hidden="true" />
+
           <span className="perfume-intro__spray" aria-hidden="true">
             {SPRAY_DOTS.map((dot, index) => (
               <i
@@ -270,6 +318,7 @@ export default function PerfumeIntro() {
                     "--dy": `${dot.dy}px`,
                     "--d": `${dot.delay}s`,
                     "--s": `${dot.size}px`,
+                    "--b": `${dot.blur}px`,
                   } as CSSProperties
                 }
               />
