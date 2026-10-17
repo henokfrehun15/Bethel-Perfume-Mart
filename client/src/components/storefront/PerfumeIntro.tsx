@@ -21,9 +21,9 @@ import "./PerfumeIntro.css";
 type Phase = "ready" | "spraying" | "misting" | "leaving";
 
 const SESSION_KEY = "bethel-intro-done";
-const SPRAY_MS = 1000;
-const MIST_MS = 2200;
-const FADE_MS = 900;
+const SPRAY_MS = 1400;
+const MIST_MS = 2800;
+const FADE_MS = 1000;
 
 /* useLayoutEffect before paint on the client, plain effect on SSR. */
 const useClientLayoutEffect =
@@ -146,17 +146,19 @@ export default function PerfumeIntro() {
 
   /* Decide before the first paint: returning visitors and reduced-
      motion users never see the splash; first-timers get it with the
-     background scroll locked while it is up. The session is only
-     marked as seen once the visitor sprays or skips — never here, or
-     StrictMode's double effect pass would hide the intro instantly. */
+     background scroll locked while it is up. `?intro` in the URL
+     forces the splash on for testing. The session is only marked as
+     seen once the visitor sprays or skips — never here, or StrictMode's
+     double effect pass would hide the intro instantly. */
   useClientLayoutEffect(() => {
     if (!visible) return;
 
+    const forced = new URLSearchParams(window.location.search).has("intro");
     const prefersReduced = window
       .matchMedia("(prefers-reduced-motion: reduce)")
       .matches;
 
-    if (prefersReduced || hasSeenIntro()) {
+    if (!forced && (prefersReduced || hasSeenIntro())) {
       setVisible(false);
       return;
     }
@@ -219,6 +221,24 @@ export default function PerfumeIntro() {
 
   return (
     <div className={`perfume-intro perfume-intro--${phase}`}>
+      {/*
+        Runs while the HTML is still parsing — before the first paint —
+        so returning visitors never even glimpse the splash. Mirrors the
+        checks in the layout effect above.
+      */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html:
+            "(function(){try{if(new URLSearchParams(location.search).has('intro'))return;" +
+            "var r=window.matchMedia('(prefers-reduced-motion: reduce)').matches;" +
+            "var s=false;try{s=sessionStorage.getItem('" +
+            SESSION_KEY +
+            "')==='1'}catch(e){}" +
+            "if(r||s)document.documentElement.classList.add('perfume-intro-hide')" +
+            "}catch(e){}})()",
+        }}
+      />
+
       <noscript>
         <style>{".perfume-intro{display:none !important}"}</style>
       </noscript>
