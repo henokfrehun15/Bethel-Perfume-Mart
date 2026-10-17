@@ -120,7 +120,7 @@ export default function CartPage() {
                         <ProductImage
                           src={item.image}
                           alt={item.name}
-                          className="h-full w-full object-cover"
+                          className="h-full w-full object-contain"
                         >
                           <div className="flex h-full items-center justify-center px-3 text-center text-xs text-primary-dark">
                             Bethel Perfume

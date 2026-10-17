@@ -65,7 +65,7 @@ export default function ProductCard({
           <ProductImage
             src={product.image}
             alt={product.name}
-            className="h-full w-full object-cover"
+            className="h-full w-full object-contain"
           >
             <div className="flex h-full items-center justify-center px-6 text-center">
               <span className="font-serif text-2xl text-primary">

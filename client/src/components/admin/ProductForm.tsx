@@ -880,7 +880,7 @@ export default function ProductForm({
                 <ProductImage
                   src={image}
                   alt=""
-                  className="h-11 w-11 object-cover"
+                  className="h-11 w-11 object-contain"
                 >
                   {index + 1}
                 </ProductImage>

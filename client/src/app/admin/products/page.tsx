@@ -469,7 +469,7 @@ export default function AdminProductsPage() {
                       <ProductImage
                         src={product.image}
                         alt={product.name}
-                        className="h-11 w-9 shrink-0 rounded-md object-cover"
+                        className="h-11 w-9 shrink-0 rounded-md object-contain"
                       >
                         <div
                           className="flex h-11 w-9 shrink-0 items-center justify-center rounded-md"

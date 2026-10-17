@@ -1152,7 +1152,7 @@
 
 .arch img {
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   border-radius: 220px 220px 18px 18px;
 }
 
@@ -1255,7 +1255,7 @@
 
 .product-image img {
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   transition: 0.5s;
 }
 
@@ -1329,7 +1329,7 @@
 
 .promo-image img {
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .promo-copy {
@@ -1568,7 +1568,8 @@ footer small {
 
 .thumbs img {
   height: 108px;
-  object-fit: cover;
+  object-fit: contain;
+  background: var(--soft);
 }
 
 .main-image {
@@ -1576,11 +1577,12 @@ footer small {
   border-radius: 280px 280px 20px 20px;
   overflow: hidden;
   position: relative;
+  background: var(--soft);
 }
 
 .main-image > img {
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .main-image .badge {
@@ -1712,9 +1714,9 @@ footer small {
 .line-item > img,
 .line-item > a {
   height: 220px;
-  object-fit: cover;
+  object-fit: contain;
+  background: var(--soft);
   border-radius: 90px 90px 14px 14px;
-  overflow: hidden;
 }
 
 .line-copy {
@@ -1921,7 +1923,8 @@ footer small {
 
 .mini-item img {
   height: 88px;
-  object-fit: cover;
+  object-fit: contain;
+  background: var(--soft);
   border-radius: 38px 38px 9px 9px;
 }
 
@@ -2089,7 +2092,8 @@ footer small {
 
 .tracked-item img {
   height: 88px;
-  object-fit: cover;
+  object-fit: contain;
+  background: var(--soft);
   border-radius: 38px 38px 9px 9px;
 }
 
@@ -2372,8 +2376,7 @@ footer small {
 }
 
 .admin-main {
-  padding: 38px 42px;
-  max-width: 1600px;
+  padding: 38px max(24px, 2.5vw);
   width: 100%;
   overflow: auto;
 }
@@ -2562,7 +2565,8 @@ tbody tr:hover {
 .product-cell img {
   width: 38px;
   height: 44px;
-  object-fit: cover;
+  object-fit: contain;
+  background: var(--soft);
   border-radius: 6px;
 }
 
