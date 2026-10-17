@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import ProductCard from "@/components/storefront/ProductCard";
 import ProductImage from "@/components/storefront/ProductImage";
+import PerfumeIntro from "@/components/storefront/PerfumeIntro";
 import StorefrontFooter from "@/components/storefront/StorefrontFooter";
 import StorefrontHeader from "@/components/storefront/StorefrontHeader";
 import {
@@ -68,6 +69,9 @@ export default async function Home() {
 
   return (
     <main>
+      {/* One-per-session splash overlay; the page below stays in the HTML */}
+      <PerfumeIntro />
+
       <StorefrontHeader />
 
       {/* Hero */}
