@@ -297,13 +297,14 @@
   );
 }
 
-.perfume-intro--spraying .perfume-intro__mist {
-  animation: perfume-intro-mist 1.7s cubic-bezier(0.18, 0.72, 0.22, 1) forwards;
+.perfume-intro--misting .perfume-intro__mist {
+  animation: perfume-intro-mist 2.2s cubic-bezier(0.18, 0.72, 0.22, 1) forwards;
 }
 
-.perfume-intro--spraying .perfume-intro__brand,
-.perfume-intro--spraying .perfume-intro__eyebrow,
-.perfume-intro--spraying .perfume-intro__hint {
+.perfume-intro--misting .perfume-intro__brand,
+.perfume-intro--misting .perfume-intro__eyebrow,
+.perfume-intro--misting .perfume-intro__hint,
+.perfume-intro--misting .perfume-intro__button {
   animation: perfume-intro-fade-up 0.5s ease forwards;
 }
 

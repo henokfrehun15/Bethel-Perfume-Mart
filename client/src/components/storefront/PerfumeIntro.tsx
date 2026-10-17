@@ -18,11 +18,12 @@ import "./PerfumeIntro.css";
  * who prefer reduced motion skip it before the first paint.
  */
 
-type Phase = "ready" | "spraying" | "leaving";
+type Phase = "ready" | "spraying" | "misting" | "leaving";
 
-const SESSION_KEY = "bethel-intro-shown";
-const MIST_MS = 1700;
-const FADE_MS = 700;
+const SESSION_KEY = "bethel-intro-done";
+const SPRAY_MS = 1000;
+const MIST_MS = 2200;
+const FADE_MS = 900;
 
 /* useLayoutEffect before paint on the client, plain effect on SSR. */
 const useClientLayoutEffect =
@@ -145,7 +146,9 @@ export default function PerfumeIntro() {
 
   /* Decide before the first paint: returning visitors and reduced-
      motion users never see the splash; first-timers get it with the
-     background scroll locked while it is up. */
+     background scroll locked while it is up. The session is only
+     marked as seen once the visitor sprays or skips — never here, or
+     StrictMode's double effect pass would hide the intro instantly. */
   useClientLayoutEffect(() => {
     if (!visible) return;
 
@@ -158,8 +161,6 @@ export default function PerfumeIntro() {
       return;
     }
 
-    markIntroSeen();
-
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
@@ -168,19 +169,23 @@ export default function PerfumeIntro() {
     };
   }, [visible]);
 
-  /* Advance the timeline: the mist expands, then the overlay fades. */
+  /* Advance the timeline: spray burst, then the mist billows out,
+     then the overlay fades to reveal the page. */
   useEffect(() => {
     if (phase === "ready") return;
 
+    const nextPhase: Phase | null =
+      phase === "spraying" ? "misting" : phase === "misting" ? "leaving" : null;
+
     const timer = window.setTimeout(
       () => {
-        if (phase === "spraying") {
-          setPhase("leaving");
+        if (nextPhase) {
+          setPhase(nextPhase);
         } else {
           setVisible(false);
         }
       },
-      phase === "spraying" ? MIST_MS : FADE_MS
+      phase === "spraying" ? SPRAY_MS : phase === "misting" ? MIST_MS : FADE_MS
     );
 
     return () => window.clearTimeout(timer);
@@ -188,11 +193,13 @@ export default function PerfumeIntro() {
 
   const spray = useCallback(() => {
     if (phase !== "ready") return;
+    markIntroSeen();
     setPhase("spraying");
   }, [phase]);
 
   const skip = useCallback(() => {
     if (phase !== "ready") return;
+    markIntroSeen();
     setPhase("leaving");
   }, [phase]);
 
