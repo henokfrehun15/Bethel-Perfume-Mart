@@ -186,7 +186,9 @@ export const deleteCategory = async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error("Delete category error:", error);
 
-    if (error.code === "23503") {
+    // 23503 = foreign key violation; 23001 = RESTRICT violation —
+    // the category still contains products.
+    if (error.code === "23503" || error.code === "23001") {
       return res.status(400).json({
         success: false,
         message: "Cannot delete category because it contains products",
