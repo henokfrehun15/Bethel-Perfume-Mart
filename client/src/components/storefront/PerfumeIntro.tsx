@@ -6,25 +6,27 @@ import {
   useLayoutEffect,
   useRef,
   useState,
-  type RefObject,
 } from "react";
 import "./PerfumeIntro.css";
 
 /*
- * Splash intro for the home page, from the Canva "Bethel" scene design.
- * A realistic glass bottle sprays a canvas-driven mist: a bright jet
- * plus fine droplets, large droplets and soft cloud puffs, each with
- * drag, gravity and wobble. The sequence plays itself once per
- * session — entrance choreography, automatic spray, then the overlay
- * fades to reveal the page. The real page stays in the initial HTML
- * underneath (SEO and no-JS users are unaffected) and there are no
- * dependencies. `?intro` in the URL forces the splash on.
+ * Splash intro for the home page. The Canva "Bethel" scene design —
+ * orbs, film grain, entrance choreography and the blush-rose glass
+ * bottle — driven by the earlier canvas mist engine: a jet of fine
+ * droplets that fall under gravity, soft blush and rose puffs that
+ * trail the spray, and a fog billow that fills the screen before the
+ * overlay fades to reveal the page. The sequence plays itself once
+ * per session; the real page stays in the initial HTML underneath
+ * (SEO and no-JS users are unaffected) and there are no dependencies.
+ * `?intro` in the URL forces the splash on.
  */
 
 type Phase = "entering" | "playing" | "leaving";
+type MistMode = "spray" | "fog";
 
 const SESSION_KEY = "bethel-intro-done";
 const ENTER_TO_SPRAY_MS = 1100;
+const SPRAY_TO_FOG_MS = 2400;
 const PLAY_DURATION_MS = 6700;
 const FADE_MS = 900;
 
@@ -53,13 +55,12 @@ function markIntroSeen() {
   }
 }
 
-/* ---- Canvas spray engine ------------------------------------------------
-   Ported from the Canva scene. Three particle kinds share one loop:
-   "fine" droplets spray fast and fall, "large" droplets catch the
-   light, "cloud" puffs expand and drift. A gradient jet leaves the
-   nozzle for the first ~2.7s. Emission tapers over time. */
-
-type ParticleKind = "cloud" | "large" | "fine";
+/* ---- Canvas mist engine ---------------------------------------------------
+   The earlier spray engine. "spray" emits fast droplets in a narrow
+   cone (they drag and fall under gravity) plus soft puffs that lag
+   behind the jet and keep expanding; "fog" emits big slow puffs that
+   drift out in every direction. Puffs are drawn from pre-rendered
+   radial-gradient sprites. */
 
 interface Particle {
   x: number;
@@ -67,30 +68,44 @@ interface Particle {
   vx: number;
   vy: number;
   r: number;
-  alpha: number;
+  grow: number;
+  a: number;
   age: number;
   life: number;
-  drag: number;
-  depth: number;
-  phase: number;
-  wobble: number;
-  kind: ParticleKind;
-  warm: boolean;
+  kind: 0 | 1 | 2; // 0 droplet, 1 blush puff, 2 rose puff
 }
 
-interface SprayController {
-  start: () => void;
+interface MistController {
+  start: (mode: MistMode) => void;
   stop: () => void;
   destroy: () => void;
 }
 
-function createSprayController(
+const rnd = (a: number, b: number) => a + Math.random() * (b - a);
+
+function makeSprite(rgb: string) {
+  const c = document.createElement("canvas");
+  c.width = c.height = 64;
+  const g = c.getContext("2d");
+
+  if (g) {
+    const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    grad.addColorStop(0, `rgba(${rgb},1)`);
+    grad.addColorStop(0.45, `rgba(${rgb},0.45)`);
+    grad.addColorStop(1, `rgba(${rgb},0)`);
+    g.fillStyle = grad;
+    g.fillRect(0, 0, 64, 64);
+  }
+
+  return c;
+}
+
+function createMistController(
   canvas: HTMLCanvasElement,
   nozzle: SVGElement,
   scene: HTMLElement
-): SprayController {
+): MistController {
   const maybeCtx = canvas.getContext("2d", { alpha: true });
-  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
 
   if (!maybeCtx) {
     return { start: () => {}, stop: () => {}, destroy: () => {} };
@@ -100,40 +115,33 @@ function createSprayController(
      bind the context to an explicitly non-null constant. */
   const ctx: CanvasRenderingContext2D = maybeCtx;
 
-  const rand = (a: number, b: number) => a + Math.random() * (b - a);
-  const randless = (phase: number) => 1.25 + 0.25 * Math.sin(phase);
+  const sprites: (HTMLCanvasElement | null)[] = [
+    null,
+    makeSprite("247,205,219"),
+    makeSprite("214,128,153"),
+  ];
+  const ps: Particle[] = [];
 
-  let width = 0;
-  let height = 0;
-  let dpr = 1;
-  let particles: Particle[] = [];
+  let W = 0;
+  let H = 0;
   let raf = 0;
+  let last = 0;
+  let mode: MistMode = "spray";
+  let emitUntil = 0;
+  let running = false;
+  let delay = 0;
   let pumpTimer = 0;
-  let active = false;
-  let startTime = 0;
-  let previousTime = 0;
-  let emitCarry = 0;
 
-  function resize() {
-    const bounds = scene.getBoundingClientRect();
-    const nextDpr = Math.min(window.devicePixelRatio || 1, 2);
-
-    if (
-      canvas.width === Math.round(bounds.width * nextDpr) &&
-      canvas.height === Math.round(bounds.height * nextDpr)
-    ) {
-      return;
-    }
-
-    width = bounds.width;
-    height = bounds.height;
-    dpr = nextDpr;
-    canvas.width = Math.round(width * dpr);
-    canvas.height = Math.round(height * dpr);
+  const resize = () => {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  }
+  };
 
-  function nozzlePoint() {
+  const origin = () => {
     const tip = nozzle.getBoundingClientRect();
     const bounds = canvas.getBoundingClientRect();
 
@@ -141,207 +149,179 @@ function createSprayController(
       x: tip.right - bounds.left,
       y: tip.top + tip.height / 2 - bounds.top,
     };
-  }
+  };
 
-  function addParticle(origin: { x: number; y: number }, kind: ParticleKind) {
-    const cloud = kind === "cloud";
-    const large = kind === "large";
-    const speed = cloud ? rand(48, 130) : large ? rand(125, 245) : rand(165, 390);
-    const angle = cloud ? rand(-0.34, 0.34) : large ? rand(-0.28, 0.32) : rand(-0.18, 0.18);
+  /* Expected `rate * dt` spawns per frame, with the fraction randomised. */
+  const count = (rate: number, dt: number) =>
+    Math.floor(rate * dt + Math.random());
 
-    particles.push({
-      x: origin.x + rand(0, 3),
-      y: origin.y + rand(-1.5, 1.5),
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed,
-      r: cloud ? rand(9, 23) : large ? rand(2, 4.5) : rand(0.45, 1.65),
-      alpha: cloud ? rand(0.07, 0.15) : large ? rand(0.43, 0.78) : rand(0.42, 0.88),
-      age: 0,
-      life: cloud ? rand(1.2, 2.5) : large ? rand(0.7, 1.55) : rand(0.55, 1.45),
-      drag: cloud ? rand(0.45, 0.8) : rand(0.7, 0.91),
-      depth: rand(0.7, 1.35),
-      phase: rand(0, 7),
-      wobble: rand(4, 21),
-      kind,
-      warm: Math.random() < 0.18,
-    });
-  }
+  const emit = (dt: number) => {
+    const { x, y } = origin();
+    const k = Math.min(Math.max(W / 1000, 0.55), 1.2);
 
-  function emit(origin: { x: number; y: number }, dt: number, t: number) {
-    const strength = t < 0.4 ? 1 : t < 1.5 ? 0.83 : t < 2.25 ? 0.52 : 0.24;
+    if (mode === "spray") {
+      /* Fine, fast droplets in a narrow cone that fall under gravity. */
+      for (let i = count(9, dt); i > 0; i--) {
+        const ang = rnd(-0.3, 0.18);
+        const sp = rnd(7, 17) * k;
 
-    emitCarry += dt * 230 * strength;
+        ps.push({
+          x,
+          y,
+          vx: Math.cos(ang) * sp,
+          vy: Math.sin(ang) * sp,
+          r: rnd(0.7, 1.8),
+          grow: 0,
+          a: rnd(0.5, 0.95),
+          age: 0,
+          life: rnd(26, 58),
+          kind: 0,
+        });
+      }
 
-    const count = Math.min(90, Math.floor(emitCarry));
-    emitCarry -= count;
+      /* Soft mist that lags behind the jet and keeps expanding. */
+      for (let i = count(1.6, dt); i > 0; i--) {
+        const ang = rnd(-0.4, 0.25);
+        const sp = rnd(2.5, 7) * k;
 
-    for (let i = 0; i < count; i++) {
-      const choice = Math.random();
-      addParticle(origin, choice < 0.23 ? "cloud" : choice < 0.27 ? "large" : "fine");
-    }
-
-    if (particles.length > 1250) {
-      particles.splice(0, particles.length - 1250);
-    }
-  }
-
-  function jet(point: { x: number; y: number }, t: number) {
-    if (t > 2.7) return;
-
-    const opacity = t < 2.25 ? 1 : Math.max(0, (2.7 - t) / 0.45);
-    const length = Math.min(83, 35 + t * 115);
-    const end = Math.min(width + 20, point.x + length);
-
-    ctx.save();
-    ctx.lineCap = "round";
-
-    const glow = ctx.createLinearGradient(point.x, point.y, end, point.y);
-    glow.addColorStop(0, `rgba(255,249,234,${0.96 * opacity})`);
-    glow.addColorStop(0.3, `rgba(218,242,255,${0.7 * opacity})`);
-    glow.addColorStop(1, "rgba(158,210,245,0)");
-    ctx.strokeStyle = glow;
-
-    ctx.lineWidth = 17;
-    ctx.beginPath();
-    ctx.moveTo(point.x, point.y);
-    ctx.quadraticCurveTo(point.x + length * 0.55, point.y - 1, end, point.y + 2);
-    ctx.stroke();
-
-    ctx.lineWidth = 5;
-    ctx.beginPath();
-    ctx.moveTo(point.x, point.y);
-    ctx.lineTo(Math.min(end, point.x + 59), point.y);
-    ctx.stroke();
-
-    ctx.lineWidth = 1.8;
-    ctx.strokeStyle = `rgba(255,255,250,${opacity})`;
-    ctx.beginPath();
-    ctx.moveTo(point.x, point.y);
-    ctx.lineTo(Math.min(end, point.x + 39), point.y);
-    ctx.stroke();
-
-    ctx.restore();
-  }
-
-  function draw(p: Particle) {
-    const progress = Math.min(1, p.age / p.life);
-    const alpha = p.alpha * Math.pow(1 - progress, 1.2) * Math.min(1, 0.45 + p.age * 12);
-
-    if (alpha < 0.003) return;
-
-    if (p.kind === "cloud") {
-      const radius = p.r * p.depth * (1 + progress * 1.6);
-      const color = p.warm ? "255,237,220" : "190,228,249";
-      const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, radius * 1.8);
-
-      gradient.addColorStop(0, `rgba(${color},${alpha})`);
-      gradient.addColorStop(0.37, `rgba(${color},${alpha * 0.52})`);
-      gradient.addColorStop(1, `rgba(${color},0)`);
-
-      ctx.fillStyle = gradient;
-      ctx.beginPath();
-      ctx.ellipse(p.x, p.y, radius * 1.8, radius * randless(p.phase), p.phase * 0.18, 0, Math.PI * 2);
-      ctx.fill();
+        ps.push({
+          x,
+          y,
+          vx: Math.cos(ang) * sp,
+          vy: Math.sin(ang) * sp,
+          r: rnd(5, 10),
+          grow: rnd(0.35, 0.9),
+          a: rnd(0.25, 0.5),
+          age: 0,
+          life: rnd(70, 120),
+          kind: Math.random() < 0.6 ? 1 : 2,
+        });
+      }
     } else {
-      ctx.fillStyle = `rgba(${p.warm ? "255,238,219" : "218,245,255"},${alpha})`;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r * p.depth, 0, Math.PI * 2);
-      ctx.fill();
+      /* Fog: big slow puffs that drift out in every direction. */
+      for (let i = count(0.6, dt); i > 0; i--) {
+        const ang = rnd(0, Math.PI * 2);
+        const sp = rnd(1, 5) * k;
 
-      if (p.kind === "large") {
-        ctx.fillStyle = `rgba(255,255,255,${alpha * 0.8})`;
-        ctx.beginPath();
-        ctx.arc(p.x - p.r * 0.25, p.y - p.r * 0.25, Math.max(0.5, p.r * 0.25), 0, Math.PI * 2);
-        ctx.fill();
+        ps.push({
+          x: x + rnd(-40, 40),
+          y: y + rnd(-40, 40),
+          vx: Math.cos(ang) * sp,
+          vy: Math.sin(ang) * sp,
+          r: rnd(55, 100),
+          grow: rnd(0.9, 1.8),
+          a: rnd(0.4, 0.7),
+          age: 0,
+          life: rnd(90, 140),
+          kind: Math.random() < 0.5 ? 1 : 2,
+        });
       }
     }
-  }
+  };
 
-  function frame(now: number) {
-    if (!active) return;
+  const tick = (t: number) => {
+    const dt = Math.min(Math.max((t - last) / 16.67, 0.5), 3);
+    last = t;
+    ctx.clearRect(0, 0, W, H);
 
-    const dt = Math.min(Math.max((now - previousTime) / 1000, 0), 0.05);
-    previousTime = now;
-    const t = (now - startTime) / 1000;
-    const origin = nozzlePoint();
+    if (t < emitUntil) emit(dt);
 
-    ctx.clearRect(0, 0, width, height);
-
-    if (!reduced.matches && t < 2.65) emit(origin, dt, t);
-
-    particles = particles.filter(
-      (p) =>
-        p.age < p.life && p.x < width + 100 && p.y > -100 && p.y < height + 100
-    );
-
-    for (const p of particles) {
+    for (let i = ps.length - 1; i >= 0; i--) {
+      const p = ps[i];
       p.age += dt;
+      const k = p.age / p.life;
+
+      if (k >= 1) {
+        ps.splice(i, 1);
+        continue;
+      }
+
       p.x += p.vx * dt;
-      p.y += p.vy * dt + Math.sin(p.age * 11 + p.phase) * p.wobble * dt;
-      p.vx *= Math.pow(p.drag, dt);
-      p.vy += (p.kind === "cloud" ? -12 : 19) * dt;
+      p.y += p.vy * dt;
+
+      if (p.kind === 0) {
+        const drag = Math.pow(0.94, dt);
+        p.vx *= drag;
+        p.vy = p.vy * drag + 0.14 * dt;
+      } else {
+        const drag = Math.pow(0.965, dt);
+        p.vx = p.vx * drag + rnd(-0.05, 0.05) * dt;
+        p.vy = p.vy * drag - 0.01 * dt;
+        p.r += p.grow * dt;
+      }
+
+      const env = k < 0.12 ? k / 0.12 : (1 - k) / 0.88;
+      ctx.globalAlpha = p.a * env;
+
+      if (p.kind === 0) {
+        ctx.fillStyle = "#b9657e";
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.drawImage(sprites[p.kind]!, p.x - p.r, p.y - p.r, p.r * 2, p.r * 2);
+      }
     }
 
-    for (const p of particles) if (p.kind === "cloud") draw(p);
+    ctx.globalAlpha = 1;
 
-    jet(origin, reduced.matches ? Math.min(t, 0.35) : t);
-
-    for (const p of particles) if (p.kind !== "cloud") draw(p);
-
-    if (t < (reduced.matches ? 0.65 : 5.5) && (t < 2.7 || particles.length)) {
-      raf = requestAnimationFrame(frame);
+    if (ps.length || t < emitUntil) {
+      raf = requestAnimationFrame(tick);
     } else {
-      active = false;
-      raf = 0;
-      particles = [];
-      ctx.clearRect(0, 0, width, height);
+      running = false;
     }
-  }
+  };
 
-  function stop() {
-    active = false;
+  const stop = () => {
+    window.clearTimeout(delay);
+    window.clearTimeout(pumpTimer);
+    delay = 0;
+    pumpTimer = 0;
     cancelAnimationFrame(raf);
     raf = 0;
-    window.clearTimeout(pumpTimer);
-    pumpTimer = 0;
-    particles = [];
-    emitCarry = 0;
-    ctx.clearRect(0, 0, width, height);
+    running = false;
+    emitUntil = 0;
+    ps.length = 0;
+    ctx.clearRect(0, 0, W, H);
     scene.classList.remove("is-spraying");
-  }
+  };
 
-  function start() {
-    stop();
-    resize();
-    startTime = performance.now();
-    previousTime = startTime;
-    active = true;
+  const start = (m: MistMode) => {
+    mode = m;
 
-    scene.classList.add("is-spraying");
-    window.clearTimeout(pumpTimer);
-    pumpTimer = window.setTimeout(
-      () => scene.classList.remove("is-spraying"),
-      600
-    );
-
-    const origin = nozzlePoint();
-
-    if (!reduced.matches) {
-      for (let i = 0; i < 32; i++) {
-        addParticle(origin, i % 5 === 0 ? "cloud" : "fine");
-      }
+    /* The pump presses down while the spray leaves the nozzle. */
+    if (m === "spray") {
+      scene.classList.add("is-spraying");
+      window.clearTimeout(pumpTimer);
+      pumpTimer = window.setTimeout(
+        () => scene.classList.remove("is-spraying"),
+        600
+      );
     }
 
-    jet(origin, 0);
-    raf = requestAnimationFrame(frame);
-  }
+    window.clearTimeout(delay);
 
-  function destroy() {
+    /* Spray waits a beat so the nozzle is pressed down first. */
+    delay = window.setTimeout(
+      () => {
+        emitUntil = performance.now() + (m === "spray" ? 650 : 1000);
+
+        if (!running) {
+          running = true;
+          last = performance.now();
+          raf = requestAnimationFrame(tick);
+        }
+      },
+      m === "spray" ? 120 : 0
+    );
+  };
+
+  const destroy = () => {
     stop();
     window.removeEventListener("resize", resize);
-  }
+  };
 
-  window.addEventListener("resize", resize, { passive: true });
+  window.addEventListener("resize", resize);
   resize();
 
   return { start, stop, destroy };
@@ -352,7 +332,7 @@ function createSprayController(
    lit liquid surface, a cream label and a cylindrical rose-gold cap
    with a side atomizer. Gradient ids are prefixed to stay unique. */
 
-function Bottle({ nozzleRef }: { nozzleRef: RefObject<SVGEllipseElement | null> }) {
+function Bottle({ nozzleRef }: { nozzleRef: React.RefObject<SVGEllipseElement | null> }) {
   return (
     <svg
       className="perfume-intro__bottle"
@@ -534,7 +514,7 @@ export default function PerfumeIntro() {
   const sceneRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const nozzleRef = useRef<SVGEllipseElement>(null);
-  const sprayRef = useRef<SprayController | null>(null);
+  const mistRef = useRef<MistController | null>(null);
 
   /* Decide before the first paint: returning visitors and reduced-
      motion users never see the splash; first-timers get it with the
@@ -569,12 +549,12 @@ export default function PerfumeIntro() {
 
     if (!canvas || !nozzle || !scene) return;
 
-    const controller = createSprayController(canvas, nozzle, scene);
-    sprayRef.current = controller;
+    const controller = createMistController(canvas, nozzle, scene);
+    mistRef.current = controller;
 
     return () => {
       controller.destroy();
-      sprayRef.current = null;
+      mistRef.current = null;
     };
   }, []);
 
@@ -599,19 +579,25 @@ export default function PerfumeIntro() {
     };
   }, [visible, phase]);
 
-  /* The choreography: the bottle sprays by itself, then the overlay
-     finishes and fades to reveal the page. */
+  /* The choreography: the bottle sprays by itself, the mist thickens
+     into a fog, then the overlay finishes and fades to reveal the
+     page. */
   useEffect(() => {
     if (phase !== "playing") return;
 
     const sprayTimer = window.setTimeout(
-      () => sprayRef.current?.start(),
+      () => mistRef.current?.start("spray"),
       ENTER_TO_SPRAY_MS
+    );
+    const fogTimer = window.setTimeout(
+      () => mistRef.current?.start("fog"),
+      SPRAY_TO_FOG_MS
     );
     const finishTimer = window.setTimeout(finish, PLAY_DURATION_MS);
 
     return () => {
       window.clearTimeout(sprayTimer);
+      window.clearTimeout(fogTimer);
       window.clearTimeout(finishTimer);
     };
   }, [phase, finish]);
@@ -681,7 +667,7 @@ export default function PerfumeIntro() {
         <button
           type="button"
           className="perfume-intro__button"
-          onClick={() => sprayRef.current?.start()}
+          onClick={() => mistRef.current?.start("spray")}
           autoFocus
         >
           Press to spray
