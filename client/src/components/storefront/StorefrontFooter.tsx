@@ -1,25 +1,46 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 import {
   formatPhone,
   telLink,
   whatsappLink,
 } from "@/lib/contact";
-import { getStorefrontSettings } from "@/lib/serverApi";
+import { fetchPublicSettings } from "@/lib/settings";
+import type { StorefrontSettings } from "@/lib/serverApi";
+
+/** Shown before the settings load and whenever they are missing. */
+const FALLBACK_ADDRESS = "Addis Ababa, Bole, Alemnesh Plaza";
 
 /**
  * Storefront footer: dark, two-column layout with the brand wordmark,
- * quick links, contact details from the admin-editable store
- * settings, and a legal row.
+ * quick links, contact details from the public store settings, and a
+ * legal row. A client component because cart, checkout, tracking and
+ * product-detail pages — which are themselves client components —
+ * render it directly.
  */
-export default async function StorefrontFooter() {
-  const settings = await getStorefrontSettings({
-    revalidate: 300,
-  });
+export default function StorefrontFooter() {
+  const [settings, setSettings] =
+    useState<StorefrontSettings | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    fetchPublicSettings().then((data) => {
+      if (active) {
+        setSettings(data);
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const address =
-    settings?.contact_address?.trim() ||
-    "Addis Ababa, Bole, Alemnesh Plaza";
+    settings?.contact_address?.trim() || FALLBACK_ADDRESS;
 
   const phone = settings?.whatsapp_number?.trim() || "";
 
