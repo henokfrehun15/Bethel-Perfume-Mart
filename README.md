@@ -66,7 +66,7 @@ Storefront: <http://localhost:3000> · Admin: <http://localhost:3000/admin/login
 | `npm run typecheck`           | `tsc --noEmit` for both apps                     |
 | `npm run lint`                | ESLint for the client                            |
 | `npm run db:migrate`         | Apply pending SQL migrations (alias: `db:setup`)   |
-| `npm run db:seed`            | Apply migrations + `server/database/seed.sql`      |
+| `npm run db:seed`            | Apply migrations + `server/database/seed.sql` (demo products, each with a bundled photo served from `/seed-images`) |
 | `npm test`                   | Vitest suites for the API and the storefront        |
 | `npm run create-admin -- <username> <password>` | Create/update an admin user     |
 
@@ -174,6 +174,12 @@ Render Blueprint at the repo root) already sets that up.
    DATABASE_URL="<neon-pooled-url>" npm run db:migrate --prefix server
    DATABASE_URL="<neon-pooled-url>" npm run create-admin --prefix server -- admin "<strong-password>"
    ```
+
+   Optionally seed demo categories/products so the store does not look
+   empty (`npm run db:seed --prefix server` with the same
+   `DATABASE_URL`). Their images are bundled with the API under
+   `server/seed-images` and served at `/seed-images`, so they render in
+   production with any storage driver.
 
 2. **Images (R2 or B2):** create a bucket with public access (R2: enable the
    r2.dev URL or attach a custom domain; B2: make the bucket public), then
