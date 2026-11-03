@@ -1,3 +1,5 @@
+import path from "node:path";
+
 import { env, isProduction } from "./config/env";
 import express from "express";
 import compression from "compression";
@@ -69,6 +71,21 @@ if (getStorageDriver().kind === "local") {
     })
   );
 }
+
+// Seed product photos bundled with the repo (server/seed-images)
+// and referenced by seed.sql as /seed-images/<file>. Mounted regardless
+// of the storage driver: the files ship with the code, so they survive
+// the filesystem wipes of free-tier hosts. Names never change, so
+// responses can be cached aggressively.
+app.use(
+  "/seed-images",
+  express.static(path.resolve(process.cwd(), "seed-images"), {
+    index: false,
+    dotfiles: "deny",
+    maxAge: "30d",
+    immutable: true,
+  })
+);
 
 // Health check (also verifies the database connection)
 app.get("/api/health", async (_req, res) => {
