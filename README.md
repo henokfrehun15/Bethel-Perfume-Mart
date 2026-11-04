@@ -168,9 +168,7 @@ tests and production build.
 ## Deploying on a free tier
 
 The repo is wired for a zero-cost stack: **Render** (API), **Vercel**
-(storefront), **Neon** (PostgreSQL) and **Supabase Storage**
-(image uploads — its free tier requires no payment method, unlike
-Cloudflare R2 and public Backblaze B2 buckets). Free-tier hosts wipe
+(storefront), **Neon** (PostgreSQL) and **Supabase Storage**. Free-tier hosts wipe
 the filesystem on every deploy and restart, so production must use a
 hosted storage driver — `render.yaml` (the Render Blueprint at the
 repo root) already sets that up.
@@ -254,6 +252,5 @@ External image URLs (e.g. a CDN) still work and are not deleted by the app.
 
 ## Roadmap / known gaps
 
-- Checkout is cash-on-delivery only — no online payment gateway yet.
 - Products support soft-delete/hide via `is_active`: hard delete stays blocked
   for products that appear in orders, and the admin UI offers "Hide instead".
