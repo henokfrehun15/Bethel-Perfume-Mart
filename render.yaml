@@ -20,6 +20,10 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      # Pin the Node major used for the build and at runtime so
+      # deploys match local development instead of Render's default.
+      - key: NODE_VERSION
+        value: "22"
       # Pooled connection string from Neon (DATABASE_SSL defaults to 1).
       - key: DATABASE_URL
         sync: false
