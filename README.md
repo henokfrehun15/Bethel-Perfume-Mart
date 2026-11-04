@@ -5,6 +5,12 @@ storefront (products, cart, checkout, order confirmation and tracking) plus an
 Express + PostgreSQL API with a JWT-protected admin dashboard for products,
 categories, orders and store settings.
 
+**Live:** storefront at <https://bethel-perfume-mart.vercel.app> · admin at
+<https://bethel-perfume-mart.vercel.app/admin/login> · API at
+<https://bethel-perfume-api.onrender.com/api> — deployed on the free tier
+(Vercel + Render + Neon + Supabase Storage); see
+[Deploying on a free tier](#deploying-on-a-free-tier).
+
 ## Tech stack
 
 | Layer    | Technology                                                              |
