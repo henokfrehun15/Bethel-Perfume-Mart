@@ -1628,6 +1628,12 @@ footer small {
   gap: 16px;
 }
 
+/* Single-image products have no thumbnails, so the main image
+   must span the full gallery width instead of the 88px column. */
+.gallery-single {
+  grid-template-columns: 1fr;
+}
+
 .thumbs {
   display: flex;
   flex-direction: column;

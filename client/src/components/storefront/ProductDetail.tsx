@@ -105,7 +105,13 @@ export default function ProductDetail({
 
         <div className="detail">
           {/* Product images */}
-          <div className="gallery">
+          <div
+            className={
+              images.length > 1
+                ? "gallery"
+                : "gallery gallery-single"
+            }
+          >
             {images.length > 1 && (
               <div className="thumbs">
                 {images.map((image, index) => (
