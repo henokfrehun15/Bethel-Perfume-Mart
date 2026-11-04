@@ -15,6 +15,7 @@ vi.hoisted(() => {
 import {
   getStorageDriver,
   missingS3Config,
+  missingSupabaseConfig,
   type StorageDriver,
 } from "../../services/storageService";
 import { getUploadDir } from "../../services/uploadService";
@@ -41,6 +42,14 @@ describe("storage driver selection", () => {
       "S3_REGION",
       "S3_ACCESS_KEY_ID",
       "S3_SECRET_ACCESS_KEY",
+    ]);
+  });
+
+  it("lists the missing variables required for the supabase driver", () => {
+    expect(missingSupabaseConfig()).toEqual([
+      "SUPABASE_URL",
+      "SUPABASE_SERVICE_KEY",
+      "SUPABASE_BUCKET",
     ]);
   });
 });

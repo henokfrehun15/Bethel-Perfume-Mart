@@ -10,16 +10,20 @@ import {
 } from "./uploadService";
 
 /**
- * Where uploaded product images live. Two drivers:
+ * Where uploaded product images live. Three drivers:
  *
  * - "local": the API's disk (UPLOAD_DIR), served from /uploads.
  *   Simple, but the files are lost on redeploy and not shared
  *   between instances.
  * - "s3": S3 or any S3-compatible object storage (R2, MinIO, ...).
  *   Set STORAGE_DRIVER=s3 plus the S3_* variables to enable.
+ * - "supabase": Supabase Storage on an existing project. Set
+ *   STORAGE_DRIVER=supabase plus the SUPABASE_* variables to
+ *   enable. Uploads go through the REST API with the service role
+ *   key; objects are served from the bucket's public URL.
  */
 export interface StorageDriver {
-  readonly kind: "local" | "s3";
+  readonly kind: "local" | "s3" | "supabase";
 
   /** Persist verified image bytes. Resolves false when the write fails. */
   storeImage(
@@ -225,6 +229,109 @@ class S3StorageDriver implements StorageDriver {
   }
 }
 
+class SupabaseStorageDriver implements StorageDriver {
+  readonly kind = "supabase" as const;
+
+  /** Authenticated object URL used for writes and deletes. */
+  private objectUrl(filename: string): string {
+    return `${this.projectBase()}/storage/v1/object/${env.supabaseBucket}/${filename}`;
+  }
+
+  /** Public base URL for stored objects (public buckets). */
+  private publicBase(): string {
+    return `${this.projectBase()}/storage/v1/object/public/${env.supabaseBucket}`;
+  }
+
+  private projectBase(): string {
+    return env.supabaseUrl.replace(/\/+$/, "");
+  }
+
+  async storeImage(
+    filename: string,
+    bytes: Buffer,
+    mime: string
+  ): Promise<boolean> {
+    if (!FILENAME_PATTERN.test(filename)) {
+      return false;
+    }
+
+    try {
+      const response = await fetch(this.objectUrl(filename), {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${env.supabaseServiceKey}`,
+          "Content-Type": mime,
+          // Same generated name can be retried after a failed store.
+          "x-upsert": "true",
+        },
+        body: new Uint8Array(bytes),
+      });
+
+      if (!response.ok) {
+        console.error(
+          `Supabase image store error: ${response.status} ${await response.text()}`
+        );
+
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Supabase image store error:", error);
+
+      return false;
+    }
+  }
+
+  async deleteImage(filename: string): Promise<boolean> {
+    if (!FILENAME_PATTERN.test(filename)) {
+      return false;
+    }
+
+    try {
+      const response = await fetch(this.objectUrl(filename), {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${env.supabaseServiceKey}`,
+        },
+      });
+
+      // Already gone is still the desired end state.
+      if (!response.ok && response.status !== 404) {
+        console.error(
+          `Supabase image delete error: ${response.status} ${await response.text()}`
+        );
+
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Supabase image delete error:", error);
+
+      return false;
+    }
+  }
+
+  publicUrl(filename: string): string {
+    return `${this.publicBase()}/${filename}`;
+  }
+
+  filenameFromPublicUrl(url: string): string | null {
+    const base = this.publicBase();
+
+    if (!url.startsWith(`${base}/`)) {
+      return null;
+    }
+
+    const filename = decodeURIComponent(
+      url.slice(base.length + 1)
+    );
+
+    return FILENAME_PATTERN.test(filename) ? filename : null;
+  }
+}
+
 let activeDriver: StorageDriver | null = null;
 
 /**
@@ -245,8 +352,25 @@ export function missingS3Config(): string[] {
 }
 
 /**
+ * Names of the SUPABASE_* variables still required to enable the
+ * supabase driver. Empty when the configuration is complete.
+ */
+export function missingSupabaseConfig(): string[] {
+  const required: [key: string, value: string][] = [
+    ["SUPABASE_URL", env.supabaseUrl],
+    ["SUPABASE_SERVICE_KEY", env.supabaseServiceKey],
+    ["SUPABASE_BUCKET", env.supabaseBucket],
+  ];
+
+  return required
+    .filter(([, value]) => !value)
+    .map(([key]) => key);
+}
+
+/**
  * The configured storage driver. Throws at startup (fail fast) when
- * STORAGE_DRIVER=s3 is set without its required credentials.
+ * STORAGE_DRIVER=s3 or STORAGE_DRIVER=supabase is set without the
+ * driver's required credentials.
  */
 export function getStorageDriver(): StorageDriver {
   if (activeDriver) {
@@ -263,6 +387,16 @@ export function getStorageDriver(): StorageDriver {
     }
 
     activeDriver = new S3StorageDriver();
+  } else if (env.storageDriver === "supabase") {
+    const missing = missingSupabaseConfig();
+
+    if (missing.length > 0) {
+      throw new Error(
+        `STORAGE_DRIVER=supabase requires ${missing.join(", ")} to be set.`
+      );
+    }
+
+    activeDriver = new SupabaseStorageDriver();
   } else {
     activeDriver = new LocalStorageDriver();
   }

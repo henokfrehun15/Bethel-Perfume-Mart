@@ -110,9 +110,11 @@ export const env = {
   // a separate asset host or CDN.
   publicAssetUrl: optional("PUBLIC_ASSET_URL", ""),
 
-  // Image storage backend: "local" (disk, default) or "s3" (S3 and
-  // S3-compatible object storage such as R2, MinIO or Cloudflare).
-  // The s3 driver requires the four S3_* credentials below.
+  // Image storage backend: "local" (disk, default), "s3" (S3 and
+  // S3-compatible object storage such as R2, MinIO) or "supabase"
+  // (Supabase Storage). The s3 driver requires the four S3_*
+  // credentials below; the supabase driver requires the three
+  // SUPABASE_* values.
   storageDriver: optional("STORAGE_DRIVER", "local"),
   s3Bucket: optional("S3_BUCKET", ""),
   s3Region: optional("S3_REGION", ""),
@@ -123,6 +125,11 @@ export const env = {
   // Public base for S3 image URLs. Defaults to the bucket's endpoint
   // URL; set this when serving uploads through a CDN (e.g. CloudFront).
   s3PublicUrl: optional("S3_PUBLIC_URL", ""),
+  // Supabase Storage: project URL, service role key (bypasses RLS,
+  // server-only) and the public bucket that receives the uploads.
+  supabaseUrl: optional("SUPABASE_URL", ""),
+  supabaseServiceKey: optional("SUPABASE_SERVICE_KEY", ""),
+  supabaseBucket: optional("SUPABASE_BUCKET", ""),
 };
 
 export const isProduction = env.nodeEnv === "production";

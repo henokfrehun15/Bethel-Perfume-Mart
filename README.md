@@ -162,10 +162,12 @@ tests and production build.
 ## Deploying on a free tier
 
 The repo is wired for a zero-cost stack: **Render** (API), **Vercel**
-(storefront), **Neon** (PostgreSQL) and **Cloudflare R2** or **Backblaze B2**
-(image uploads). Free-tier hosts wipe the filesystem on every deploy and
-restart, so production must use `STORAGE_DRIVER=s3` — `render.yaml` (the
-Render Blueprint at the repo root) already sets that up.
+(storefront), **Neon** (PostgreSQL) and **Supabase Storage**
+(image uploads — its free tier requires no payment method, unlike
+Cloudflare R2 and public Backblaze B2 buckets). Free-tier hosts wipe
+the filesystem on every deploy and restart, so production must use a
+hosted storage driver — `render.yaml` (the Render Blueprint at the
+repo root) already sets that up.
 
 1. **Database (Neon):** create a project and copy the *pooled* connection
    string. From your machine, apply migrations and create the admin:
@@ -181,16 +183,20 @@ Render Blueprint at the repo root) already sets that up.
    `server/seed-images` and served at `/seed-images`, so they render in
    production with any storage driver.
 
-2. **Images (R2 or B2):** create a bucket with public access (R2: enable the
-   r2.dev URL or attach a custom domain; B2: make the bucket public), then
-   create S3 API tokens. Collect the bucket name, endpoint, region (`auto`
-   for R2), access key id + secret, and the bucket's *public* URL — R2's S3
-   endpoint does not serve objects publicly, so `S3_PUBLIC_URL` must be the
-   r2.dev / custom-domain URL.
+2. **Images (Supabase Storage):** create a free project at
+    [supabase.com](https://supabase.com) (no payment method needed),
+    then in **Storage** create a bucket (e.g. `bethel-uploads`) and
+    flip it to **Public** so objects are served without auth. From
+    **Settings → API** copy the project URL (`https://<ref>.supabase.co`)
+    and the `service_role` secret. Those three values feed the
+    `SUPABASE_URL`, `SUPABASE_BUCKET` and `SUPABASE_SERVICE_KEY`
+    prompts on Render. (The API also supports `STORAGE_DRIVER=s3`
+    with the `S3_*` variables for S3-compatible providers such as R2,
+    B2 or MinIO — see `server/.env.example`.)
 3. **API (Render):** New → Blueprint → this repository. The blueprint defines
    the free-plan service (root `server/`, build + migrations on every deploy,
    `/api/health` health check). Fill in the prompted secrets: `DATABASE_URL`,
-   `CLIENT_URL` (your Vercel URL) and the `S3_*` values.
+   `CLIENT_URL` (your Vercel URL) and the `SUPABASE_*` values.
 4. **Storefront (Vercel):** import this repository, root directory `client`,
    environment `NEXT_PUBLIC_API_URL=https://<api>.onrender.com/api` and
    `NEXT_PUBLIC_SITE_URL=https://<app>.vercel.app`. After the first deploy,
@@ -218,7 +224,8 @@ URL, alongside any externally hosted image URLs. The server:
 - verifies the file really is an image by reading its magic bytes **before**
   anything is stored, so a renamed text file is rejected;
 - stores it under a generated filename via the configured storage driver
-  (disk by default, S3/R2/MinIO when `STORAGE_DRIVER=s3`), so the original
+  (disk by default; Supabase Storage when `STORAGE_DRIVER=supabase`;
+  S3/R2/MinIO when `STORAGE_DRIVER=s3`), so the original
   filename is never trusted;
 - serves local files from `/uploads` with `Cross-Origin-Resource-Policy:
   cross-origin` (so the storefront can embed them) and long-lived caching,
@@ -227,11 +234,13 @@ URL, alongside any externally hosted image URLs. The server:
   anymore (on product update or delete), so removing an image in the admin
   never leaves orphaned files behind.
 
-Uploaded images are stored in the database as `/uploads/...` paths, not
-absolute URLs — the storefront resolves them against the API origin at
-render time, so images keep working when the API moves between hosts
-(set `PUBLIC_ASSET_URL` only if uploads are served from a separate CDN).
-Migration `0003` normalises any older absolute URLs the same way, and the
+With the local driver, uploaded images are stored in the database as
+`/uploads/...` paths, not absolute URLs — the storefront resolves them
+against the API origin at render time, so images keep working when the
+API moves between hosts (set `PUBLIC_ASSET_URL` only if uploads are
+served from a separate CDN). The hosted drivers (supabase, s3) store
+absolute object URLs instead. Migration `0003` normalises any older
+absolute local URLs the same way, and the
 storefront falls back to a branded placeholder when an image is missing
 or fails to load.
 
